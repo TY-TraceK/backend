@@ -13,6 +13,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SPRING_PROFILE: dev
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_NAME: tracek
+      DB_USERNAME: ${{ secrets.MYSQL_USER }}
+      DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     services:
       mysql:
@@ -25,7 +32,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -45,20 +52,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_NAME: tracek
-          DB_USERNAME: ${{ secrets.MYSQL_USER }}
-          DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: ./gradlew test
 
       - name: Build Project
-        env:
-          DB_HOST: localhost
-          DB_PORT: 3306
-          DB_NAME: tracek
-          DB_USERNAME: ${{ secrets.MYSQL_USER }}
-          DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: ./gradlew build -x test
 
