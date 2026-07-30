@@ -30,6 +30,15 @@ spotless {
     }
 }
 
+// 공통 제외 파일 패턴 정의
+def jacocoExcludePatterns = [
+        '**/dto/**',
+        '**/entity/**',
+        '**/config/**',
+        '**/*Application*',
+        '**/Q*' // QueryDSL 대비
+]
+
 // JaCoCo 커버리지 커트라인 설정 (70% 미만 시 실패)
 jacocoTestCoverageVerification {
     violationRules {
@@ -42,6 +51,13 @@ jacocoTestCoverageVerification {
             }
         }
     }
+
+    // 커버리지 검증 대상에서 제외
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludePatterns)
+        }))
+    }
 }
 
 // JaCoCo 리포트 생성 설정
@@ -50,6 +66,13 @@ jacocoTestReport {
     reports {
         xml.required = true // CI 연동용 XML
         html.required = true // 로컬 시각화용 HTML
+    }
+
+    // 리포트 생성 대상에서 제외
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludePatterns)
+        }))
     }
 }
 
