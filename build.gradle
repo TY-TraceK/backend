@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0'
+    id 'jacoco'
 }
 
 group = 'com'
@@ -33,9 +35,66 @@ repositories {
     mavenCentral()
 }
 
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat().aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+// 공통 제외 파일 패턴 정의
+def jacocoExcludePatterns = [
+        '**/dto/**',
+        '**/entity/**',
+        '**/config/**',
+        '**/*Application*',
+        '**/Q*' // QueryDSL 대비
+]
+
+// JaCoCo 커버리지 커트라인 설정 (70% 미만 시 실패)
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.70
+            }
+        }
+    }
+
+    // 커버리지 검증 대상에서 제외
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludePatterns)
+        }))
+    }
+}
+
+// JaCoCo 리포트 생성 설정
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true // CI 연동용 XML
+        html.required = true // 로컬 시각화용 HTML
+    }
+
+    // 리포트 생성 대상에서 제외
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludePatterns)
+        }))
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
@@ -58,4 +117,5 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // test 완료 후 JaCoCo 리포트 생성
 }

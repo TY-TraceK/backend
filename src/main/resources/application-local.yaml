@@ -11,7 +11,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        use_sql_comments: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
 
 logging:
   level:
     org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace

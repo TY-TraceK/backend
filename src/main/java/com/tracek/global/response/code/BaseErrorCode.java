@@ -1,5 +1,3 @@
 package com.tracek.global.response.code;
 
-public interface BaseErrorCode extends BaseCode {
-
-}
+public interface BaseErrorCode extends BaseCode {}
