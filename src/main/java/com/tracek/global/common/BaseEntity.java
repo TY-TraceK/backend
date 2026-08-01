@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,6 +16,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
+    @CreatedBy
+    @Column(name = "created_by", updatable = false)
+    protected Long createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    protected Long updatedBy;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -25,21 +32,13 @@ public abstract class BaseEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @CreatedBy
-    @Column(name = "created_by", updatable = false)
-    protected UUID createdBy;
-
-    @LastModifiedBy
-    @Column(name = "updated_by")
-    protected UUID updatedBy;
-
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(name = "deleted_by")
-    private UUID deletedBy;
+    private Long deletedBy;
 
-    public void softDelete(UUID userId) {
+    public void softDelete(Long userId) {
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = userId;
     }

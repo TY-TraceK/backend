@@ -10,23 +10,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-  @Bean
-  public OpenAPI openAPI() {
-    String jwtSchemeName = "jwtAuth";
-    Components components = new Components()
-        .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
-            .name(jwtSchemeName)
-            .type(SecurityScheme.Type.HTTP)
-            .scheme("bearer")
-            .bearerFormat("JWT"));
+    @Bean
+    public OpenAPI openAPI() {
+        String jwtSchemeName = "jwtAuth";
+        Components components =
+                new Components()
+                        .addSecuritySchemes(
+                                jwtSchemeName,
+                                new SecurityScheme()
+                                        .name(jwtSchemeName)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT"));
 
-    Info info = new Info()
-        .title("TraceK API Document")
-        .description("TraceK API 명세서입니다.")
-        .version("v1.0.0");
+        Info info =
+                new Info()
+                        .title("TraceK API Document")
+                        .description("TraceK API 명세서입니다.")
+                        .version("v1.0.0");
 
-    return new OpenAPI()
-        .info(info)
-        .components(components);
-  }
+        return new OpenAPI().info(info).components(components);
+    }
 }
