@@ -1,0 +1,33 @@
+package com.tracek.domain.content.domain.model;
+
+import com.tracek.global.common.BaseEntity;
+import com.tracek.global.common.vo.ImageUrl;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@Table(name = "content")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Content extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 150)
+    private String title;
+
+    @Column(nullable = false, length = 50)
+    private String category; // ALBUM, MV, DRAMA, MOVIE, VARIETY 등
+
+    @Embedded private ImageUrl pictureUrl;
+
+    public static Content create(String title, String category, ImageUrl pictureUrl) {
+        return new Content(null, title, category, pictureUrl);
+    }
+}
