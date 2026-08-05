@@ -56,6 +56,7 @@ def jacocoExcludePatterns = [
 
 // JaCoCo 커버리지 커트라인 설정 (70% 미만 시 실패)
 jacocoTestCoverageVerification {
+    dependsOn test, compileJava, processResources
     violationRules {
         rule {
             element = 'BUNDLE'
@@ -73,6 +74,11 @@ jacocoTestCoverageVerification {
             fileTree(dir: it, exclude: jacocoExcludePatterns)
         }))
     }
+}
+
+// check 실행 시 커버리지 기준 미달이면 빌드 실패하도록 강제
+tasks.named('check') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 // JaCoCo 리포트 생성 설정
