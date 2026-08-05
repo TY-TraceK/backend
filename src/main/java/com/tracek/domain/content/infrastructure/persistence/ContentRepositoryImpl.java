@@ -18,6 +18,11 @@ public class ContentRepositoryImpl implements ContentRepository {
     }
 
     @Override
+    public List<Content> findAllByIds(List<Long> ids) {
+        return contentJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public List<Content> findAll() {
         return contentJpaRepository.findAll();
     }
