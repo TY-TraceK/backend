@@ -77,20 +77,13 @@ class SecurityConfigTest {
             return "login";
         }
 
-        @GetMapping("/api/v1/posts/{postId}")
-        String getPost(@PathVariable Long postId) {
-            return "post-" + postId;
+        @GetMapping("/api/locations/{locationId}")
+        String getLocation(@PathVariable Long locationId) {
+            return "lo-" + locationId;
         }
 
-        @PostMapping("/api/v1/posts")
-        String createPost() {
-            return "created";
-        }
-
-        @GetMapping("/api/v1/products/{productId}")
-        String getProduct(@PathVariable Long productId) {
-            return "product-" + productId;
-        }
+        @PostMapping("/api/locations")
+        void createLocation() {}
 
         @GetMapping("/api/users/me")
         String getMyInformation() {
@@ -124,19 +117,11 @@ class SecurityConfigTest {
         }
 
         @Test
-        @DisplayName("게시글 GET API는 인증 없이 접근할 수 있다")
+        @DisplayName("location GET API는 인증 없이 접근할 수 있다")
         void getPost_withoutAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/v1/posts/1"))
+            mockMvc.perform(get("/api/locations/1"))
                     .andExpect(status().isOk())
-                    .andExpect(content().string("post-1"));
-        }
-
-        @Test
-        @DisplayName("상품 GET API는 인증 없이 접근할 수 있다")
-        void getProduct_withoutAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/v1/products/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("product-1"));
+                    .andExpect(content().string("lo-1"));
         }
     }
 
@@ -178,23 +163,15 @@ class SecurityConfigTest {
     class HttpMethodAuthorization {
 
         @Test
-        @DisplayName("게시글 GET은 인증 없이 접근할 수 있다")
+        @DisplayName("location GET은 인증 없이 접근할 수 있다")
         void getPost_withoutAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/v1/posts/1")).andExpect(status().isOk());
+            mockMvc.perform(get("/api/locations/1")).andExpect(status().isOk());
         }
 
         @Test
-        @DisplayName("게시글 POST는 인증 없이 접근할 수 없다")
+        @DisplayName("location POST는 인증 없이 접근할 수 없다")
         void createPost_withoutAuthentication_returnsForbidden() throws Exception {
-            mockMvc.perform(post("/api/v1/posts")).andExpect(status().isForbidden());
-        }
-
-        @Test
-        @DisplayName("게시글 POST는 인증 사용자가 접근할 수 있다")
-        void createPost_withAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(post("/api/v1/posts").with(user("1").roles("USER")))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("created"));
+            mockMvc.perform(post("/api/locations")).andExpect(status().isForbidden());
         }
     }
 
