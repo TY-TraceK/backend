@@ -77,12 +77,12 @@ class SecurityConfigTest {
             return "login";
         }
 
-        @GetMapping("/api/locations/{locationId}")
+        @GetMapping("/api/locations/{locationId}/test")
         String getLocation(@PathVariable Long locationId) {
             return "lo-" + locationId;
         }
 
-        @PostMapping("/api/locations")
+        @PostMapping("/api/locations/test")
         void createLocation() {}
 
         @GetMapping("/api/users/me")
@@ -119,7 +119,7 @@ class SecurityConfigTest {
         @Test
         @DisplayName("location GET API는 인증 없이 접근할 수 있다")
         void getPost_withoutAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/locations/1"))
+            mockMvc.perform(get("/api/locations/1/test"))
                     .andExpect(status().isOk())
                     .andExpect(content().string("lo-1"));
         }
@@ -165,13 +165,13 @@ class SecurityConfigTest {
         @Test
         @DisplayName("location GET은 인증 없이 접근할 수 있다")
         void getPost_withoutAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/locations/1")).andExpect(status().isOk());
+            mockMvc.perform(get("/api/locations/1/test")).andExpect(status().isOk());
         }
 
         @Test
         @DisplayName("location POST는 인증 없이 접근할 수 없다")
         void createPost_withoutAuthentication_returnsForbidden() throws Exception {
-            mockMvc.perform(post("/api/locations")).andExpect(status().isForbidden());
+            mockMvc.perform(post("/api/locations/test")).andExpect(status().isForbidden());
         }
     }
 
