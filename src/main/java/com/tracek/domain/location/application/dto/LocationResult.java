@@ -1,5 +1,7 @@
 package com.tracek.domain.location.application.dto;
 
+import com.tracek.domain.artist.application.dto.ArtistResult;
+import com.tracek.domain.content.application.dto.ContentResult;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.location.domain.model.Address;
 import com.tracek.domain.location.domain.model.GeoLocation;
@@ -20,8 +22,14 @@ public class LocationResult {
     private Address address;
     private GeoLocation geoLocation;
     private List<LocationImageResult> images;
+    private List<ContentResult> contents;
+    private List<ArtistResult> artists;
 
-    public static LocationResult of(Location location, List<LocationImageResult> imageResults) {
+    public static LocationResult of(
+            Location location,
+            List<LocationImageResult> imageResults,
+            List<ContentResult> contents,
+            List<ArtistResult> artists) {
         return new LocationResult(
                 location.getId(),
                 location.getName(),
@@ -29,12 +37,18 @@ public class LocationResult {
                 location.getLikeCount(),
                 location.getAddress(),
                 location.getGeoLocation(),
-                imageResults == null ? Collections.emptyList() : imageResults);
+                imageResults == null ? Collections.emptyList() : imageResults,
+                contents == null ? Collections.emptyList() : contents,
+                artists == null ? Collections.emptyList() : artists);
     }
 
-    // 단건 기본 생성 (이미지 없이)
+    // 단건 기본 생성 (이미지, 연관 콘텐츠 없이)
     public static LocationResult from(Location location) {
-        return of(location, Collections.emptyList());
+        return of(
+                location,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList());
     }
 
     // 내부 이미지 응답용 Result DTO

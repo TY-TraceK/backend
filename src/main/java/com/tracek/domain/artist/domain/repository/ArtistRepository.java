@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface ArtistRepository {
     Optional<Artist> findById(Long id);
 
+    List<Artist> findAllByIds(List<Long> ids);
+
     List<Artist> findAll();
 
     Artist save(Artist artist);

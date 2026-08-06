@@ -18,6 +18,11 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     }
 
     @Override
+    public List<Artist> findAllByIds(List<Long> ids) {
+        return artistJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public List<Artist> findAll() {
         return artistJpaRepository.findAll();
     }

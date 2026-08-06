@@ -17,6 +17,7 @@ import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import com.tracek.global.exception.CustomException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,13 +39,24 @@ public class LocationQueryService {
                         .findById(locationId)
                         .orElseThrow(
                                 () -> new CustomException(LocationErrorCode.LOCATION_NOT_FOUND));
-
+        // 관광지 이미지 변환
         List<LocationResult.LocationImageResult> imageResults =
                 location.getImageLocations().stream()
                         .map(this::toLocationImageResult)
                         .collect(Collectors.toList());
+        // 연관 매핑 조회
+        List<LocationContentArtist> mappings =
+                locationRepository.findRelatedContentAndArtists(locationId);
 
-        return LocationResult.of(location, imageResults);
+        // 연관 콘텐츠, 아티스트 ID 추출
+        List<Long> contentIds = mappings.stream().map(m -> m.getContent().getId()).toList();
+        List<Long> artistIds = mappings.stream().map(m -> m.getArtist().getId()).toList();
+
+        // 배치 조회
+        List<ContentResult> contents = contentQueryService.getContentsByIds(contentIds);
+        List<ArtistResult> artists = artistQueryService.getArtistsByIds(artistIds);
+
+        return LocationResult.of(location, imageResults, contents, artists);
     }
 
     private LocationResult.LocationImageResult toLocationImageResult(ImageLocation imageLocation) {
@@ -70,6 +82,7 @@ public class LocationQueryService {
                 .collect(Collectors.toList());
     }
 
+    // 관광지 관련 데이터(콘텐츠-아티스트) 조회 -> 배치 조회 (N+1 개선)
     public LocationRelatedInfoResult getRelatedContentAndArtists(Long locationId) {
         Location location =
                 locationRepository
@@ -77,17 +90,34 @@ public class LocationQueryService {
                         .orElseThrow(
                                 () -> new CustomException(LocationErrorCode.LOCATION_NOT_FOUND));
 
+        // 1. 매핑 데이터 가져오기.
         List<LocationContentArtist> mappings =
                 locationRepository.findRelatedContentAndArtists(locationId);
 
+        // 2. ID 목록만 수집
+        List<Long> contentIds =
+                mappings.stream().map(m -> m.getContent().getId()).distinct().toList();
+        List<Long> artistIds =
+                mappings.stream().map(m -> m.getArtist().getId()).distinct().toList();
+
+        // 3. 배치 조회 IN 절 쿼리 1번씩 묶어서 가져오기.
+        List<ContentResult> contents = contentQueryService.getContentsByIds(contentIds);
+        List<ArtistResult> artists = artistQueryService.getArtistsByIds(artistIds);
+
+        // 4. Map 변환 (ID -> DTO)
+        Map<Long, ContentResult> contentMap =
+                contents.stream().collect(Collectors.toMap(ContentResult::getId, c -> c));
+        Map<Long, ArtistResult> artistMap =
+                artists.stream().collect(Collectors.toMap(ArtistResult::getId, a -> a));
+
+        // 5. 조립
         List<LocationRelatedInfoResult.RelatedItemResult> relatedItems =
                 mappings.stream()
                         .map(
                                 m -> {
-                                    ContentResult content =
-                                            contentQueryService.getContent(m.getContent().getId());
-                                    ArtistResult artist =
-                                            artistQueryService.getArtist(m.getArtist().getId());
+                                    ContentResult content = contentMap.get(m.getContent().getId());
+                                    ArtistResult artist = artistMap.get(m.getArtist().getId());
+
                                     return LocationRelatedInfoResult.RelatedItemResult.of(
                                             content.getId(),
                                             content.getTitle(),
