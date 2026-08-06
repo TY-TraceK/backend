@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Location", description = "관광지 조회 API")
@@ -39,7 +40,7 @@ public class LocationQueryController {
             description = "현재 위치(위도/경도)와 반경을 기준으로 주변 관광지 목록을 거리순으로 조회합니다.")
     @GetMapping("/map")
     public ApiResponse<List<LocationNearbyResponse>> getNearbyLocations(
-            @Valid @ModelAttribute LocationNearbyRequest request) {
+            @Valid @ParameterObject @ModelAttribute LocationNearbyRequest request) {
         List<LocationNearbyResult> results =
                 locationQueryService.getNearbyLocations(
                         request.getLat(), request.getLng(), request.getRadiusMeter());
