@@ -2,4 +2,9 @@ spring:
   application:
     name: traceK
   profiles:
-    active: ${SPRING_PROFILE:local}
+    active: ${SPRING_PROFILE}
+app:
+  jwt:
+    secret: ${JWT_SECRET:default_local_secret_key_for_testing_1234567890}
+    access-expiration-time: ${JWT_ACCESS_TIME:3600000}
+    refresh-expiration-time: ${JWT_REFRESH_TIME:1209600000}
