@@ -3,14 +3,9 @@ package com.tracek.domain.user.domain.model;
 import com.tracek.domain.user.domain.enums.UserRole;
 import com.tracek.domain.user.domain.enums.UserStatus;
 import com.tracek.global.common.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Getter
@@ -19,22 +14,37 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User extends BaseEntity {
 
-    @Id @GeneratedValue private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private Email email;
-    private String nickName;
-    private UserRole userRole;
-    private UserStatus userStatus;
+    @Embedded private OAuthInfo oAuthInfo;
 
-    private User(Email email, String nickName, UserRole userRole, UserStatus userStatus) {
-        this.email = email;
-        this.nickName = nickName;
-        this.userRole = userRole;
-        this.userStatus = userStatus;
+    @Setter @Embedded private UserProfile userProfile;
+
+    private LocalDateTime connectAt;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole = UserRole.USER;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus = UserStatus.ACTIVE;
+
+    public User(OAuthInfo oAuthInfo, LocalDateTime connectAt, UserProfile userProfile) {
+        this.oAuthInfo = oAuthInfo;
+        this.connectAt = connectAt;
+        this.userProfile = userProfile;
     }
 
-    public static User createUser(Email email, String nickName) {
-        return new User(email, nickName, UserRole.USER, UserStatus.ACTIVE);
+    public static User createUser(
+            OAuthInfo oAuthInfo, LocalDateTime connectAt, UserProfile userProfile) {
+        return new User(oAuthInfo, connectAt, userProfile);
+    }
+
+    public void grantAdminRole() {
+        this.userRole = UserRole.ADMIN;
     }
 
     public void suspend() {
