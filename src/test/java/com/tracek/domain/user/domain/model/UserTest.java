@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.tracek.domain.user.domain.enums.OAuthProvider;
 import com.tracek.domain.user.domain.enums.UserRole;
 import com.tracek.domain.user.domain.enums.UserStatus;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,7 +15,7 @@ class UserTest {
 
     private OAuthInfo oAuthInfo;
     private UserProfile userProfile;
-    private LocalDateTime now;
+    private OffsetDateTime now;
 
     @BeforeEach
     void setUp() {
@@ -23,7 +23,7 @@ class UserTest {
 
         userProfile = UserProfile.register("테스트닉네임", "https://example.com/profile.jpg");
 
-        now = LocalDateTime.now();
+        now = OffsetDateTime.now();
     }
 
     @Nested
@@ -40,7 +40,7 @@ class UserTest {
             assertThat(user).isNotNull();
             assertThat(user.getOAuthInfo()).isEqualTo(oAuthInfo);
             assertThat(user.getUserProfile()).isEqualTo(userProfile);
-            assertThat(user.getConnectAt()).isEqualTo(now);
+            assertThat(user.getConnectedAt()).isEqualTo(now);
 
             // Enum 기본값 검증
             assertThat(user.getUserRole()).isEqualTo(UserRole.USER);
