@@ -16,25 +16,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserCommandServiceImpl implements UserCommandService {
 
-  private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-  @Transactional
-  @Override
-  public SyncUserResult registerOrUpdateUser(SyncUserCommand command) {
-    OAuthInfo oAuthInfo =
-        OAuthInfo.register(
-            command.providerId(), OAuthProvider.valueOf(command.providerName()));
-    UserProfile userProfile =
-        UserProfile.register(command.userNickName(), command.userProfileImageUrl());
-    User user = userRepository.findByOAuthInfo(oAuthInfo).orElse(null);
-    boolean isNewUser = false;
-    if (user == null) {
-      user = User.createUser(oAuthInfo, command.connectedAt(), userProfile);
-      user = userRepository.save(user);
-      isNewUser = true;
-    } else {
-      user.setUserProfile(userProfile);
+    @Transactional
+    @Override
+    public SyncUserResult registerOrUpdateUser(SyncUserCommand command) {
+        OAuthInfo oAuthInfo =
+                OAuthInfo.register(
+                        command.providerId(), OAuthProvider.valueOf(command.providerName()));
+        UserProfile userProfile =
+                UserProfile.register(command.userNickName(), command.userProfileImageUrl());
+        User user = userRepository.findByOAuthInfo(oAuthInfo).orElse(null);
+        boolean isNewUser = false;
+        if (user == null) {
+            user = User.createUser(oAuthInfo, command.connectedAt(), userProfile);
+            user = userRepository.save(user);
+            isNewUser = true;
+        } else {
+            user.setUserProfile(userProfile);
+        }
+        return SyncUserResult.from(user, isNewUser);
     }
-    return SyncUserResult.from(user, isNewUser);
-  }
 }
