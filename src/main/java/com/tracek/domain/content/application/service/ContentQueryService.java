@@ -17,15 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContentQueryService {
     private final ContentRepository contentRepository;
 
-    // 타 도메인에서 콘텐츠 정보가 필요할 때 참조하는 조회 메서드
-    public ContentResult getContent(Long contentId) {
-        Content content =
-                contentRepository
-                        .findById(contentId)
-                        .orElseThrow(() -> new CustomException(ContentErrorCode.CONTENT_NOT_FOUND));
-        return ContentResult.from(content);
+    // 콘텐츠 Entity get
+    public Content getContentEntity(Long contentId) {
+        return contentRepository.findById(contentId).orElseThrow(
+                () -> new CustomException(ContentErrorCode.CONTENT_NOT_FOUND));
     }
 
+    // 여러 콘텐츠 조회
     public List<ContentResult> getContentsByIds(List<Long> contentIds) {
         if (contentIds == null || contentIds.isEmpty()) {
             return Collections.emptyList();
@@ -35,4 +33,5 @@ public class ContentQueryService {
 
         return contents.stream().map(ContentResult::from).toList();
     }
+
 }

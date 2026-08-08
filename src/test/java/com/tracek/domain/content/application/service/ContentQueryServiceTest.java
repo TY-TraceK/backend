@@ -33,26 +33,26 @@ class ContentQueryServiceTest {
     }
 
     @Test
-    @DisplayName("존재하는 콘텐츠 ID로 조회하면 ContentResult를 반환한다")
-    void getContent_success() {
+    @DisplayName("존재하는 콘텐츠 ID로 조회하면 Content 엔티티를 반환한다")
+    void getContentEntity_success() {
         Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         given(contentRepository.findById(1L)).willReturn(Optional.of(content));
 
-        ContentResult result = contentQueryService.getContent(1L);
+        Content result = contentQueryService.getContentEntity(1L);
 
-        assertThat(result.getContentId()).isEqualTo(1L);
+        assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("데뷔 앨범");
         assertThat(result.getCategory()).isEqualTo("ALBUM");
-        assertThat(result.getPictureUrl()).isEqualTo("http://image.com/a.jpg");
+        assertThat(result.getPictureUrl().getImageUrl()).isEqualTo("http://image.com/a.jpg");
     }
 
     @Test
     @DisplayName("존재하지 않는 콘텐츠 ID로 조회하면 CONTENT_NOT_FOUND 예외가 발생한다")
-    void getContent_notFound() {
+    void getContentEntity_notFound() {
         given(contentRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contentQueryService.getContent(999L))
+        assertThatThrownBy(() -> contentQueryService.getContentEntity(999L))
                 .isInstanceOf(CustomException.class)
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(ContentErrorCode.CONTENT_NOT_FOUND);
