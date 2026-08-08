@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-  Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo);
+    Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo);
 
-  boolean findByIdAndUserStatusIs(Long userId, UserStatus userStatus);
+    boolean findByIdAndUserStatusIs(Long userId, UserStatus userStatus);
 
-  Optional<User> findById(Long userId);
+    Optional<User> findById(Long userId);
 
-  User save(User user);
+    User save(User user);
 }

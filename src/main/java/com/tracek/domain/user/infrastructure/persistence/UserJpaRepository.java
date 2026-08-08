@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserJpaRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo);
+    Optional<User> findByoAuthInfo(OAuthInfo oAuthInfo);
 
     boolean findByIdAndUserStatusIs(Long id, UserStatus userStatus);
 }

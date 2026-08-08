@@ -13,24 +13,23 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserQueryServiceImpl implements UserQueryService {
 
-  private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-  @Override
-  public boolean existsUserById(Long userId) {
-    return userRepository.findById(userId).isPresent();
-  }
+    @Override
+    public boolean existsUserById(Long userId) {
+        return userRepository.findById(userId).isPresent();
+    }
 
-  @Override
-  public boolean isActiveUser(Long userId) {
-    return userRepository.findByIdAndUserStatusIs(userId, UserStatus.ACTIVE);
-  }
+    @Override
+    public boolean isActiveUser(Long userId) {
+        return userRepository.findByIdAndUserStatusIs(userId, UserStatus.ACTIVE);
+    }
 
-  @Override
-  public UserProfileDataResult getUserProfileData(Long userId) {
-    return UserProfileDataResult.from(
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND)));
-
-  }
+    @Override
+    public UserProfileDataResult getUserProfileData(Long userId) {
+        return UserProfileDataResult.from(
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND)));
+    }
 }

@@ -12,25 +12,25 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-  private final UserJpaRepository userJpaRepository;
+    private final UserJpaRepository userJpaRepository;
 
-  @Override
-  public Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo) {
-    return userJpaRepository.findByOAuthInfo(oAuthInfo);
-  }
+    @Override
+    public Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo) {
+        return userJpaRepository.findByoAuthInfo(oAuthInfo);
+    }
 
-  @Override
-  public boolean findByIdAndUserStatusIs(Long userId, UserStatus userStatus) {
-    return userJpaRepository.findByIdAndUserStatusIs(userId, userStatus);
-  }
+    @Override
+    public boolean findByIdAndUserStatusIs(Long userId, UserStatus userStatus) {
+        return userJpaRepository.findByIdAndUserStatusIs(userId, userStatus);
+    }
 
-  @Override
-  public Optional<User> findById(Long userId) {
-    return userJpaRepository.findById(userId);
-  }
+    @Override
+    public Optional<User> findById(Long userId) {
+        return userJpaRepository.findById(userId);
+    }
 
-  @Override
-  public User save(User user) {
-    return userJpaRepository.save(user);
-  }
+    @Override
+    public User save(User user) {
+        return userJpaRepository.save(user);
+    }
 }
