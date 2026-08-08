@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>카카오 로그인</title>
+  <script crossorigin="anonymous"
+          integrity="sha384-OL+ylM/iuPLtW5U3XcvLSGhE8JzReKDank5InqlHGWPhb4140/yrBw0bg0y7+C9J"
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.1/kakao.min.js"></script>
+  <script>
+    if (window.Kakao && !Kakao.isInitialized()) {
+      Kakao.init('15c7fa08df501e6fdf616387057d9046');
+    }
+  </script>
+  <style>
+    #profile-box {
+      display: none;
+      margin-top: 15px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      width: 220px;
+    }
+
+    #profile-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .badge-new {
+      color: #d9534f;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 카카오 로그인 버튼 -->
+<a href="#" id="kakao-login-btn" onclick="loginWithKakao(); return false;">
+  <img alt="카카오 로그인 버튼" src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg"
+       width="222"/>
+</a>
+
+<p id="token-result">로그인 대기 중...</p>
+
+<!-- 유저 프로필 출력 영역 -->
+<div id="profile-box">
+  <img alt="프로필 이미지" id="profile-img" src=""><br>
+  <p><strong>닉네임:</strong> <span id="user-nickname"></span> <span class="badge-new"
+                                                                  id="new-user-badge"></span></p>
+  <p><strong>User ID:</strong> <span id="user-id"></span></p>
+</div>
+
+<script>
+  function loginWithKakao() {
+    const redirectUrl = window.location.origin + window.location.pathname;
+    Kakao.Auth.authorize({
+      redirectUri: redirectUrl,
+      throughTalk: false
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      document.getElementById('token-result').innerText = '카카오 인증 완료. 서버 로그인 처리 중...';
+      sendCodeToBackend(code);
+    }
+  });
+
+  function sendCodeToBackend(code) {
+    const backendApiUrl = 'http://localhost:8080/api/auth/kakao?code=' + code;
+
+    fetch(backendApiUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('서버 로그인 실패 (상태 코드: ' + response.status + ')');
+      }
+      return response.json();
+    })
+    .then(rawData => {
+      // 1. 토큰 저장
+      const data = rawData.data;
+      console.log(data);
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      document.getElementById('token-result').innerText = '로그인 성공!';
+      document.getElementById('token-result').style.color = 'green';
+
+      // 2. 백엔드에서 전달받은 사용자 정보 화면 표시
+      document.getElementById('profile-img').src = data.profileImageUrl
+          || 'https://via.placeholder.com/80';
+      document.getElementById('user-nickname').innerText = data.nickName || '이름 없음';
+      document.getElementById('user-id').innerText = data.userId;
+
+      // 3. 신규 유저 여부 표시
+      if (data.isNewUser) {
+        document.getElementById('new-user-badge').innerText = ' (🎉 신규 회원)';
+      }
+
+      // 프로필 영역 노출 & 로그인 버튼 숨김
+      document.getElementById('profile-box').style.display = 'block';
+      document.getElementById('kakao-login-btn').style.display = 'none';
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      document.getElementById('token-result').innerText = '로그인 실패: ' + error.message;
+      document.getElementById('token-result').style.color = 'red';
+    });
+  }
+</script>
+</body>
+</html>
