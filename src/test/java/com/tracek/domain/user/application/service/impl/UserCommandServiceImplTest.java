@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
+import com.tracek.domain.user.application.service.SyncUserResult;
 import com.tracek.domain.user.domain.enums.OAuthProvider;
 import com.tracek.domain.user.domain.model.OAuthInfo;
 import com.tracek.domain.user.domain.model.User;
@@ -58,10 +59,10 @@ class UserCommandServiceImplTest {
             given(userRepository.save(any(User.class))).willReturn(newUser);
 
             // when
-            Long userId = userCommandService.registerOrUpdateUser(command);
+            SyncUserResult result = userCommandService.registerOrUpdateUser(command);
 
             // then
-            assertThat(userId).isEqualTo(1L);
+            assertThat(result.userId()).isEqualTo(1L);
             then(userRepository).should(times(1)).findByOAuthInfo(any(OAuthInfo.class));
             then(userRepository).should(times(1)).save(any(User.class));
         }
@@ -81,10 +82,10 @@ class UserCommandServiceImplTest {
                     .willReturn(Optional.of(existingUser));
 
             // when
-            Long userId = userCommandService.registerOrUpdateUser(command);
+            SyncUserResult result = userCommandService.registerOrUpdateUser(command);
 
             // then
-            assertThat(userId).isEqualTo(1L);
+            assertThat(result.userId()).isEqualTo(1L);
             then(userRepository).should(times(1)).findByOAuthInfo(any(OAuthInfo.class));
             then(userRepository).should(never()).save(any(User.class));
         }

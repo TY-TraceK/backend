@@ -4,5 +4,5 @@ import com.tracek.domain.user.application.dto.command.SyncUserCommand;
 
 public interface UserCommandService {
 
-    Long registerOrUpdateUser(SyncUserCommand command);
+    SyncUserResult registerOrUpdateUser(SyncUserCommand command);
 }
