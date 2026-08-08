@@ -1,12 +1,11 @@
 package com.tracek.domain.artist.application.dto;
 
 import com.tracek.domain.artist.domain.model.Artist;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -72,7 +71,8 @@ public class ArtistDetailResult {
         private String locationCategory;
         private String locationPictureUrl;
 
-        public static LocationResult from(com.tracek.domain.location.application.dto.LocationResult location) {
+        public static LocationResult from(
+                com.tracek.domain.location.application.dto.LocationResult location) {
             return new LocationResult(
                     location.getLocationId(),
                     location.getName(),

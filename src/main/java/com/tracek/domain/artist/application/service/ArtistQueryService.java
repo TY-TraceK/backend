@@ -17,8 +17,9 @@ public class ArtistQueryService {
     private final ArtistRepository artistRepository; // 조합 (has-a) 필요한 메서드만 골라 위임
 
     public Artist getArtistEntity(Long artistId) {
-        return artistRepository.findById(artistId).orElseThrow(
-                () -> new CustomException(ArtistErrorCode.ARTIST_NOT_FOUND));
+        return artistRepository
+                .findById(artistId)
+                .orElseThrow(() -> new CustomException(ArtistErrorCode.ARTIST_NOT_FOUND));
     }
 
     public List<ArtistResult> getArtistsByIds(List<Long> artistIds) {

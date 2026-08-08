@@ -3,11 +3,10 @@ package com.tracek.domain.artist.application.dto;
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.application.dto.ContentResult;
 import com.tracek.domain.location.application.dto.LocationResult;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
@@ -31,11 +30,11 @@ public class ArtistResult {
                 artist.getDescription(),
                 artist.getGroup() == null ? null : artist.getGroup().getId(),
                 Collections.emptyList(),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
     }
 
-    public static ArtistResult of(Artist artist, List<LocationResult> locations, List<ContentResult> contents) {
+    public static ArtistResult of(
+            Artist artist, List<LocationResult> locations, List<ContentResult> contents) {
         return new ArtistResult(
                 artist.getId(),
                 artist.getName(),
@@ -44,7 +43,6 @@ public class ArtistResult {
                 artist.getDescription(),
                 artist.getGroup() == null ? null : artist.getGroup().getId(),
                 locations == null ? Collections.emptyList() : locations,
-                contents == null ? Collections.emptyList() : contents
-                );
+                contents == null ? Collections.emptyList() : contents);
     }
 }

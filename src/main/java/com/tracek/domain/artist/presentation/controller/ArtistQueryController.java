@@ -26,8 +26,7 @@ public class ArtistQueryController {
             description = "아티스트 ID로 상세 정보와 연관 콘텐츠를 조회합니다. 콘텐츠별로 촬영 관광지가 중첩된 계층형 구조로 응답합니다.")
     @GetMapping("/{artistId}")
     public ApiResponse<ArtistDetailResponse> getArtistDetails(
-            @Parameter(description = "아티스트 ID") @PathVariable Long artistId
-    ) {
+            @Parameter(description = "아티스트 ID") @PathVariable Long artistId) {
         ArtistDetailResult result = artistFacade.getArtistDetails(artistId);
         return ApiResponse.success(GeneralSuccessCode.OK, ArtistDetailResponse.from(result));
     }

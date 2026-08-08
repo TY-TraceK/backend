@@ -8,14 +8,13 @@ import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional(readOnly = true)
@@ -33,38 +32,46 @@ public class ArtistFacade {
         List<LocationContentArtist> mappings = locationQueryService.getMappingByArtistId(artistId);
 
         // IN 절 배치 조회를 위한 Content ID / Location ID 추출
-        List<Long> contentIds = mappings.stream().map(m -> m.getContent().getId()).distinct().toList();
-        List<Long> locationIds = mappings.stream().map(m -> m.getLocation().getId()).distinct().toList();
+        List<Long> contentIds =
+                mappings.stream().map(m -> m.getContent().getId()).distinct().toList();
+        List<Long> locationIds =
+                mappings.stream().map(m -> m.getLocation().getId()).distinct().toList();
 
         // IN 절 Batch Query로 N+1 문제 최적화 조회
         List<ContentResult> contents = contentQueryService.getContentsByIds(contentIds);
         List<LocationResult> locations = locationQueryService.getLocationByIds(locationIds);
 
         // O(1) 탐색을 위해 LocationResult -> ArtistDetailResult.LocationResult 맵 변환
-        Map<Long, ArtistDetailResult.LocationResult> locationResultMap = locations.stream()
-                .collect(Collectors.toMap(
-                        LocationResult::getLocationId,
-                        ArtistDetailResult.LocationResult::from
-                ));
+        Map<Long, ArtistDetailResult.LocationResult> locationResultMap =
+                locations.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        LocationResult::getLocationId,
+                                        ArtistDetailResult.LocationResult::from));
 
         // Content ID 기준으로 연관된 LocationResult들을 리스트로 그룹핑
-        Map<Long, List<ArtistDetailResult.LocationResult>> contentLocationGroupMap = mappings.stream()
-                .collect(Collectors.groupingBy(
-                        m -> m.getContent().getId(),
-                        Collectors.mapping(
-                                m -> locationResultMap.get(m.getLocation().getId()),
-                                Collectors.filtering(Objects::nonNull, Collectors.toList())
-                        )
-                ));
+        Map<Long, List<ArtistDetailResult.LocationResult>> contentLocationGroupMap =
+                mappings.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        m -> m.getContent().getId(),
+                                        Collectors.mapping(
+                                                m -> locationResultMap.get(m.getLocation().getId()),
+                                                Collectors.filtering(
+                                                        Objects::nonNull, Collectors.toList()))));
 
         // ArtistDetailResult.ContentResult 합성
-        List<ArtistDetailResult.ContentResult> contentResults = contents.stream()
-                .map(content -> {
-                    List<ArtistDetailResult.LocationResult> relatedLocations =
-                            contentLocationGroupMap.getOrDefault(content.getContentId(), List.of());
-                    return ArtistDetailResult.ContentResult.of(content, relatedLocations);
-                })
-                .toList();
+        List<ArtistDetailResult.ContentResult> contentResults =
+                contents.stream()
+                        .map(
+                                content -> {
+                                    List<ArtistDetailResult.LocationResult> relatedLocations =
+                                            contentLocationGroupMap.getOrDefault(
+                                                    content.getContentId(), List.of());
+                                    return ArtistDetailResult.ContentResult.of(
+                                            content, relatedLocations);
+                                })
+                        .toList();
 
         return ArtistDetailResult.from(ArtistDetailResult.ArtistInfo.of(artist), contentResults);
     }
