@@ -25,9 +25,9 @@ public class OAuthServiceImpl implements OAuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public OAuthLoginResult createOauthLogin(String code, String provider) {
+    public OAuthLoginResult createOauthLogin(String code, String providerName) {
 
-        OAuthUserDataResult dataResult = connectAndGetOauthUser(code, provider);
+        OAuthUserDataResult dataResult = connectAndGetOauthUser(code, providerName);
         SyncUserResult userResult =
                 userCommandService.registerOrUpdateUser(
                         SyncUserCommand.builder()
@@ -50,8 +50,11 @@ public class OAuthServiceImpl implements OAuthService {
                 dataResult.profileImageUrl());
     }
 
-    private OAuthUserDataResult connectAndGetOauthUser(String code, String provider) {
-        OAuthClient client = oAuthClientProvider.getClient(OAuthProvider.from(provider));
+    private OAuthUserDataResult connectAndGetOauthUser(String code, String providerName) {
+        OAuthProvider provider =
+                OAuthProvider.from(providerName)
+                        .orElseThrow(() -> new CustomException(AuthErrorCode.PROVIDER_NOT_FOUND));
+        OAuthClient client = oAuthClientProvider.getClient(provider);
         if (client == null) {
             throw new CustomException(AuthErrorCode.PROVIDER_NOT_FOUND);
         }
