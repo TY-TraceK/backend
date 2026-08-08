@@ -55,7 +55,7 @@ public class KakaoOAuthClient implements OAuthClient {
                             .body(KakaoTokenResponse.class);
 
             if (response == null || isBlank(response.accessToken())) {
-                throw new Error();
+                throw new Exception();
             }
             return response.accessToken();
         } catch (Exception e) {
@@ -78,7 +78,7 @@ public class KakaoOAuthClient implements OAuthClient {
                             .body(KakaoUserResponse.class);
 
             if (response == null || response.id() == null) {
-                throw new Error();
+                throw new Exception();
             }
             KakaoUserResponse.Profile profile =
                     Objects.requireNonNullElseGet(
@@ -86,7 +86,7 @@ public class KakaoOAuthClient implements OAuthClient {
                                     () -> new KakaoUserResponse.KakaoAccount(null))
                             .profile();
             if (profile == null || isBlank(profile.nickname())) {
-                throw new Error();
+                throw new Exception();
             }
             return OAuthUserDataResult.builder()
                     .providerId(response.id())
