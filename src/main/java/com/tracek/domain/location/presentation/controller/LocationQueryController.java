@@ -1,13 +1,14 @@
 package com.tracek.domain.location.presentation.controller;
 
+import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
-import com.tracek.domain.location.application.dto.LocationResult;
+import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.presentation.request.LocationNearbyRequest;
+import com.tracek.domain.location.presentation.response.LocationDetailResponse;
 import com.tracek.domain.location.presentation.response.LocationNearbyResponse;
 import com.tracek.domain.location.presentation.response.LocationRelatedInfoResponse;
-import com.tracek.domain.location.presentation.response.LocationResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,14 +26,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/locations")
 @RequiredArgsConstructor
 public class LocationQueryController {
+    private final LocationFacade locationFacade;
     private final LocationQueryService locationQueryService;
 
-    @Operation(summary = "관광지 단건 상세 조회", description = "관광지 ID로 상세 정보(주소, 좌표, 이미지 목록 등)를 조회합니다.")
+    @Operation(
+            summary = "관광지 단건 상세 조회",
+            description = "관광지 ID로 상세 정보와 연관 콘텐츠를 조회합니다. 콘텐츠별로 출연 아티스트가 중첩된 계층형 구조로 응답합니다.")
     @GetMapping("/{locationId}")
-    public ApiResponse<LocationResponse> getLocation(
+    public ApiResponse<LocationDetailResponse> getLocationDetails(
             @Parameter(description = "관광지 ID") @PathVariable Long locationId) {
-        LocationResult result = locationQueryService.getLocation(locationId);
-        return ApiResponse.success(GeneralSuccessCode.OK, LocationResponse.from(result));
+        LocationDetailResult result = locationFacade.getLocationDetails(locationId);
+        return ApiResponse.success(GeneralSuccessCode.OK, LocationDetailResponse.from(result));
     }
 
     @Operation(
@@ -51,13 +55,13 @@ public class LocationQueryController {
         return ApiResponse.success(GeneralSuccessCode.OK, response);
     }
 
-    @Operation(summary = "관광지 연관 콘텐츠-아티스트 조회", description = "해당 관광지와 연관된 콘텐츠 및 아티스트 정보를 조회합니다.")
+    @Operation(summary = "관광지 단건 상세 조회", description = "해당 관광지 정보와 연관된 콘텐츠 및 아티스트 정보를 매핑하여 조회합니다.")
     @GetMapping("/{locationId}/related-info")
     public ApiResponse<LocationRelatedInfoResponse> getRelatedContentAndArtists(
             @Parameter(description = "관광지 ID") @PathVariable Long locationId) {
 
         LocationRelatedInfoResult result =
-                locationQueryService.getRelatedContentAndArtists(locationId);
+                locationFacade.getRelatedContentAndArtists(locationId);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationRelatedInfoResponse.from(result));
     }
 }

@@ -11,6 +11,8 @@ public interface LocationRepository {
 
     Optional<Location> findById(Long id);
 
+    List<Location> findAllByIds(List<Long> ids);
+
     List<Location> findAll();
 
     void deleteById(Long id);
@@ -20,4 +22,10 @@ public interface LocationRepository {
 
     // 해당 관광지와 연관된 콘텐츠-아티스트 매핑 조회
     List<LocationContentArtist> findRelatedContentAndArtists(Long locationId);
+
+    // 해당 콘텐츠와 연관된 관광지-아티스트 매핑 조회
+    List<LocationContentArtist> findRelatedLocationAndArtists(Long contentId);
+
+    // 해당 아티스트와 연관된 관광지-콘텐츠 매핑 조회
+    List<LocationContentArtist> findRelatedLocationAndContents(Long artistId);
 }

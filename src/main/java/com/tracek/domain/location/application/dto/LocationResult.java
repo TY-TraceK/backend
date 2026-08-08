@@ -21,6 +21,7 @@ public class LocationResult {
     private Long likeCount;
     private Address address;
     private GeoLocation geoLocation;
+    private String mainImageUrl;
     private List<LocationImageResult> images;
     private List<ContentResult> contents;
     private List<ArtistResult> artists;
@@ -37,12 +38,13 @@ public class LocationResult {
                 location.getLikeCount(),
                 location.getAddress(),
                 location.getGeoLocation(),
+                location.getMainImageUrl().getImageUrl(),
                 imageResults == null ? Collections.emptyList() : imageResults,
                 contents == null ? Collections.emptyList() : contents,
                 artists == null ? Collections.emptyList() : artists);
     }
 
-    // 단건 기본 생성 (이미지, 연관 콘텐츠 없이)
+    // 단건 기본 생성 (이미지, 연관 콘텐츠 없이) 순환 참조 방지
     public static LocationResult from(Location location) {
         return of(
                 location,

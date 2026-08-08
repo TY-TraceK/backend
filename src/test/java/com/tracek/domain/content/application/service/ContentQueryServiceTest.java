@@ -41,7 +41,7 @@ class ContentQueryServiceTest {
 
         ContentResult result = contentQueryService.getContent(1L);
 
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getContentId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("데뷔 앨범");
         assertThat(result.getCategory()).isEqualTo("ALBUM");
         assertThat(result.getPictureUrl()).isEqualTo("http://image.com/a.jpg");
