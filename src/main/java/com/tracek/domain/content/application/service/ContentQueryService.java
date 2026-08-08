@@ -19,8 +19,9 @@ public class ContentQueryService {
 
     // 콘텐츠 Entity get
     public Content getContentEntity(Long contentId) {
-        return contentRepository.findById(contentId).orElseThrow(
-                () -> new CustomException(ContentErrorCode.CONTENT_NOT_FOUND));
+        return contentRepository
+                .findById(contentId)
+                .orElseThrow(() -> new CustomException(ContentErrorCode.CONTENT_NOT_FOUND));
     }
 
     // 여러 콘텐츠 조회
@@ -33,5 +34,4 @@ public class ContentQueryService {
 
         return contents.stream().map(ContentResult::from).toList();
     }
-
 }

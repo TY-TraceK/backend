@@ -1,11 +1,10 @@
 package com.tracek.domain.content.presentation.response;
 
 import com.tracek.domain.content.application.dto.ContentDetailResult;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -48,7 +47,8 @@ public class ContentDetailResponse {
         private String locationPictureUrl;
         private List<ContentArtistResponse> artists;
 
-        public static ContentLocationResponse from(ContentDetailResult.LocationResult locationResult) {
+        public static ContentLocationResponse from(
+                ContentDetailResult.LocationResult locationResult) {
             List<ContentArtistResponse> artistResponses =
                     locationResult.getArtists().stream().map(ContentArtistResponse::from).toList();
 

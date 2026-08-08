@@ -26,8 +26,7 @@ public class ContentQueryController {
             description = "콘텐츠 ID로 상세 정보와 연관 관광지를 조회합니다. 관광지별로 출연 아티스트가 중첩된 계층형 구조로 응답합니다.")
     @GetMapping("/{contentId}")
     public ApiResponse<ContentDetailResponse> getContentDetails(
-            @Parameter(description = "콘텐츠 ID") @PathVariable Long contentId
-    ) {
+            @Parameter(description = "콘텐츠 ID") @PathVariable Long contentId) {
         ContentDetailResult result = contentFacade.getContentDetails(contentId);
         return ApiResponse.success(GeneralSuccessCode.OK, ContentDetailResponse.from(result));
     }

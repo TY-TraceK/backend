@@ -1,12 +1,11 @@
 package com.tracek.domain.content.application.dto;
 
 import com.tracek.domain.content.domain.model.Content;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -15,7 +14,8 @@ public class ContentDetailResult {
     private ContentInfo contentInfo;
     private List<LocationResult> locations;
 
-    public static ContentDetailResult from(ContentInfo contentInfo, List<LocationResult> locations) {
+    public static ContentDetailResult from(
+            ContentInfo contentInfo, List<LocationResult> locations) {
         return new ContentDetailResult(contentInfo, locations);
     }
 
@@ -67,7 +67,8 @@ public class ContentDetailResult {
         private String artistName;
         private String artistPictureUrl;
 
-        public static ArtistResult from(com.tracek.domain.artist.application.dto.ArtistResult artist) {
+        public static ArtistResult from(
+                com.tracek.domain.artist.application.dto.ArtistResult artist) {
             return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
         }
     }
