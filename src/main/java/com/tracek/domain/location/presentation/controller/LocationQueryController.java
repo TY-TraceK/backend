@@ -60,8 +60,7 @@ public class LocationQueryController {
     public ApiResponse<LocationRelatedInfoResponse> getRelatedContentAndArtists(
             @Parameter(description = "관광지 ID") @PathVariable Long locationId) {
 
-        LocationRelatedInfoResult result =
-                locationFacade.getRelatedContentAndArtists(locationId);
+        LocationRelatedInfoResult result = locationFacade.getRelatedContentAndArtists(locationId);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationRelatedInfoResponse.from(result));
     }
 }

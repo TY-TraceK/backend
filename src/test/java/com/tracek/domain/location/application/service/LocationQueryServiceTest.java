@@ -106,7 +106,8 @@ class LocationQueryServiceTest {
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                Artist.create(
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 
@@ -127,7 +128,8 @@ class LocationQueryServiceTest {
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                Artist.create(
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 
@@ -148,7 +150,8 @@ class LocationQueryServiceTest {
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                Artist.create(
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 

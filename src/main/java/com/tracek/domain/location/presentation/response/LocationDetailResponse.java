@@ -3,11 +3,10 @@ package com.tracek.domain.location.presentation.response;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.domain.model.Address;
 import com.tracek.domain.location.domain.model.GeoLocation;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -24,7 +23,9 @@ public class LocationDetailResponse {
                 result.getContents().stream().map(LocationContentResponse::from).toList();
 
         return new LocationDetailResponse(
-                LocationInfoResponse.from(result.getLocationInfo()), imageResponses, contentResponses);
+                LocationInfoResponse.from(result.getLocationInfo()),
+                imageResponses,
+                contentResponses);
     }
 
     @Getter
@@ -58,7 +59,8 @@ public class LocationDetailResponse {
         private Boolean isMain;
         private Integer displayOrder;
 
-        public static LocationImageResponse from(LocationDetailResult.LocationImageResult imageResult) {
+        public static LocationImageResponse from(
+                LocationDetailResult.LocationImageResult imageResult) {
             return new LocationImageResponse(
                     imageResult.getImageId(),
                     imageResult.getImageUrl(),
@@ -76,7 +78,8 @@ public class LocationDetailResponse {
         private String contentPictureUrl;
         private List<LocationArtistResponse> artists;
 
-        public static LocationContentResponse from(LocationDetailResult.ContentResult contentResult) {
+        public static LocationContentResponse from(
+                LocationDetailResult.ContentResult contentResult) {
             List<LocationArtistResponse> artistResponses =
                     contentResult.getArtists().stream().map(LocationArtistResponse::from).toList();
 

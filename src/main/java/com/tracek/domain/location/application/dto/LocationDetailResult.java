@@ -1,17 +1,15 @@
 package com.tracek.domain.location.application.dto;
 
 import com.tracek.domain.artist.application.dto.ArtistResult;
-import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.location.domain.model.Address;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -21,14 +19,17 @@ public class LocationDetailResult {
     private List<LocationImageResult> images;
     private List<ContentResult> contents;
 
-    public static LocationDetailResult from(LocationInfo locationInfo, List<LocationImageResult> images, List<ContentResult> contents) {
+    public static LocationDetailResult from(
+            LocationInfo locationInfo,
+            List<LocationImageResult> images,
+            List<ContentResult> contents) {
         return new LocationDetailResult(locationInfo, images, contents);
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class LocationInfo{
+    public static class LocationInfo {
         private Long id;
         private String name;
         private String category;
@@ -45,16 +46,14 @@ public class LocationDetailResult {
                     location.getLikeCount(),
                     location.getAddress(),
                     location.getGeoLocation(),
-                    location.getMainImageUrl().getImageUrl()
-            );
+                    location.getMainImageUrl().getImageUrl());
         }
-
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class LocationImageResult{
+    public static class LocationImageResult {
         private Long imageId;
         private String imageUrl;
         private Boolean isMain;
@@ -70,33 +69,35 @@ public class LocationDetailResult {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class ContentResult{
+    public static class ContentResult {
         private Long contentId;
         private String contentTitle;
         private String contentType;
         private String contentImageUrl;
         private List<ArtistResult> artists;
 
-        public static  ContentResult of(com.tracek.domain.content.application.dto.ContentResult contentResult, List<ArtistResult> artists) {
+        public static ContentResult of(
+                com.tracek.domain.content.application.dto.ContentResult contentResult,
+                List<ArtistResult> artists) {
             return new ContentResult(
                     contentResult.getContentId(),
                     contentResult.getTitle(),
                     contentResult.getCategory(),
                     contentResult.getPictureUrl(),
-                    artists
-            );
+                    artists);
         }
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class ArtistResult{
+    public static class ArtistResult {
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
-        public static ArtistResult from(com.tracek.domain.artist.application.dto.ArtistResult artist) {
+        public static ArtistResult from(
+                com.tracek.domain.artist.application.dto.ArtistResult artist) {
             return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
         }
     }

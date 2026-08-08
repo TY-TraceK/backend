@@ -23,7 +23,8 @@ class LocationDetailResponseTest {
     @DisplayName("LocationDetailResult를 LocationDetailResponse로 변환하면 이미지/콘텐츠/아티스트가 계층형으로 모두 매핑된다")
     void from_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
-        LocationDetailResult.LocationInfo locationInfo = LocationDetailResult.LocationInfo.of(location);
+        LocationDetailResult.LocationInfo locationInfo =
+                LocationDetailResult.LocationInfo.of(location);
 
         Image image = Image.create("http://image.com/a.jpg");
         ReflectionTestUtils.setField(image, "id", 5L);
@@ -42,10 +43,12 @@ class LocationDetailResponseTest {
 
         LocationDetailResult.ContentResult detailContentResult =
                 LocationDetailResult.ContentResult.of(
-                        contentResult, List.of(LocationDetailResult.ArtistResult.from(artistResult)));
+                        contentResult,
+                        List.of(LocationDetailResult.ArtistResult.from(artistResult)));
 
         LocationDetailResult result =
-                LocationDetailResult.from(locationInfo, List.of(imageResult), List.of(detailContentResult));
+                LocationDetailResult.from(
+                        locationInfo, List.of(imageResult), List.of(detailContentResult));
 
         LocationDetailResponse response = LocationDetailResponse.from(result);
 
