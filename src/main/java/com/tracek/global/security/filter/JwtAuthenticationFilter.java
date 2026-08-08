@@ -15,7 +15,6 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -66,10 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String userRole = String.valueOf(claims.get("role"));
             String userName = String.valueOf(claims.get("name"));
 
-            UserDetails userDetails =
+            AuthenticationPrincipal userDetails =
                     new AuthenticationPrincipal(Long.parseLong(userId), userName, userRole);
             return new UsernamePasswordAuthenticationToken(
-                    userId, null, userDetails.getAuthorities());
+                    userDetails, null, userDetails.getAuthorities());
         } catch (Exception e) {
             logger.error("jwt + ", e);
             throw new CustomException(SecurityErrorCode.INVALID_TOKEN);
