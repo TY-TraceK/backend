@@ -34,7 +34,7 @@ public class ArtistDetailResult {
                     artist.getId(),
                     artist.getName(),
                     artist.getAlias(),
-                    artist.getPictureUrl().getImageUrl(),
+                    artist.getPictureUrl() == null ? null : artist.getPictureUrl().getImageUrl(),
                     artist.getDescription(),
                     artist.getGroup() == null ? null : artist.getGroup().getId());
         }
