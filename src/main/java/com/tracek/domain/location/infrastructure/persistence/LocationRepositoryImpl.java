@@ -27,6 +27,11 @@ public class LocationRepositoryImpl implements LocationRepository {
     }
 
     @Override
+    public List<Location> findAllByIds(List<Long> ids) {
+        return locationJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public List<Location> findAll() {
         return locationJpaRepository.findAll();
     }
@@ -44,5 +49,15 @@ public class LocationRepositoryImpl implements LocationRepository {
     @Override
     public List<LocationContentArtist> findRelatedContentAndArtists(Long locationId) {
         return locationContentArtistJpaRepository.findByLocationId(locationId);
+    }
+
+    @Override
+    public List<LocationContentArtist> findRelatedLocationAndArtists(Long contentId) {
+        return locationContentArtistJpaRepository.findByContentId(contentId);
+    }
+
+    @Override
+    public List<LocationContentArtist> findRelatedLocationAndContents(Long artistId) {
+        return locationContentArtistJpaRepository.findByArtistId(artistId);
     }
 }
