@@ -7,6 +7,8 @@ import com.tracek.domain.image.domain.repository.ImageRepository;
 import com.tracek.global.exception.CustomException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +29,20 @@ public class ImageQueryService {
     }
 
     // 여러 이미지 배치 조회 (N+1 방지)
+    // findAllById는 존재하지 않는 ID를 결과에서 조용히 제외하므로, 누락된 ID가 있으면 예외로 명시한다.
     public List<ImageResult> getImagesByIds(List<Long> imageIds) {
         if (imageIds == null || imageIds.isEmpty()) {
             return Collections.emptyList();
         }
-        return imageRepository.findAllByIds(imageIds).stream().map(ImageResult::from).toList();
+
+        List<Image> images = imageRepository.findAllByIds(imageIds);
+
+        Set<Long> foundIds = images.stream().map(Image::getId).collect(Collectors.toSet());
+        boolean hasMissingImage = imageIds.stream().anyMatch(id -> !foundIds.contains(id));
+        if (hasMissingImage) {
+            throw new CustomException(ImageErrorCode.IMAGE_NOT_FOUND);
+        }
+
+        return images.stream().map(ImageResult::from).toList();
     }
 }
