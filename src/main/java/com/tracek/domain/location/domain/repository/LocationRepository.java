@@ -2,9 +2,12 @@ package com.tracek.domain.location.domain.repository;
 
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface LocationRepository {
     Location save(Location location);
@@ -28,4 +31,9 @@ public interface LocationRepository {
 
     // 해당 아티스트와 연관된 관광지-콘텐츠 매핑 조회
     List<LocationContentArtist> findRelatedLocationAndContents(Long artistId);
+
+    // 특정 카테고리의 관광지 목록 페이징 조회
+    Page<Location> findByCategory(LocationCategory category, Pageable pageable);
+
+    Page<Location> findAll(Pageable pageable);
 }

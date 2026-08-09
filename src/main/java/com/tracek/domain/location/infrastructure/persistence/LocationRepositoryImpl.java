@@ -2,11 +2,14 @@ package com.tracek.domain.location.infrastructure.persistence;
 
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -59,5 +62,15 @@ public class LocationRepositoryImpl implements LocationRepository {
     @Override
     public List<LocationContentArtist> findRelatedLocationAndContents(Long artistId) {
         return locationContentArtistJpaRepository.findByArtistId(artistId);
+    }
+
+    @Override
+    public Page<Location> findByCategory(LocationCategory category, Pageable pageable) {
+        return locationJpaRepository.findByCategory(category, pageable);
+    }
+
+    @Override
+    public Page<Location> findAll(Pageable pageable) {
+        return locationJpaRepository.findAll(pageable);
     }
 }

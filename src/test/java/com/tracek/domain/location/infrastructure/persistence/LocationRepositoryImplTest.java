@@ -8,6 +8,7 @@ import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
 import com.tracek.global.common.vo.ImageUrl;
@@ -19,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class LocationRepositoryImplTest {
@@ -78,5 +83,21 @@ class LocationRepositoryImplTest {
 
         assertThat(locationRepositoryImpl.findRelatedContentAndArtists(1L))
                 .containsExactly(mapping);
+    }
+
+    @Test
+    @DisplayName("findByCategory/findAll(Pageable)은 LocationJpaRepository에 위임한다")
+    void pagedQueries_delegate() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Location> page = new PageImpl<>(List.of(location), pageable, 1);
+
+        given(locationJpaRepository.findByCategory(LocationCategory.ATTRACTION, pageable))
+                .willReturn(page);
+        given(locationJpaRepository.findAll(pageable)).willReturn(page);
+
+        assertThat(locationRepositoryImpl.findByCategory(LocationCategory.ATTRACTION, pageable))
+                .containsExactly(location);
+        assertThat(locationRepositoryImpl.findAll(pageable)).containsExactly(location);
     }
 }
