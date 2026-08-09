@@ -40,7 +40,7 @@ class LocationQueryControllerTest {
     @Test
     @DisplayName("관광지 단건 상세 조회 성공 시 성공 응답으로 감싸서 반환한다")
     void getLocationDetails_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult result =
                 LocationDetailResult.from(
                         LocationDetailResult.LocationInfo.of(location),
@@ -57,7 +57,7 @@ class LocationQueryControllerTest {
     @Test
     @DisplayName("지도 범위 내 관광지 리스트를 응답으로 감싸서 반환한다")
     void getNearbyLocations_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(locationQueryService.getNearbyLocations(37.5, 127.0, 1000.0))
                 .willReturn(List.of(LocationNearbyResult.of(location, 100.0)));
 

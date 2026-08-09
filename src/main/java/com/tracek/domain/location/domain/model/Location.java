@@ -21,7 +21,10 @@ public class Location extends BaseEntity {
     private Long id;
 
     private String name;
-    private String category;
+
+    @Enumerated(EnumType.STRING)
+    private LocationCategory category;
+
     private Long likeCount;
 
     @Embedded private Address address;

@@ -22,7 +22,7 @@ class LocationDetailResponseTest {
     @Test
     @DisplayName("LocationDetailResult를 LocationDetailResponse로 변환하면 이미지/콘텐츠/아티스트가 계층형으로 모두 매핑된다")
     void from_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult.LocationInfo locationInfo =
                 LocationDetailResult.LocationInfo.of(location);
 
@@ -66,7 +66,7 @@ class LocationDetailResponseTest {
     @Test
     @DisplayName("연관 이미지/콘텐츠가 없으면 빈 리스트로 변환된다")
     void from_withoutRelatedItems() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult result =
                 LocationDetailResult.from(
                         LocationDetailResult.LocationInfo.of(location), List.of(), List.of());
