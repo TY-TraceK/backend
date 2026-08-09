@@ -20,45 +20,42 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Table(
-    name = "vote",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_vote_owner_location_voted_at",
-            columnNames = {"vote_owner", "location_id", "voted_at"}
-        )
-    }
-)
+        name = "vote",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_vote_owner_location_voted_at",
+                    columnNames = {"vote_owner", "location_id", "voted_at"})
+        })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Vote {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-  @Column(nullable = false)
-  private Long voteOwner;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Embedded
-  private VoteTarget voteTarget;
+    @Column(nullable = false)
+    private Long voteOwner;
 
-  private LocalDate votedAt;
+    @Embedded private VoteTarget voteTarget;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private VoteStatus voteStatus = VoteStatus.VALID;
+    private LocalDate votedAt;
 
-  public Vote(Long voteOwner, VoteTarget voteTarget, LocalDate votedAt) {
-    this.voteOwner = voteOwner;
-    this.voteTarget = voteTarget;
-    this.votedAt = votedAt;
-  }
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private VoteStatus voteStatus = VoteStatus.VALID;
 
-  public static Vote createVote(
-      Long voteOwner, VoteTarget voteTarget) {
-    return new Vote(voteOwner, voteTarget, LocalDate.now());
-  }
+    public Vote(Long voteOwner, VoteTarget voteTarget, LocalDate votedAt) {
+        this.voteOwner = voteOwner;
+        this.voteTarget = voteTarget;
+        this.votedAt = votedAt;
+    }
 
-  public void invalid() {
-    this.voteStatus = VoteStatus.CANCELED;
-  }
+    public static Vote createVote(Long voteOwner, VoteTarget voteTarget) {
+        return new Vote(voteOwner, voteTarget, LocalDate.now());
+    }
+
+    public void invalid() {
+        this.voteStatus = VoteStatus.CANCELED;
+    }
 }

@@ -13,29 +13,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class VoteTarget {
 
-  @Column(nullable = false)
-  private Long locationId;
+    @Column(nullable = false)
+    private Long locationId;
 
-  @Column(nullable = false)
-  private Long locationContentArtistId;
+    @Column(nullable = false)
+    private Long locationContentArtistId;
 
-  @Column(nullable = false)
-  private Long artistId;
+    @Column(nullable = false)
+    private Long artistId;
 
-  @Column(nullable = false)
-  private Long contentId;
+    @Column(nullable = false)
+    private Long contentId;
 
-  @Column(nullable = false, length = 150)
-  private String voteTargetNameSnapShot;
+    @Column(nullable = false, length = 150)
+    private String voteTargetNameSnapShot;
 
-  public static VoteTarget of(
-      Long locationId,
-      Long locationContentArtistId,
-      Long artistId,
-      Long contentId,
-      String voteTargetNameSnapShot
-  ) {
-    return new VoteTarget(locationId, locationContentArtistId, artistId, contentId,
-        voteTargetNameSnapShot);
-  }
+    public static VoteTarget of(
+            Long locationId,
+            Long locationContentArtistId,
+            Long artistId,
+            Long contentId,
+            String voteTargetNameSnapShot) {
+        return new VoteTarget(
+                locationId, locationContentArtistId, artistId, contentId, voteTargetNameSnapShot);
+    }
 }

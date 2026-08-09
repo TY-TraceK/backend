@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class VoteRepositoryImpl implements VoteRepository {
 
-  private final VoteJpaRepository voteJpaRepository;
+    private final VoteJpaRepository voteJpaRepository;
 }
