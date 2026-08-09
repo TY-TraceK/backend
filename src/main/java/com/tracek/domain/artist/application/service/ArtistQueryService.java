@@ -16,13 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArtistQueryService {
     private final ArtistRepository artistRepository; // 조합 (has-a) 필요한 메서드만 골라 위임
 
-    // 타 도메인에서 아티스트 정보가 필요할 때 참조하는 조회 메서드
-    public ArtistResult getArtist(Long artistId) {
-        Artist artist =
-                artistRepository
-                        .findById(artistId)
-                        .orElseThrow(() -> new CustomException(ArtistErrorCode.ARTIST_NOT_FOUND));
-        return ArtistResult.from(artist);
+    public Artist getArtistEntity(Long artistId) {
+        return artistRepository
+                .findById(artistId)
+                .orElseThrow(() -> new CustomException(ArtistErrorCode.ARTIST_NOT_FOUND));
     }
 
     public List<ArtistResult> getArtistsByIds(List<Long> artistIds) {

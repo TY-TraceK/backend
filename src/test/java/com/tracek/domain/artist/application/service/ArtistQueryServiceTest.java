@@ -33,26 +33,26 @@ class ArtistQueryServiceTest {
     }
 
     @Test
-    @DisplayName("존재하는 아티스트 ID로 조회하면 ArtistResult를 반환한다")
-    void getArtist_success() {
+    @DisplayName("존재하는 아티스트 ID로 조회하면 Artist 엔티티를 반환한다")
+    void getArtistEntity_success() {
         Artist artist =
                 Artist.create(
                         "아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), "가수 겸 배우", null);
         ReflectionTestUtils.setField(artist, "id", 1L);
         given(artistRepository.findById(1L)).willReturn(Optional.of(artist));
 
-        ArtistResult result = artistQueryService.getArtist(1L);
+        Artist result = artistQueryService.getArtistEntity(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("아이유");
         assertThat(result.getAlias()).isEqualTo("IU");
-        assertThat(result.getPictureUrl()).isEqualTo("http://image.com/iu.jpg");
-        assertThat(result.getGroupId()).isNull();
+        assertThat(result.getPictureUrl().getImageUrl()).isEqualTo("http://image.com/iu.jpg");
+        assertThat(result.getGroup()).isNull();
     }
 
     @Test
-    @DisplayName("소속 그룹이 있는 아티스트는 groupId를 함께 반환한다")
-    void getArtist_withGroup() {
+    @DisplayName("소속 그룹이 있는 아티스트는 group을 함께 반환한다")
+    void getArtistEntity_withGroup() {
         Artist group =
                 Artist.create("그룹", null, ImageUrl.from("http://image.com/g.jpg"), null, null);
         ReflectionTestUtils.setField(group, "id", 10L);
@@ -62,17 +62,17 @@ class ArtistQueryServiceTest {
         ReflectionTestUtils.setField(member, "id", 2L);
         given(artistRepository.findById(2L)).willReturn(Optional.of(member));
 
-        ArtistResult result = artistQueryService.getArtist(2L);
+        Artist result = artistQueryService.getArtistEntity(2L);
 
-        assertThat(result.getGroupId()).isEqualTo(10L);
+        assertThat(result.getGroup().getId()).isEqualTo(10L);
     }
 
     @Test
     @DisplayName("존재하지 않는 아티스트 ID로 조회하면 ARTIST_NOT_FOUND 예외가 발생한다")
-    void getArtist_notFound() {
+    void getArtistEntity_notFound() {
         given(artistRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> artistQueryService.getArtist(999L))
+        assertThatThrownBy(() -> artistQueryService.getArtistEntity(999L))
                 .isInstanceOf(CustomException.class)
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(ArtistErrorCode.ARTIST_NOT_FOUND);
