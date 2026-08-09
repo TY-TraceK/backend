@@ -1,5 +1,7 @@
 package com.tracek.domain.content.domain.model;
 
+import com.tracek.domain.content.domain.exception.ContentErrorCode;
+import com.tracek.global.exception.CustomException;
 import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,6 @@ public enum ContentCategory {
         return Arrays.stream(ContentCategory.values())
                 .filter(category -> category.name().equalsIgnoreCase(source.trim()))
                 .findFirst()
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Invalid ContentCategory: " + source));
+                .orElseThrow(() -> new CustomException(ContentErrorCode.INVALID_CATEGORY));
     }
 }
