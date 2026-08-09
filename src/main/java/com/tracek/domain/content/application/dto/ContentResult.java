@@ -23,7 +23,7 @@ public class ContentResult {
         return new ContentResult(
                 content.getId(),
                 content.getTitle(),
-                content.getCategory(),
+                content.getCategory() == null ? null : content.getCategory().name(),
                 content.getPictureUrl().getImageUrl(),
                 Collections.emptyList(),
                 Collections.emptyList());
@@ -34,7 +34,7 @@ public class ContentResult {
         return new ContentResult(
                 content.getId(),
                 content.getTitle(),
-                content.getCategory(),
+                content.getCategory() == null ? null : content.getCategory().name(),
                 content.getPictureUrl().getImageUrl(),
                 locations == null ? Collections.emptyList() : locations,
                 artists == null ? Collections.emptyList() : artists);

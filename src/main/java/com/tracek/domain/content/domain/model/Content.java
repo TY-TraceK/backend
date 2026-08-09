@@ -22,12 +22,12 @@ public class Content extends BaseEntity {
     @Column(nullable = false, length = 150)
     private String title;
 
-    @Column(nullable = false, length = 50)
-    private String category; // ALBUM, MV, DRAMA, MOVIE, VARIETY 등
+    @Enumerated(EnumType.STRING)
+    private ContentCategory category;
 
     @Embedded private ImageUrl pictureUrl;
 
     public static Content create(String title, String category, ImageUrl pictureUrl) {
-        return new Content(null, title, category, pictureUrl);
+        return new Content(null, title, ContentCategory.from(category), pictureUrl);
     }
 }

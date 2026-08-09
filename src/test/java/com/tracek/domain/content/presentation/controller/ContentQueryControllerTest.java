@@ -33,7 +33,7 @@ class ContentQueryControllerTest {
     @Test
     @DisplayName("콘텐츠 단건 상세 조회 성공 시 성공 응답으로 감싸서 반환한다")
     void getContentDetails_success() {
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult result =
                 ContentDetailResult.from(ContentDetailResult.ContentInfo.of(content), List.of());

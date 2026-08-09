@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import com.tracek.domain.content.application.dto.ContentResult;
 import com.tracek.domain.content.domain.exception.ContentErrorCode;
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.content.domain.model.ContentCategory;
 import com.tracek.domain.content.domain.repository.ContentRepository;
 import com.tracek.global.common.vo.ImageUrl;
 import com.tracek.global.exception.CustomException;
@@ -35,7 +36,7 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("존재하는 콘텐츠 ID로 조회하면 Content 엔티티를 반환한다")
     void getContentEntity_success() {
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         given(contentRepository.findById(1L)).willReturn(Optional.of(content));
 
@@ -43,7 +44,7 @@ class ContentQueryServiceTest {
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getTitle()).isEqualTo("데뷔 앨범");
-        assertThat(result.getCategory()).isEqualTo("ALBUM");
+        assertThat(result.getCategory()).isEqualTo(ContentCategory.KPOP);
         assertThat(result.getPictureUrl().getImageUrl()).isEqualTo("http://image.com/a.jpg");
     }
 
@@ -61,7 +62,7 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("ID 목록으로 조회하면 배치로 ContentResult 목록을 반환한다")
     void getContentsByIds_success() {
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         given(contentRepository.findAllByIds(List.of(1L))).willReturn(List.of(content));
 

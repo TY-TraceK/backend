@@ -58,7 +58,8 @@ class LocationFacadeTest {
         ImageLocation.create(location, image, 1, true);
 
         Content content =
-                Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
+                Content.create(
+                        "궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(
@@ -112,7 +113,8 @@ class LocationFacadeTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
 
         Content content =
-                Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
+                Content.create(
+                        "궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(

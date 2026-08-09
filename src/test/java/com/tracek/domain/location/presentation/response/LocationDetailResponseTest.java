@@ -32,7 +32,7 @@ class LocationDetailResponseTest {
                 LocationDetailResult.LocationImageResult.of(ImageResult.from(image), true, 1);
 
         Content content =
-                Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/c.jpg"));
+                Content.create("궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/c.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         ContentResult contentResult = ContentResult.from(content);
 
