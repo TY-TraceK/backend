@@ -55,7 +55,9 @@ public class LocationQueryController {
         return ApiResponse.success(GeneralSuccessCode.OK, response);
     }
 
-    @Operation(summary = "관광지 단건 상세 조회", description = "해당 관광지 정보와 연관된 콘텐츠 및 아티스트 정보를 매핑하여 조회합니다.")
+    @Operation(
+            summary = "관광지 연관 콘텐츠·아티스트 조회",
+            description = "해당 관광지 정보와 연관된 콘텐츠 및 아티스트 정보를 매핑하여 조회합니다.")
     @GetMapping("/{locationId}/related-info")
     public ApiResponse<LocationRelatedInfoResponse> getRelatedContentAndArtists(
             @Parameter(description = "관광지 ID") @PathVariable Long locationId) {

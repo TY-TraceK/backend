@@ -5,6 +5,8 @@ import com.tracek.domain.image.domain.exception.ImageErrorCode;
 import com.tracek.domain.image.domain.model.Image;
 import com.tracek.domain.image.domain.repository.ImageRepository;
 import com.tracek.global.exception.CustomException;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,5 +24,13 @@ public class ImageQueryService {
                         .findById(imageId)
                         .orElseThrow(() -> new CustomException(ImageErrorCode.IMAGE_NOT_FOUND));
         return ImageResult.from(image);
+    }
+
+    // 여러 이미지 배치 조회 (N+1 방지)
+    public List<ImageResult> getImagesByIds(List<Long> imageIds) {
+        if (imageIds == null || imageIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return imageRepository.findAllByIds(imageIds).stream().map(ImageResult::from).toList();
     }
 }

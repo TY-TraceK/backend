@@ -67,7 +67,8 @@ class LocationFacadeTest {
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
-        given(imageQueryService.getImage(5L)).willReturn(ImageResult.from(image));
+        given(imageQueryService.getImagesByIds(List.of(5L)))
+                .willReturn(List.of(ImageResult.from(image)));
         given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of(mapping));
         given(contentQueryService.getContentsByIds(List.of(2L)))
                 .willReturn(List.of(ContentResult.from(content)));
@@ -94,6 +95,7 @@ class LocationFacadeTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
+        given(imageQueryService.getImagesByIds(List.of())).willReturn(List.of());
         given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of());
         given(contentQueryService.getContentsByIds(List.of())).willReturn(List.of());
         given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());

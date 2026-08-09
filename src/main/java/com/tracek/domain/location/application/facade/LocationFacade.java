@@ -34,15 +34,24 @@ public class LocationFacade {
         // 관광지 엔티티 & 사진 URL 목록 조회
         Location location = locationQueryService.getLocationEntity(locationId);
 
+        // IN 절 Batch Query로 N+1 문제 최적화 조회
+        List<Long> imageIds =
+                location.getImageLocations().stream()
+                        .map(m -> m.getImage().getId())
+                        .distinct()
+                        .toList();
+        Map<Long, ImageResult> imageResultMap =
+                imageQueryService.getImagesByIds(imageIds).stream()
+                        .collect(Collectors.toMap(ImageResult::getId, imageResult -> imageResult));
+
         List<LocationDetailResult.LocationImageResult> imageResults =
                 location.getImageLocations().stream()
                         .map(
-                                m -> {
-                                    ImageResult imageResult =
-                                            imageQueryService.getImage(m.getImage().getId());
-                                    return LocationDetailResult.LocationImageResult.of(
-                                            imageResult, m.getIsMain(), m.getDisplayOrder());
-                                })
+                                m ->
+                                        LocationDetailResult.LocationImageResult.of(
+                                                imageResultMap.get(m.getImage().getId()),
+                                                m.getIsMain(),
+                                                m.getDisplayOrder()))
                         .toList();
 
         // 관광지 ID 기준 매핑 정보(LocationContentArtist) 전체 조회

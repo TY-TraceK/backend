@@ -18,6 +18,11 @@ public class ImageRepositoryImpl implements ImageRepository {
     }
 
     @Override
+    public List<Image> findAllByIds(List<Long> ids) {
+        return imageJpaRepository.findAllById(ids);
+    }
+
+    @Override
     public List<Image> findAll() {
         return imageJpaRepository.findAll();
     }
