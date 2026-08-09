@@ -43,7 +43,10 @@ class LocationFacadeTest {
     void setUp() {
         locationFacade =
                 new LocationFacade(
-                        locationQueryService, contentQueryService, artistQueryService, imageQueryService);
+                        locationQueryService,
+                        contentQueryService,
+                        artistQueryService,
+                        imageQueryService);
     }
 
     @Test
@@ -58,13 +61,13 @@ class LocationFacadeTest {
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                Artist.create(
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
-        given(imageQueryService.getImage(5L))
-                .willReturn(ImageResult.from(image));
+        given(imageQueryService.getImage(5L)).willReturn(ImageResult.from(image));
         given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of(mapping));
         given(contentQueryService.getContentsByIds(List.of(2L)))
                 .willReturn(List.of(ContentResult.from(content)));
@@ -110,7 +113,8 @@ class LocationFacadeTest {
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                Artist.create(
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
 
