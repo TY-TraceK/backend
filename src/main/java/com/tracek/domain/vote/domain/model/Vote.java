@@ -23,8 +23,8 @@ import lombok.NoArgsConstructor;
         name = "vote",
         uniqueConstraints = {
             @UniqueConstraint(
-                    name = "uk_vote_owner_location_voted_at",
-                    columnNames = {"vote_owner", "location_id", "voted_at"})
+                    name = "uk_vote_owner_location_valid",
+                    columnNames = {"vote_owner", "location_id", "valid_voted_at"})
         })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -39,11 +39,20 @@ public class Vote {
 
     @Embedded private VoteTarget voteTarget;
 
+    @Column(nullable = false)
     private LocalDate votedAt;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private VoteStatus voteStatus = VoteStatus.VALID;
+
+    @Column(
+            name = "valid_voted_at",
+            insertable = false,
+            updatable = false,
+            columnDefinition =
+                    "DATE GENERATED ALWAYS AS (CASE WHEN vote_status = 'VALID' THEN voted_at ELSE NULL END)")
+    private LocalDate validVotedAt;
 
     public Vote(Long voteOwner, VoteTarget voteTarget, LocalDate votedAt) {
         this.voteOwner = voteOwner;
