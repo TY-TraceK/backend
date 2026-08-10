@@ -83,6 +83,9 @@ public class LocationQueryService {
     public Page<LocationSummaryResult> getLocationsByCategory(
             String categoryName, Pageable pageable) {
         LocationCategory category = LocationCategory.from(categoryName);
+        if (category == null) {
+            throw new CustomException(LocationErrorCode.INVALID_CATEGORY);
+        }
         return locationRepository
                 .findByCategory(category, pageable)
                 .map(LocationSummaryResult::from);

@@ -190,6 +190,17 @@ class LocationQueryServiceTest {
     }
 
     @Test
+    @DisplayName("공백 카테고리로 조회하면 INVALID_CATEGORY 예외가 발생한다")
+    void getLocationsByCategory_blankCategory() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThatThrownBy(() -> locationQueryService.getLocationsByCategory(" ", pageable))
+                .isInstanceOf(CustomException.class)
+                .extracting(e -> ((CustomException) e).getErrorCode())
+                .isEqualTo(LocationErrorCode.INVALID_CATEGORY);
+    }
+
+    @Test
     @DisplayName("전체 관광지 목록을 페이징 조회한다")
     void getAllLocations_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
