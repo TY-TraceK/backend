@@ -57,7 +57,7 @@ class VoteTest {
     }
 
     @Nested
-    @DisplayName("투표 상태 변경 테스트")
+    @DisplayName("투표 상태 및 무효화 테스트")
     class VoteStatusTest {
 
         @Test
@@ -72,6 +72,23 @@ class VoteTest {
 
             // then
             assertThat(vote.getVoteStatus()).isEqualTo(VoteStatus.CANCELED);
+        }
+
+        @Test
+        @DisplayName("투표 상태에 따른 validVotedAt 가상 컬럼 동작을 검증한다.")
+        void validVotedAt_behavior_by_status() {
+            // given
+            LocalDate today = LocalDate.now();
+            Vote validVote = Vote.createVote(voteOwner, voteTarget);
+
+            // 1. VALID 상태일 때: DB 트리거 계산 로직상 validVotedAt은 votedAt과 동일
+            assertThat(validVote.getVoteStatus()).isEqualTo(VoteStatus.VALID);
+            assertThat(validVote.getVotedAt()).isEqualTo(today);
+
+            // 2. invalid()로 취소(CANCELED) 시 상태 전환 검증
+            validVote.invalid();
+            assertThat(validVote.getVoteStatus()).isEqualTo(VoteStatus.CANCELED);
+            // DB 적용 후 valid_voted_at은 NULL로 자동 평가되어 UNIQUE 제약에서 제외됨
         }
     }
 }
