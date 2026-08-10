@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.content.application.dto.ContentResult;
+import com.tracek.domain.content.application.dto.ContentSummaryResult;
 import com.tracek.domain.content.domain.exception.ContentErrorCode;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.domain.model.ContentCategory;
@@ -19,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,5 +83,34 @@ class ContentQueryServiceTest {
         List<ContentResult> results = contentQueryService.getContentsByIds(List.of());
 
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("카테고리를 지정하면 해당 카테고리의 콘텐츠만 페이징 조회한다")
+    void getContentsByCategory_withCategory() {
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Pageable pageable = PageRequest.of(0, 10);
+        given(contentRepository.findByCategory(ContentCategory.KPOP, pageable))
+                .willReturn(new PageImpl<>(List.of(content), pageable, 1));
+
+        Page<ContentSummaryResult> results =
+                contentQueryService.getContentsByCategory("KPOP", pageable);
+
+        assertThat(results.getContent()).hasSize(1);
+        assertThat(results.getContent().get(0).getCategory()).isEqualTo(ContentCategory.KPOP);
+    }
+
+    @Test
+    @DisplayName("카테고리를 지정하지 않으면 전체 콘텐츠를 페이징 조회한다")
+    void getContentsByCategory_withoutCategory() {
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Pageable pageable = PageRequest.of(0, 10);
+        given(contentRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(List.of(content), pageable, 1));
+
+        Page<ContentSummaryResult> results =
+                contentQueryService.getContentsByCategory(null, pageable);
+
+        assertThat(results.getContent()).hasSize(1);
     }
 }

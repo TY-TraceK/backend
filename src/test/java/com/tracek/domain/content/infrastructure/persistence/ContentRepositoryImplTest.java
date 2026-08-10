@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.content.domain.model.ContentCategory;
 import com.tracek.global.common.vo.ImageUrl;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ContentRepositoryImplTest {
@@ -57,5 +62,20 @@ class ContentRepositoryImplTest {
 
         contentRepositoryImpl.deleteById(1L);
         verify(contentJpaRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("findByCategory/findAll(Pageable)은 ContentJpaRepository에 위임한다")
+    void pagedQueries_delegate() {
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Content> page = new PageImpl<>(List.of(content), pageable, 1);
+
+        given(contentJpaRepository.findByCategory(ContentCategory.KPOP, pageable)).willReturn(page);
+        given(contentJpaRepository.findAll(pageable)).willReturn(page);
+
+        assertThat(contentRepositoryImpl.findByCategory(ContentCategory.KPOP, pageable))
+                .containsExactly(content);
+        assertThat(contentRepositoryImpl.findAll(pageable)).containsExactly(content);
     }
 }

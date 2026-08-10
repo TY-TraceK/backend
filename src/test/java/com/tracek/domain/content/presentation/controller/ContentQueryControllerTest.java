@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.content.application.dto.ContentDetailResult;
+import com.tracek.domain.content.application.dto.ContentSummaryResult;
 import com.tracek.domain.content.application.facade.ContentFacade;
+import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.presentation.response.ContentDetailResponse;
+import com.tracek.domain.content.presentation.response.ContentSummaryResponse;
 import com.tracek.global.common.vo.ImageUrl;
 import com.tracek.global.response.ApiResponse;
 import java.util.List;
@@ -16,18 +19,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ContentQueryControllerTest {
 
     @Mock private ContentFacade contentFacade;
+    @Mock private ContentQueryService contentQueryService;
 
     private ContentQueryController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new ContentQueryController(contentFacade);
+        controller = new ContentQueryController(contentFacade, contentQueryService);
     }
 
     @Test
@@ -43,5 +51,23 @@ class ContentQueryControllerTest {
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getContentInfo().getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("카테고리별 콘텐츠 목록을 페이징 응답으로 감싸서 반환한다")
+    void getContentsByCategory_success() {
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        ReflectionTestUtils.setField(content, "id", 1L);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ContentSummaryResult> resultPage =
+                new PageImpl<>(List.of(ContentSummaryResult.from(content)), pageable, 1);
+        given(contentQueryService.getContentsByCategory("KPOP", pageable)).willReturn(resultPage);
+
+        ApiResponse<Page<ContentSummaryResponse>> response =
+                controller.getContentsByCategory("KPOP", pageable);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getContent()).hasSize(1);
+        assertThat(response.getData().getContent().get(0).getTitle()).isEqualTo("데뷔 앨범");
     }
 }

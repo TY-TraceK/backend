@@ -1,10 +1,13 @@
 package com.tracek.domain.content.infrastructure.persistence;
 
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.content.domain.model.ContentCategory;
 import com.tracek.domain.content.domain.repository.ContentRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -35,5 +38,15 @@ public class ContentRepositoryImpl implements ContentRepository {
     @Override
     public void deleteById(Long id) {
         contentJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<Content> findByCategory(ContentCategory category, Pageable pageable) {
+        return contentJpaRepository.findByCategory(category, pageable);
+    }
+
+    @Override
+    public Page<Content> findAll(Pageable pageable) {
+        return contentJpaRepository.findAll(pageable);
     }
 }
