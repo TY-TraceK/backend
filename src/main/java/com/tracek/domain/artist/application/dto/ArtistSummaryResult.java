@@ -20,7 +20,7 @@ public class ArtistSummaryResult {
                 artist.getId(),
                 artist.getName(),
                 artist.getAlias(),
-                artist.getPictureUrl().getImageUrl(),
+                artist.getPictureUrl() == null ? null : artist.getPictureUrl().getImageUrl(),
                 artist.getGroup() == null ? null : artist.getGroup().getId());
     }
 }
