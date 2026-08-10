@@ -14,6 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ArtistRepositoryImplTest {
@@ -60,5 +64,17 @@ class ArtistRepositoryImplTest {
 
         artistRepositoryImpl.deleteById(1L);
         verify(artistJpaRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("findAll(Pageable)은 ArtistJpaRepository에 위임한다")
+    void findAllPageable_delegates() {
+        Artist artist =
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/a.jpg"), null, null);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Artist> page = new PageImpl<>(List.of(artist), pageable, 1);
+        given(artistJpaRepository.findAll(pageable)).willReturn(page);
+
+        assertThat(artistRepositoryImpl.findAll(pageable)).containsExactly(artist);
     }
 }

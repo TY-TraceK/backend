@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.artist.application.dto.ArtistResult;
+import com.tracek.domain.artist.application.dto.ArtistSummaryResult;
 import com.tracek.domain.artist.domain.exception.ArtistErrorCode;
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.artist.domain.repository.ArtistRepository;
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,5 +104,21 @@ class ArtistQueryServiceTest {
         List<ArtistResult> results = artistQueryService.getArtistsByIds(List.of());
 
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("전체 아티스트 목록을 페이징 조회한다")
+    void getAllArtists_success() {
+        Artist artist =
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
+        ReflectionTestUtils.setField(artist, "id", 1L);
+        Pageable pageable = PageRequest.of(0, 10);
+        given(artistRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(List.of(artist), pageable, 1));
+
+        Page<ArtistSummaryResult> results = artistQueryService.getAllArtists(pageable);
+
+        assertThat(results.getContent()).hasSize(1);
+        assertThat(results.getContent().get(0).getName()).isEqualTo("아이유");
     }
 }

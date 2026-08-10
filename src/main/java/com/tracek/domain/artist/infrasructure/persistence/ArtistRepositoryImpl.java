@@ -5,6 +5,8 @@ import com.tracek.domain.artist.domain.repository.ArtistRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,6 +27,11 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     @Override
     public List<Artist> findAll() {
         return artistJpaRepository.findAll();
+    }
+
+    @Override
+    public Page<Artist> findAll(Pageable pageable) {
+        return artistJpaRepository.findAll(pageable);
     }
 
     @Override
