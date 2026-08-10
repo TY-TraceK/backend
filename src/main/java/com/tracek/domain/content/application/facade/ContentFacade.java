@@ -42,22 +42,26 @@ public class ContentFacade {
         List<LocationResult> locations = locationQueryService.getLocationByIds(locationIds);
         List<ArtistResult> artists = artistQueryService.getArtistsByIds(artistIds);
 
-        // O(1) 탐색을 위해 ArtistResult -> ContentDetailResult.ArtistResult 맵 변환
-        Map<Long, ContentDetailResult.ArtistResult> artistResultMap =
-                artists.stream()
-                        .collect(
-                                Collectors.toMap(
-                                        ArtistResult::getId,
-                                        ContentDetailResult.ArtistResult::from));
+        // O(1) 탐색을 위해 ArtistResult 맵 변환
+        Map<Long, ArtistResult> artistResultMap =
+                artists.stream().collect(Collectors.toMap(ArtistResult::getId, a -> a));
 
-        // Location ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑
+        // Location ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑 (매핑 PK도 함께 전달)
         Map<Long, List<ContentDetailResult.ArtistResult>> locationArtistGroupMap =
                 mappings.stream()
                         .collect(
                                 Collectors.groupingBy(
                                         m -> m.getLocation().getId(),
                                         Collectors.mapping(
-                                                m -> artistResultMap.get(m.getArtist().getId()),
+                                                m -> {
+                                                    ArtistResult artist =
+                                                            artistResultMap.get(
+                                                                    m.getArtist().getId());
+                                                    return artist == null
+                                                            ? null
+                                                            : ContentDetailResult.ArtistResult.from(
+                                                                    m.getId(), artist);
+                                                },
                                                 Collectors.filtering(
                                                         Objects::nonNull, Collectors.toList()))));
 

@@ -50,6 +50,7 @@ class ContentFacadeTest {
                 Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
+        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(contentQueryService.getContentEntity(1L)).willReturn(content);
         given(locationQueryService.getMappingsByContentId(1L)).willReturn(List.of(mapping));
@@ -67,6 +68,8 @@ class ContentFacadeTest {
         assertThat(result.getLocations().get(0).getArtists()).hasSize(1);
         assertThat(result.getLocations().get(0).getArtists().get(0).getArtistName())
                 .isEqualTo("아이유");
+        assertThat(result.getLocations().get(0).getArtists().get(0).getContentArtistLocationId())
+                .isEqualTo(99L);
     }
 
     @Test
