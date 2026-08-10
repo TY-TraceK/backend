@@ -74,7 +74,8 @@ public class LocationQueryController {
             @Parameter(description = "관광지 카테고리 (예: ATTRACTION, CAFE). 생략 시 전체 조회")
                     @RequestParam(required = false)
                     String category,
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+            @ParameterObject
+                    @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
                     Pageable pageable) {
         Page<LocationSummaryResult> locations =
                 locationQueryService.getLocationsByCategory(category, pageable);
