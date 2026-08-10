@@ -11,7 +11,6 @@ import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.SecurityErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import java.security.SecureRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,19 +31,14 @@ class JwtTokenProviderTest {
         jwtProvider.init();
     }
 
-    /** 입력받은 문자열(Signature)의 문자들을 무작위로 섞는 헬퍼 메서드 */
-    private String shuffleString(String text) {
-        char[] chars = text.toCharArray();
-        SecureRandom random = new SecureRandom();
-
-        for (int i = chars.length - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            char temp = chars[i];
-            chars[i] = chars[j];
-            chars[j] = temp;
+    /** 원본 문자열의 첫 번째 문자를 확정적으로 변경하여 무조건 원본과 다른 Base64URL 문자열을 만듭니다. */
+    private String mutateFirstCharacter(String input) {
+        if (input == null || input.isEmpty()) {
+            return "A";
         }
-
-        return new String(chars);
+        char first = input.charAt(0);
+        char replacement = (first == 'A') ? 'B' : 'A';
+        return replacement + input.substring(1);
     }
 
     @Nested
@@ -128,9 +122,9 @@ class JwtTokenProviderTest {
             // given
             String token = jwtProvider.createAccessToken(1L, "ROLE_USER", "TEST_USER");
 
-            // Signature 영역을 추출하여 무작위로 섞음
+            // Signature 영역의 첫 문자를 결정적으로 변경하여 반드시 원본과 다르게 만듦
             String[] parts = token.split("\\.");
-            String tamperedToken = parts[0] + "." + parts[1] + "." + shuffleString(parts[2]);
+            String tamperedToken = parts[0] + "." + parts[1] + "." + mutateFirstCharacter(parts[2]);
 
             CustomException exception =
                     assertThrows(
