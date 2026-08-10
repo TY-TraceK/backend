@@ -101,6 +101,17 @@ class ContentQueryServiceTest {
     }
 
     @Test
+    @DisplayName("공백 카테고리로 조회하면 INVALID_CATEGORY 예외가 발생한다")
+    void getContentsByCategory_blankCategory() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThatThrownBy(() -> contentQueryService.getContentsByCategory(" ", pageable))
+                .isInstanceOf(CustomException.class)
+                .extracting(e -> ((CustomException) e).getErrorCode())
+                .isEqualTo(ContentErrorCode.INVALID_CATEGORY);
+    }
+
+    @Test
     @DisplayName("전체 콘텐츠 목록을 페이징 조회한다")
     void getAllContents_success() {
         Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
@@ -111,5 +122,7 @@ class ContentQueryServiceTest {
         Page<ContentSummaryResult> results = contentQueryService.getAllContents(pageable);
 
         assertThat(results.getContent()).hasSize(1);
+        assertThat(results.getContent().get(0).getTitle()).isEqualTo("데뷔 앨범");
+        assertThat(results.getContent().get(0).getCategory()).isEqualTo(ContentCategory.KPOP);
     }
 }

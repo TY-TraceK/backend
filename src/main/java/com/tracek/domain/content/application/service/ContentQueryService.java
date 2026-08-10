@@ -48,6 +48,9 @@ public class ContentQueryService {
     public Page<ContentSummaryResult> getContentsByCategory(
             String categoryName, Pageable pageable) {
         ContentCategory category = ContentCategory.from(categoryName);
+        if (category == null) {
+            throw new CustomException(ContentErrorCode.INVALID_CATEGORY);
+        }
         return contentRepository.findByCategory(category, pageable).map(ContentSummaryResult::from);
     }
 }
