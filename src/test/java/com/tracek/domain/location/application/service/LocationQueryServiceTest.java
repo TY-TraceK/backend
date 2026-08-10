@@ -40,7 +40,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("존재하는 관광지 ID로 조회하면 Location 엔티티를 반환한다")
     void getLocationEntity_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(locationRepository.findById(1L)).willReturn(Optional.of(location));
 
         Location result = locationQueryService.getLocationEntity(1L);
@@ -63,7 +63,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("ID 목록으로 조회하면 배치로 LocationResult 목록을 반환한다")
     void getLocationByIds_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(locationRepository.findAllByIds(List.of(1L))).willReturn(List.of(location));
 
         List<LocationResult> results = locationQueryService.getLocationByIds(List.of(1L));
@@ -83,7 +83,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("주변 관광지를 거리순으로 조회한다")
     void getNearbyLocations_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(
                         locationRepository.findNearbyLocations(
                                 org.mockito.ArgumentMatchers.any(),
@@ -101,7 +101,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("관광지 ID로 연관된 콘텐츠-아티스트 매핑을 조회한다")
     void getMappingsByLocationId_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
@@ -123,7 +123,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("콘텐츠 ID로 연관된 관광지-아티스트 매핑을 조회한다")
     void getMappingsByContentId_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
@@ -145,7 +145,7 @@ class LocationQueryServiceTest {
     @Test
     @DisplayName("아티스트 ID로 연관된 관광지-콘텐츠 매핑을 조회한다")
     void getMappingByArtistId_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);

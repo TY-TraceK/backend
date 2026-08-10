@@ -42,7 +42,7 @@ public class LocationDetailResult {
             return new LocationInfo(
                     location.getId(),
                     location.getName(),
-                    location.getCategory(),
+                    location.getCategory() == null ? null : location.getCategory().name(),
                     location.getLikeCount(),
                     location.getAddress(),
                     location.getGeoLocation(),

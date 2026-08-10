@@ -29,7 +29,7 @@ class ArtistDetailResponseTest {
         ReflectionTestUtils.setField(content, "id", 2L);
         ContentResult contentResult = ContentResult.from(content);
 
-        Location location = LocationTestFixture.newLocation(3L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(3L, "경복궁", "ATTRACTION", 100L);
         LocationResult locationResult = LocationResult.from(location);
 
         ArtistDetailResult.ContentResult detailContentResult =

@@ -52,7 +52,7 @@ class LocationFacadeTest {
     @Test
     @DisplayName("관광지 상세 조회 시 이미지/콘텐츠별 아티스트가 계층형으로 조립된다")
     void getLocationDetails_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Image image = Image.create("http://image.com/gyeongbok.jpg");
         ReflectionTestUtils.setField(image, "id", 5L);
         ImageLocation.create(location, image, 1, true);
@@ -92,7 +92,7 @@ class LocationFacadeTest {
     @Test
     @DisplayName("연관 콘텐츠/아티스트 매핑이 없으면 빈 리스트로 조립된다")
     void getLocationDetails_withoutMappings() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of())).willReturn(List.of());
@@ -109,7 +109,7 @@ class LocationFacadeTest {
     @Test
     @DisplayName("관광지 관련 콘텐츠-아티스트 정보를 배치 조회로 조립한다")
     void getRelatedContentAndArtists_success() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
 
         Content content =
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/content.jpg"));

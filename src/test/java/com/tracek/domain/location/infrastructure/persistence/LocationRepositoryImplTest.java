@@ -39,7 +39,7 @@ class LocationRepositoryImplTest {
     @Test
     @DisplayName("save/findById/findAll/deleteById는 LocationJpaRepository에 위임한다")
     void basicCrud_delegates() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(locationJpaRepository.save(location)).willReturn(location);
         given(locationJpaRepository.findById(1L)).willReturn(Optional.of(location));
         given(locationJpaRepository.findAll()).willReturn(List.of(location));
@@ -55,7 +55,7 @@ class LocationRepositoryImplTest {
     @Test
     @DisplayName("findNearbyLocations는 LocationJpaRepository에 위임한다")
     void findNearbyLocations_delegates() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         GeoLocation userLocation = GeoLocation.of(37.5, 127.0);
         given(locationJpaRepository.findNearbyLocations(userLocation, 1000.0))
                 .willReturn(List.of(location));
@@ -67,7 +67,7 @@ class LocationRepositoryImplTest {
     @Test
     @DisplayName("연관 콘텐츠-아티스트 매핑 조회는 LocationContentArtistJpaRepository에 위임한다")
     void relatedMappings_delegate() {
-        Location location = LocationTestFixture.newLocation(1L, "경복궁", "PALACE", 100L);
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create("궁궐 브이로그", "VARIETY", ImageUrl.from("http://image.com/c.jpg"));
         Artist artist =

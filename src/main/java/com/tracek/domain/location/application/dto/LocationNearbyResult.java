@@ -18,7 +18,7 @@ public class LocationNearbyResult {
         return new LocationNearbyResult(
                 location.getId(),
                 location.getName(),
-                location.getCategory(),
+                location.getCategory() == null ? null : location.getCategory().name(),
                 location.getGeoLocation(),
                 distanceMeter);
     }

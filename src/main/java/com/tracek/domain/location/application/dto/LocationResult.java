@@ -34,7 +34,7 @@ public class LocationResult {
         return new LocationResult(
                 location.getId(),
                 location.getName(),
-                location.getCategory(),
+                location.getCategory() == null ? null : location.getCategory().name(),
                 location.getLikeCount(),
                 location.getAddress(),
                 location.getGeoLocation(),
