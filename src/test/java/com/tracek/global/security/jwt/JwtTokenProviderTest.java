@@ -31,10 +31,14 @@ class JwtTokenProviderTest {
         jwtProvider.init();
     }
 
-    private char changeLastCharacter(String token) {
-        char lastCharacter = token.charAt(token.length() - 1);
-
-        return lastCharacter == 'a' ? 'b' : 'a';
+    /** 원본 문자열의 첫 번째 문자를 확정적으로 변경하여 무조건 원본과 다른 Base64URL 문자열을 만듭니다. */
+    private String mutateFirstCharacter(String input) {
+        if (input == null || input.isEmpty()) {
+            return "A";
+        }
+        char first = input.charAt(0);
+        char replacement = (first == 'A') ? 'B' : 'A';
+        return replacement + input.substring(1);
     }
 
     @Nested
@@ -118,8 +122,9 @@ class JwtTokenProviderTest {
             // given
             String token = jwtProvider.createAccessToken(1L, "ROLE_USER", "TEST_USER");
 
-            String tamperedToken =
-                    token.substring(0, token.length() - 1) + changeLastCharacter(token);
+            // Signature 영역의 첫 문자를 결정적으로 변경하여 반드시 원본과 다르게 만듦
+            String[] parts = token.split("\\.");
+            String tamperedToken = parts[0] + "." + parts[1] + "." + mutateFirstCharacter(parts[2]);
 
             CustomException exception =
                     assertThrows(
