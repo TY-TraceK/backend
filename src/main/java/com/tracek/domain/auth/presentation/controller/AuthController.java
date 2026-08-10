@@ -1,6 +1,6 @@
 package com.tracek.domain.auth.presentation.controller;
 
-import com.tracek.domain.auth.application.service.OAuthServiceImpl;
+import com.tracek.domain.auth.application.service.OAuthService;
 import com.tracek.domain.auth.presentation.controller.docs.AuthControllerDocs;
 import com.tracek.domain.auth.presentation.dto.response.OAuthLoginResponse;
 import com.tracek.global.response.ApiResponse;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController implements AuthControllerDocs {
 
-    private final OAuthServiceImpl oAuthService;
+    private final OAuthService oAuthService;
 
     @Override
     @PostMapping("/{provider}")
