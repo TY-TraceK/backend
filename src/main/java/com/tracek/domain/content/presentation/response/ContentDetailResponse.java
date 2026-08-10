@@ -64,12 +64,14 @@ public class ContentDetailResponse {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ContentArtistResponse {
+        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static ContentArtistResponse from(ContentDetailResult.ArtistResult artistResult) {
             return new ContentArtistResponse(
+                    artistResult.getContentArtistLocationId(),
                     artistResult.getArtistId(),
                     artistResult.getArtistName(),
                     artistResult.getArtistPictureUrl());
