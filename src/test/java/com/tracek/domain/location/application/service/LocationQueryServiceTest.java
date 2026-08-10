@@ -190,15 +190,25 @@ class LocationQueryServiceTest {
     }
 
     @Test
-    @DisplayName("카테고리를 지정하지 않으면 전체 관광지를 페이징 조회한다")
-    void getLocationsByCategory_withoutCategory() {
+    @DisplayName("공백 카테고리로 조회하면 INVALID_CATEGORY 예외가 발생한다")
+    void getLocationsByCategory_blankCategory() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThatThrownBy(() -> locationQueryService.getLocationsByCategory(" ", pageable))
+                .isInstanceOf(CustomException.class)
+                .extracting(e -> ((CustomException) e).getErrorCode())
+                .isEqualTo(LocationErrorCode.INVALID_CATEGORY);
+    }
+
+    @Test
+    @DisplayName("전체 관광지 목록을 페이징 조회한다")
+    void getAllLocations_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Pageable pageable = PageRequest.of(0, 10);
         given(locationRepository.findAll(pageable))
                 .willReturn(new PageImpl<>(List.of(location), pageable, 1));
 
-        Page<LocationSummaryResult> results =
-                locationQueryService.getLocationsByCategory(null, pageable);
+        Page<LocationSummaryResult> results = locationQueryService.getAllLocations(pageable);
 
         assertThat(results.getContent()).hasSize(1);
     }

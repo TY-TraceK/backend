@@ -90,6 +90,22 @@ class LocationQueryControllerTest {
     }
 
     @Test
+    @DisplayName("관광지 전체 목록을 페이징 응답으로 감싸서 반환한다")
+    void getLocations_success() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<LocationSummaryResult> resultPage =
+                new PageImpl<>(List.of(LocationSummaryResult.from(location)), pageable, 1);
+        given(locationQueryService.getAllLocations(pageable)).willReturn(resultPage);
+
+        ApiResponse<Page<LocationSummaryResponse>> response = controller.getLocations(pageable);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getContent()).hasSize(1);
+        assertThat(response.getData().getContent().get(0).getName()).isEqualTo("경복궁");
+    }
+
+    @Test
     @DisplayName("카테고리별 관광지 목록을 페이징 응답으로 감싸서 반환한다")
     void getLocationsByCategory_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);

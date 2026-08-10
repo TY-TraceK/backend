@@ -74,17 +74,20 @@ public class LocationQueryService {
         return locationRepository.findRelatedLocationAndContents(artistId);
     }
 
-    // 카테고리별 관광지 목록 페이징 조회 (카테고리 미지정 시 전체 조회)
+    // 관광지 전체 목록 페이징 조회
+    public Page<LocationSummaryResult> getAllLocations(Pageable pageable) {
+        return locationRepository.findAll(pageable).map(LocationSummaryResult::from);
+    }
+
+    // 카테고리별 관광지 목록 페이징 조회
     public Page<LocationSummaryResult> getLocationsByCategory(
             String categoryName, Pageable pageable) {
-        // Enum 변환
         LocationCategory category = LocationCategory.from(categoryName);
-
-        Page<Location> locations =
-                (category == null)
-                        ? locationRepository.findAll(pageable)
-                        : locationRepository.findByCategory(category, pageable);
-
-        return locations.map(LocationSummaryResult::from);
+        if (category == null) {
+            throw new CustomException(LocationErrorCode.INVALID_CATEGORY);
+        }
+        return locationRepository
+                .findByCategory(category, pageable)
+                .map(LocationSummaryResult::from);
     }
 }
