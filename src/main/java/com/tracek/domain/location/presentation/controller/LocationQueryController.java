@@ -66,13 +66,22 @@ public class LocationQueryController {
         return ApiResponse.success(GeneralSuccessCode.OK, LocationRelatedInfoResponse.from(result));
     }
 
-    @Operation(
-            summary = "관광지 카테고리별 목록 조회",
-            description = "카테고리로 관광지 목록을 페이징 조회합니다. category를 생략하면 전체 관광지를 조회합니다.")
-    @GetMapping("/category")
+    @Operation(summary = "관광지 전체 목록 조회", description = "관광지 목록을 페이징 조회합니다.")
+    @GetMapping
+    public ApiResponse<Page<LocationSummaryResponse>> getLocations(
+            @ParameterObject
+                    @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+                    Pageable pageable) {
+        Page<LocationSummaryResult> locations = locationQueryService.getAllLocations(pageable);
+        Page<LocationSummaryResponse> locationResponses =
+                locations.map(LocationSummaryResponse::from);
+        return ApiResponse.success(GeneralSuccessCode.OK, locationResponses);
+    }
+
+    @Operation(summary = "관광지 카테고리별 목록 조회", description = "카테고리로 관광지 목록을 페이징 조회합니다.")
+    @GetMapping("/category/{category}")
     public ApiResponse<Page<LocationSummaryResponse>> getLocationsByCategory(
-            @Parameter(description = "관광지 카테고리 (예: ATTRACTION, CAFE). 생략 시 전체 조회")
-                    @RequestParam(required = false)
+            @Parameter(description = "관광지 카테고리 (예: ATTRACTION, CAFE)") @PathVariable
                     String category,
             @ParameterObject
                     @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
