@@ -39,16 +39,15 @@ public class ContentQueryService {
         return contents.stream().map(ContentResult::from).toList();
     }
 
-    // 카테고리별 콘텐츠 목록 페이징 조회 (카테고리 미지정 시 전체 조회)
+    // 콘텐츠 전체 목록 페이징 조회
+    public Page<ContentSummaryResult> getAllContents(Pageable pageable) {
+        return contentRepository.findAll(pageable).map(ContentSummaryResult::from);
+    }
+
+    // 카테고리별 콘텐츠 목록 페이징 조회
     public Page<ContentSummaryResult> getContentsByCategory(
             String categoryName, Pageable pageable) {
         ContentCategory category = ContentCategory.from(categoryName);
-
-        Page<Content> contents =
-                (category == null)
-                        ? contentRepository.findAll(pageable)
-                        : contentRepository.findByCategory(category, pageable);
-
-        return contents.map(ContentSummaryResult::from);
+        return contentRepository.findByCategory(category, pageable).map(ContentSummaryResult::from);
     }
 }

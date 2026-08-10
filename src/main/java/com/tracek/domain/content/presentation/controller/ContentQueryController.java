@@ -20,7 +20,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Content", description = "콘텐츠 조회 API")
@@ -41,14 +40,21 @@ public class ContentQueryController {
         return ApiResponse.success(GeneralSuccessCode.OK, ContentDetailResponse.from(result));
     }
 
-    @Operation(
-            summary = "콘텐츠 카테고리별 목록 조회",
-            description = "카테고리로 콘텐츠 목록을 페이징 조회합니다. category를 생략하면 전체 콘텐츠를 조회합니다.")
-    @GetMapping("/category")
+    @Operation(summary = "콘텐츠 전체 목록 조회", description = "콘텐츠 목록을 페이징 조회합니다.")
+    @GetMapping
+    public ApiResponse<Page<ContentSummaryResponse>> getContents(
+            @ParameterObject
+                    @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+                    Pageable pageable) {
+        Page<ContentSummaryResult> contents = contentQueryService.getAllContents(pageable);
+        Page<ContentSummaryResponse> contentResponses = contents.map(ContentSummaryResponse::from);
+        return ApiResponse.success(GeneralSuccessCode.OK, contentResponses);
+    }
+
+    @Operation(summary = "콘텐츠 카테고리별 목록 조회", description = "카테고리로 콘텐츠 목록을 페이징 조회합니다.")
+    @GetMapping("/category/{category}")
     public ApiResponse<Page<ContentSummaryResponse>> getContentsByCategory(
-            @Parameter(description = "콘텐츠 카테고리 (예: KPOP, DRAMA). 생략 시 전체 조회")
-                    @RequestParam(required = false)
-                    String category,
+            @Parameter(description = "콘텐츠 카테고리 (예: KPOP, DRAMA)") @PathVariable String category,
             @ParameterObject
                     @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
                     Pageable pageable) {
