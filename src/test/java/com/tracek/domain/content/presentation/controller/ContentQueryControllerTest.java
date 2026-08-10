@@ -54,6 +54,23 @@ class ContentQueryControllerTest {
     }
 
     @Test
+    @DisplayName("콘텐츠 전체 목록을 페이징 응답으로 감싸서 반환한다")
+    void getContents_success() {
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        ReflectionTestUtils.setField(content, "id", 1L);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ContentSummaryResult> resultPage =
+                new PageImpl<>(List.of(ContentSummaryResult.from(content)), pageable, 1);
+        given(contentQueryService.getAllContents(pageable)).willReturn(resultPage);
+
+        ApiResponse<Page<ContentSummaryResponse>> response = controller.getContents(pageable);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getContent()).hasSize(1);
+        assertThat(response.getData().getContent().get(0).getTitle()).isEqualTo("데뷔 앨범");
+    }
+
+    @Test
     @DisplayName("카테고리별 콘텐츠 목록을 페이징 응답으로 감싸서 반환한다")
     void getContentsByCategory_success() {
         Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
