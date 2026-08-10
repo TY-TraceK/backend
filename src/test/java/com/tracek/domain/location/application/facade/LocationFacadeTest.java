@@ -66,6 +66,7 @@ class LocationFacadeTest {
                         "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
+        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of(5L)))
@@ -88,6 +89,8 @@ class LocationFacadeTest {
         assertThat(result.getContents().get(0).getArtists()).hasSize(1);
         assertThat(result.getContents().get(0).getArtists().get(0).getArtistName())
                 .isEqualTo("아이유");
+        assertThat(result.getContents().get(0).getArtists().get(0).getContentArtistLocationId())
+                .isEqualTo(99L);
     }
 
     @Test
@@ -121,6 +124,7 @@ class LocationFacadeTest {
                         "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
+        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of(mapping));
@@ -135,5 +139,6 @@ class LocationFacadeTest {
         assertThat(result.getRelatedItems()).hasSize(1);
         assertThat(result.getRelatedItems().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
         assertThat(result.getRelatedItems().get(0).getArtistName()).isEqualTo("아이유");
+        assertThat(result.getRelatedItems().get(0).getContentArtistLocationId()).isEqualTo(99L);
     }
 }

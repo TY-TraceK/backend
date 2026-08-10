@@ -92,13 +92,19 @@ public class LocationDetailResult {
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ArtistResult {
+        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static ArtistResult from(
+                Long contentArtistLocationId,
                 com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
+            return new ArtistResult(
+                    contentArtistLocationId,
+                    artist.getId(),
+                    artist.getName(),
+                    artist.getPictureUrl());
         }
     }
 }
