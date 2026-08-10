@@ -50,6 +50,7 @@ class ArtistFacadeTest {
         ReflectionTestUtils.setField(content, "id", 2L);
         Location location = LocationTestFixture.newLocation(3L, "경복궁", "ATTRACTION", 100L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
+        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(artistQueryService.getArtistEntity(1L)).willReturn(artist);
         given(locationQueryService.getMappingByArtistId(1L)).willReturn(List.of(mapping));
@@ -67,6 +68,8 @@ class ArtistFacadeTest {
         assertThat(result.getContents().get(0).getLocations()).hasSize(1);
         assertThat(result.getContents().get(0).getLocations().get(0).getLocationName())
                 .isEqualTo("경복궁");
+        assertThat(result.getContents().get(0).getLocations().get(0).getContentArtistLocationId())
+                .isEqualTo(99L);
     }
 
     @Test

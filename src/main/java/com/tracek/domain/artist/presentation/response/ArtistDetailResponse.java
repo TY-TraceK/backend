@@ -69,6 +69,7 @@ public class ArtistDetailResponse {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ArtistLocationResponse {
+        private Long contentArtistLocationId;
         private Long locationId;
         private String locationName;
         private String locationCategory;
@@ -77,6 +78,7 @@ public class ArtistDetailResponse {
         public static ArtistLocationResponse from(
                 ArtistDetailResult.LocationResult locationResult) {
             return new ArtistLocationResponse(
+                    locationResult.getContentArtistLocationId(),
                     locationResult.getLocationId(),
                     locationResult.getLocationName(),
                     locationResult.getLocationCategory(),

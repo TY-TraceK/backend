@@ -66,14 +66,17 @@ public class ArtistDetailResult {
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class LocationResult {
+        private Long contentArtistLocationId;
         private Long locationId;
         private String locationName;
         private String locationCategory;
         private String locationPictureUrl;
 
         public static LocationResult from(
+                Long contentArtistLocationId,
                 com.tracek.domain.location.application.dto.LocationResult location) {
             return new LocationResult(
+                    contentArtistLocationId,
                     location.getLocationId(),
                     location.getName(),
                     location.getCategory(),
