@@ -11,6 +11,7 @@ import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.SecurityErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import java.security.SecureRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,10 +32,19 @@ class JwtTokenProviderTest {
         jwtProvider.init();
     }
 
-    private char changeLastCharacter(String token) {
-        char lastCharacter = token.charAt(token.length() - 1);
+    /** 입력받은 문자열(Signature)의 문자들을 무작위로 섞는 헬퍼 메서드 */
+    private String shuffleString(String text) {
+        char[] chars = text.toCharArray();
+        SecureRandom random = new SecureRandom();
 
-        return lastCharacter == 'a' ? 'b' : 'a';
+        for (int i = chars.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char temp = chars[i];
+            chars[i] = chars[j];
+            chars[j] = temp;
+        }
+
+        return new String(chars);
     }
 
     @Nested
@@ -118,8 +128,9 @@ class JwtTokenProviderTest {
             // given
             String token = jwtProvider.createAccessToken(1L, "ROLE_USER", "TEST_USER");
 
-            String tamperedToken =
-                    token.substring(0, token.length() - 1) + changeLastCharacter(token);
+            // Signature 영역을 추출하여 무작위로 섞음
+            String[] parts = token.split("\\.");
+            String tamperedToken = parts[0] + "." + parts[1] + "." + shuffleString(parts[2]);
 
             CustomException exception =
                     assertThrows(
