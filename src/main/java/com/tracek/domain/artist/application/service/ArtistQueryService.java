@@ -1,12 +1,15 @@
 package com.tracek.domain.artist.application.service;
 
 import com.tracek.domain.artist.application.dto.ArtistResult;
+import com.tracek.domain.artist.application.dto.ArtistSummaryResult;
 import com.tracek.domain.artist.domain.exception.ArtistErrorCode;
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.artist.domain.repository.ArtistRepository;
 import com.tracek.global.exception.CustomException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,5 +31,10 @@ public class ArtistQueryService {
         }
         List<Artist> artists = artistRepository.findAllByIds(artistIds);
         return artists.stream().map(ArtistResult::from).toList();
+    }
+
+    // 아티스트 전체 목록 페이징 조회
+    public Page<ArtistSummaryResult> getAllArtists(Pageable pageable) {
+        return artistRepository.findAll(pageable).map(ArtistSummaryResult::from);
     }
 }
