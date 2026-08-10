@@ -46,7 +46,7 @@ class ArtistFacadeTest {
                 Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 1L);
 
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Location location = LocationTestFixture.newLocation(3L, "경복궁", "ATTRACTION", 100L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);

@@ -42,7 +42,7 @@ class ContentFacadeTest {
     @Test
     @DisplayName("콘텐츠 상세 조회 시 관광지별 아티스트가 계층형으로 조립된다")
     void getContentDetails_success() {
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
 
         Location location = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
@@ -72,7 +72,7 @@ class ContentFacadeTest {
     @Test
     @DisplayName("연관 관광지-아티스트 매핑이 없으면 빈 리스트로 조립된다")
     void getContentDetails_withoutMappings() {
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
 
         given(contentQueryService.getContentEntity(1L)).willReturn(content);

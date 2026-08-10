@@ -32,7 +32,7 @@ public class ContentDetailResult {
             return new ContentInfo(
                     content.getId(),
                     content.getTitle(),
-                    content.getCategory(),
+                    content.getCategory() == null ? null : content.getCategory().name(),
                     content.getPictureUrl().getImageUrl());
         }
     }

@@ -25,7 +25,7 @@ class ArtistDetailResponseTest {
         ReflectionTestUtils.setField(artist, "id", 1L);
         ArtistDetailResult.ArtistInfo artistInfo = ArtistDetailResult.ArtistInfo.of(artist);
 
-        Content content = Content.create("데뷔 앨범", "ALBUM", ImageUrl.from("http://image.com/a.jpg"));
+        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         ContentResult contentResult = ContentResult.from(content);
 
