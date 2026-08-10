@@ -1,14 +1,10 @@
 package com.tracek.domain.location.presentation.controller;
 
-import com.tracek.domain.location.application.dto.LocationDetailResult;
-import com.tracek.domain.location.application.dto.LocationNearbyResult;
-import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
+import com.tracek.domain.location.application.dto.*;
 import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.presentation.request.LocationNearbyRequest;
-import com.tracek.domain.location.presentation.response.LocationDetailResponse;
-import com.tracek.domain.location.presentation.response.LocationNearbyResponse;
-import com.tracek.domain.location.presentation.response.LocationRelatedInfoResponse;
+import com.tracek.domain.location.presentation.response.*;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +15,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Location", description = "관광지 조회 API")
@@ -64,5 +64,22 @@ public class LocationQueryController {
 
         LocationRelatedInfoResult result = locationFacade.getRelatedContentAndArtists(locationId);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationRelatedInfoResponse.from(result));
+    }
+
+    @Operation(
+            summary = "관광지 카테고리별 목록 조회",
+            description = "카테고리로 관광지 목록을 페이징 조회합니다. category를 생략하면 전체 관광지를 조회합니다.")
+    @GetMapping("/category")
+    public ApiResponse<Page<LocationSummaryResponse>> getLocationsByCategory(
+            @Parameter(description = "관광지 카테고리 (예: ATTRACTION, CAFE). 생략 시 전체 조회")
+                    @RequestParam(required = false)
+                    String category,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+                    Pageable pageable) {
+        Page<LocationSummaryResult> locations =
+                locationQueryService.getLocationsByCategory(category, pageable);
+        Page<LocationSummaryResponse> locationResponses =
+                locations.map(LocationSummaryResponse::from);
+        return ApiResponse.success(GeneralSuccessCode.OK, locationResponses);
     }
 }

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
+import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
@@ -14,6 +15,7 @@ import com.tracek.domain.location.presentation.request.LocationNearbyRequest;
 import com.tracek.domain.location.presentation.response.LocationDetailResponse;
 import com.tracek.domain.location.presentation.response.LocationNearbyResponse;
 import com.tracek.domain.location.presentation.response.LocationRelatedInfoResponse;
+import com.tracek.domain.location.presentation.response.LocationSummaryResponse;
 import com.tracek.global.response.ApiResponse;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class LocationQueryControllerTest {
@@ -81,5 +87,23 @@ class LocationQueryControllerTest {
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getLocationId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("카테고리별 관광지 목록을 페이징 응답으로 감싸서 반환한다")
+    void getLocationsByCategory_success() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<LocationSummaryResult> resultPage =
+                new PageImpl<>(List.of(LocationSummaryResult.from(location)), pageable, 1);
+        given(locationQueryService.getLocationsByCategory("ATTRACTION", pageable))
+                .willReturn(resultPage);
+
+        ApiResponse<Page<LocationSummaryResponse>> response =
+                controller.getLocationsByCategory("ATTRACTION", pageable);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getContent()).hasSize(1);
+        assertThat(response.getData().getContent().get(0).getName()).isEqualTo("경복궁");
     }
 }

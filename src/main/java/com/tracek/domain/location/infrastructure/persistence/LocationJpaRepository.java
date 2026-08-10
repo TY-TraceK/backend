@@ -2,7 +2,10 @@ package com.tracek.domain.location.infrastructure.persistence;
 
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,4 +21,6 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
                             + "* sin(radians(l.latitude)))) <= :radiusMeter",
             nativeQuery = true)
     List<Location> findNearbyLocations(GeoLocation userLocation, double radiusMeter);
+
+    Page<Location> findByCategory(LocationCategory category, Pageable pageable);
 }

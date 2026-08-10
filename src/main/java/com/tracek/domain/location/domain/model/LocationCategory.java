@@ -1,5 +1,7 @@
 package com.tracek.domain.location.domain.model;
 
+import com.tracek.domain.location.domain.exception.LocationErrorCode;
+import com.tracek.global.exception.CustomException;
 import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,6 @@ public enum LocationCategory {
         return Arrays.stream(LocationCategory.values())
                 .filter(category -> category.name().equalsIgnoreCase(source.trim()))
                 .findFirst()
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Invalid LocationCategory: " + source));
+                .orElseThrow(() -> new CustomException(LocationErrorCode.INVALID_CATEGORY));
     }
 }

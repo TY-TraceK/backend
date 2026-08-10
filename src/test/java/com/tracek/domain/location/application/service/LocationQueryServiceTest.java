@@ -8,8 +8,10 @@ import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationResult;
+import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
 import com.tracek.domain.location.domain.repository.LocationRepository;
@@ -23,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -162,5 +168,35 @@ class LocationQueryServiceTest {
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getLocation().getId()).isEqualTo(1L);
         assertThat(results.get(0).getContent().getId()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("카테고리를 지정하면 해당 카테고리의 관광지만 페이징 조회한다")
+    void getLocationsByCategory_withCategory() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Pageable pageable = PageRequest.of(0, 10);
+        given(locationRepository.findByCategory(LocationCategory.ATTRACTION, pageable))
+                .willReturn(new PageImpl<>(List.of(location), pageable, 1));
+
+        Page<LocationSummaryResult> results =
+                locationQueryService.getLocationsByCategory("ATTRACTION", pageable);
+
+        assertThat(results.getContent()).hasSize(1);
+        assertThat(results.getContent().get(0).getCategory())
+                .isEqualTo(LocationCategory.ATTRACTION);
+    }
+
+    @Test
+    @DisplayName("카테고리를 지정하지 않으면 전체 관광지를 페이징 조회한다")
+    void getLocationsByCategory_withoutCategory() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Pageable pageable = PageRequest.of(0, 10);
+        given(locationRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(List.of(location), pageable, 1));
+
+        Page<LocationSummaryResult> results =
+                locationQueryService.getLocationsByCategory(null, pageable);
+
+        assertThat(results.getContent()).hasSize(1);
     }
 }

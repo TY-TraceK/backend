@@ -2,9 +2,11 @@ package com.tracek.domain.location.application.service;
 
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationResult;
+import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import com.tracek.global.exception.CustomException;
@@ -12,6 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,5 +72,19 @@ public class LocationQueryService {
     // 타 도메인에서 아티스트와 연관된 관광지-콘텐츠 매핑 정보(LocationContentArtist 도메인) 조회 요청시
     public List<LocationContentArtist> getMappingByArtistId(Long artistId) {
         return locationRepository.findRelatedLocationAndContents(artistId);
+    }
+
+    // 카테고리별 관광지 목록 페이징 조회 (카테고리 미지정 시 전체 조회)
+    public Page<LocationSummaryResult> getLocationsByCategory(
+            String categoryName, Pageable pageable) {
+        // Enum 변환
+        LocationCategory category = LocationCategory.from(categoryName);
+
+        Page<Location> locations =
+                (category == null)
+                        ? locationRepository.findAll(pageable)
+                        : locationRepository.findByCategory(category, pageable);
+
+        return locations.map(LocationSummaryResult::from);
     }
 }
