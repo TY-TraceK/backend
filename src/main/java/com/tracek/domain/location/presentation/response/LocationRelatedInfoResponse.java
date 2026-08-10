@@ -28,6 +28,8 @@ public class LocationRelatedInfoResponse {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class RelatedItemResponse {
+        private Long contentArtistLocationId;
+
         private Long contentId;
         private String contentTitle;
         private String contentType;
@@ -39,6 +41,7 @@ public class LocationRelatedInfoResponse {
 
         public static RelatedItemResponse from(LocationRelatedInfoResult.RelatedItemResult result) {
             return new RelatedItemResponse(
+                    result.getContentArtistLocationId(),
                     result.getContentId(),
                     result.getContentTitle(),
                     result.getContentType(),

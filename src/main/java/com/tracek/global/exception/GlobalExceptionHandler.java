@@ -3,6 +3,7 @@ package com.tracek.global.exception;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +29,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(GeneralErrorCode.INVALID_INPUT_VALUE.getStatus())
                 .body(ApiResponse.onFailure(GeneralErrorCode.INVALID_INPUT_VALUE, errorMessage));
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ApiResponse<String>> handlePropertyReferenceException(
+            PropertyReferenceException e) {
+        log.error("[PropertyReferenceException] {}", e.getMessage());
+
+        return ResponseEntity.status(GeneralErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(ApiResponse.onFailure(GeneralErrorCode.INVALID_INPUT_VALUE, e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

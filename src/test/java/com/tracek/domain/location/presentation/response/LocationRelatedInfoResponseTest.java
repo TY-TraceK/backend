@@ -14,6 +14,7 @@ class LocationRelatedInfoResponseTest {
     void from_success() {
         LocationRelatedInfoResult.RelatedItemResult item =
                 LocationRelatedInfoResult.RelatedItemResult.of(
+                        10L,
                         2L,
                         "궁궐 브이로그",
                         "VARIETY",
@@ -30,5 +31,6 @@ class LocationRelatedInfoResponseTest {
         assertThat(response.getRelatedItems()).hasSize(1);
         assertThat(response.getRelatedItems().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
         assertThat(response.getRelatedItems().get(0).getArtistName()).isEqualTo("아이유");
+        assertThat(response.getRelatedItems().get(0).getContentArtistLocationId()).isEqualTo(10L);
     }
 }

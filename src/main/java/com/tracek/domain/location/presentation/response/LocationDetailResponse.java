@@ -95,12 +95,14 @@ public class LocationDetailResponse {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class LocationArtistResponse {
+        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static LocationArtistResponse from(LocationDetailResult.ArtistResult artistResult) {
             return new LocationArtistResponse(
+                    artistResult.getContentArtistLocationId(),
                     artistResult.getArtistId(),
                     artistResult.getArtistName(),
                     artistResult.getArtistPictureUrl());

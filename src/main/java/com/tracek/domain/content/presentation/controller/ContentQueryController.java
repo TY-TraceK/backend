@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,8 @@ public class ContentQueryController {
             @Parameter(description = "콘텐츠 카테고리 (예: KPOP, DRAMA). 생략 시 전체 조회")
                     @RequestParam(required = false)
                     String category,
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+            @ParameterObject
+                    @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
                     Pageable pageable) {
         Page<ContentSummaryResult> contents =
                 contentQueryService.getContentsByCategory(category, pageable);

@@ -21,6 +21,8 @@ public class LocationRelatedInfoResult {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class RelatedItemResult {
+        private Long contentArtistLocationId;
+
         private Long contentId;
         private String contentTitle;
         private String contentType; // ALBUM, MV, VARIETY 등
@@ -36,6 +38,7 @@ public class LocationRelatedInfoResult {
         }
 
         public static RelatedItemResult of(
+                Long contentArtistLocationId,
                 Long contentId,
                 String contentTitle,
                 String contentType,
@@ -44,6 +47,7 @@ public class LocationRelatedInfoResult {
                 String artistName,
                 String artistPictureUrl) {
             return new RelatedItemResult(
+                    contentArtistLocationId,
                     contentId,
                     contentTitle,
                     contentType,

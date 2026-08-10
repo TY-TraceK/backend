@@ -68,22 +68,26 @@ public class LocationFacade {
         List<ContentResult> contents = contentQueryService.getContentsByIds(contentIds);
         List<ArtistResult> artists = artistQueryService.getArtistsByIds(artistIds);
 
-        // O(1) 탐색을 위해 ArtistResult ->  Application ArtistResult 맵 변환
-        Map<Long, LocationDetailResult.ArtistResult> artistResultMap =
-                artists.stream()
-                        .collect(
-                                Collectors.toMap(
-                                        ArtistResult::getId,
-                                        LocationDetailResult.ArtistResult::from));
+        // O(1) 탐색을 위해 ArtistResult 맵 변환
+        Map<Long, ArtistResult> artistResultMap =
+                artists.stream().collect(Collectors.toMap(ArtistResult::getId, a -> a));
 
-        // Content ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑
+        // Content ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑 (매핑 PK도 함께 전달)
         Map<Long, List<LocationDetailResult.ArtistResult>> contentArtistGroupMap =
                 mappings.stream()
                         .collect(
                                 Collectors.groupingBy(
                                         m -> m.getContent().getId(),
                                         Collectors.mapping(
-                                                m -> artistResultMap.get(m.getArtist().getId()),
+                                                m -> {
+                                                    ArtistResult artist =
+                                                            artistResultMap.get(
+                                                                    m.getArtist().getId());
+                                                    return artist == null
+                                                            ? null
+                                                            : LocationDetailResult.ArtistResult
+                                                                    .from(m.getId(), artist);
+                                                },
                                                 Collectors.filtering(
                                                         Objects::nonNull, Collectors.toList()))));
 
@@ -137,6 +141,7 @@ public class LocationFacade {
                                     ArtistResult artist = artistMap.get(m.getArtist().getId());
 
                                     return LocationRelatedInfoResult.RelatedItemResult.of(
+                                            m.getId(),
                                             content.getContentId(),
                                             content.getTitle(),
                                             content.getCategory(),
