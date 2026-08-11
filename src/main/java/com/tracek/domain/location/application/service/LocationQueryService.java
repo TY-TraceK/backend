@@ -90,4 +90,8 @@ public class LocationQueryService {
                 .findByCategory(category, pageable)
                 .map(LocationSummaryResult::from);
     }
+
+
+
+
 }

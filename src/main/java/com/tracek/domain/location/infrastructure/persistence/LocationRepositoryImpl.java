@@ -1,9 +1,6 @@
 package com.tracek.domain.location.infrastructure.persistence;
 
-import com.tracek.domain.location.domain.model.GeoLocation;
-import com.tracek.domain.location.domain.model.Location;
-import com.tracek.domain.location.domain.model.LocationCategory;
-import com.tracek.domain.location.domain.model.LocationContentArtist;
+import com.tracek.domain.location.domain.model.*;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +15,7 @@ public class LocationRepositoryImpl implements LocationRepository {
 
     private final LocationJpaRepository locationJpaRepository;
     private final LocationContentArtistJpaRepository locationContentArtistJpaRepository;
+    private final LocationLikeJpaRepository locationLikeJpaRepository;
 
     @Override
     public Location save(Location location) {
@@ -73,4 +71,26 @@ public class LocationRepositoryImpl implements LocationRepository {
     public Page<Location> findAll(Pageable pageable) {
         return locationJpaRepository.findAll(pageable);
     }
+
+    @Override
+    public boolean existsByUserIdAndLocationId(Long userId, Long locationId) {
+        return locationLikeJpaRepository.existsByUserIdAndLocationId(userId, locationId);
+    }
+
+    @Override
+    public Optional<LocationLike> findByUserIdAndLocationId(Long userId, Long locationId) {
+        return locationLikeJpaRepository.findByUserIdAndLocationId(userId, locationId);
+    }
+
+    @Override
+    public void deleteByUserIdAndLocationId(Long userId, Long locationId) {
+        locationLikeJpaRepository.deleteByUserIdAndLocationId(userId, locationId);
+    }
+
+    @Override
+    public void saveLike(LocationLike locationLike) {
+        locationLikeJpaRepository.save(locationLike);
+    }
+
+
 }
