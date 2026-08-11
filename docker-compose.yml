@@ -77,6 +77,22 @@ services:
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
 
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: tracek-node-exporter
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+
 volumes:
   mysql-data:
   redis-data:

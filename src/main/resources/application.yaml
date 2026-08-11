@@ -3,6 +3,17 @@ spring:
     name: traceK
   profiles:
     active: ${SPRING_PROFILE:local}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name}
 app:
   jwt:
     secret: ${JWT_SECRET:default_local_secret_key_for_testing_1234567890}
