@@ -10,6 +10,7 @@ import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
+import com.tracek.domain.location.domain.model.LocationLike;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
 import com.tracek.global.common.vo.ImageUrl;
 import java.util.List;
@@ -32,13 +33,17 @@ class LocationRepositoryImplTest {
 
     @Mock private LocationContentArtistJpaRepository locationContentArtistJpaRepository;
 
+    @Mock private LocationLikeJpaRepository locationLikeJpaRepository;
+
     private LocationRepositoryImpl locationRepositoryImpl;
 
     @BeforeEach
     void setUp() {
         locationRepositoryImpl =
                 new LocationRepositoryImpl(
-                        locationJpaRepository, locationContentArtistJpaRepository);
+                        locationJpaRepository,
+                        locationContentArtistJpaRepository,
+                        locationLikeJpaRepository);
     }
 
     @Test
@@ -99,5 +104,23 @@ class LocationRepositoryImplTest {
         assertThat(locationRepositoryImpl.findByCategory(LocationCategory.ATTRACTION, pageable))
                 .containsExactly(location);
         assertThat(locationRepositoryImpl.findAll(pageable)).containsExactly(location);
+    }
+
+    @Test
+    @DisplayName("좋아요 관련 조회/저장/삭제는 LocationLikeJpaRepository에 위임한다")
+    void like_delegates() {
+        LocationLike like = LocationLike.of(1L, 1L);
+        given(locationLikeJpaRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
+        given(locationLikeJpaRepository.findByUserIdAndLocationId(1L, 1L))
+                .willReturn(Optional.of(like));
+
+        assertThat(locationRepositoryImpl.existsByUserIdAndLocationId(1L, 1L)).isTrue();
+        assertThat(locationRepositoryImpl.findByUserIdAndLocationId(1L, 1L)).contains(like);
+
+        locationRepositoryImpl.saveLike(like);
+        verify(locationLikeJpaRepository).save(like);
+
+        locationRepositoryImpl.deleteByUserIdAndLocationId(1L, 1L);
+        verify(locationLikeJpaRepository).deleteByUserIdAndLocationId(1L, 1L);
     }
 }

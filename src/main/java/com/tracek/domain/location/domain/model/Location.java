@@ -25,7 +25,7 @@ public class Location extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private LocationCategory category;
 
-    private Long likeCount;
+    private Long likeCount = 0L;
 
     @Embedded private Address address;
 
@@ -35,4 +35,14 @@ public class Location extends BaseEntity {
 
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageLocation> imageLocations = new ArrayList<>();
+
+    public void increaseLikeCount() {
+        this.likeCount = (this.likeCount == null ? 0L : this.likeCount) + 1;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount != null && this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
 }

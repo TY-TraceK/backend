@@ -1,9 +1,6 @@
 package com.tracek.domain.location.domain.repository;
 
-import com.tracek.domain.location.domain.model.GeoLocation;
-import com.tracek.domain.location.domain.model.Location;
-import com.tracek.domain.location.domain.model.LocationCategory;
-import com.tracek.domain.location.domain.model.LocationContentArtist;
+import com.tracek.domain.location.domain.model.*;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -36,4 +33,13 @@ public interface LocationRepository {
     Page<Location> findByCategory(LocationCategory category, Pageable pageable);
 
     Page<Location> findAll(Pageable pageable);
+
+    // 좋아요 존재 여부 확인
+    boolean existsByUserIdAndLocationId(Long userId, Long locationId);
+
+    Optional<LocationLike> findByUserIdAndLocationId(Long userId, Long locationId);
+
+    void deleteByUserIdAndLocationId(Long userId, Long locationId);
+
+    void saveLike(LocationLike locationLike);
 }
