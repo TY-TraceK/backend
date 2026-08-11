@@ -62,17 +62,15 @@ services:
 
   redis:
     image: redis:7.2-alpine
-    container_name: local-redis
+    container_name: tracek-redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      # 커스텀 설정 파일 연결
-      - ./global/config/redis/redis.conf:/usr/local/etc/redis/redis.conf
       # 데이터 영속성을 위한 볼륨 연결
-      - ./global/config/redis/data:/data
-    # 커스텀 설정 파일을 읽어서 실행
-    command: redis-server /usr/local/etc/redis/redis.conf
+      - redis-data:/data
+    command: redis-server --appendonly yes
 
 volumes:
   mysql-data:
+  redis-data:
