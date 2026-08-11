@@ -8,12 +8,10 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "location_likes",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_location_like_user_location",
-                        columnNames = {"user_id", "location_id"}
-                )
-        }
-)
+            @UniqueConstraint(
+                    name = "uk_location_like_user_location",
+                    columnNames = {"user_id", "location_id"})
+        })
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class LocationLike {
@@ -36,5 +34,4 @@ public class LocationLike {
     public static LocationLike of(Long userId, Long locationId) {
         return new LocationLike(userId, locationId);
     }
-
 }

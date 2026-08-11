@@ -91,6 +91,4 @@ public class LocationRepositoryImpl implements LocationRepository {
     public void saveLike(LocationLike locationLike) {
         locationLikeJpaRepository.save(locationLike);
     }
-
-
 }

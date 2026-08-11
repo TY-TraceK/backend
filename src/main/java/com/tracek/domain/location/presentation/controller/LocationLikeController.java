@@ -18,8 +18,7 @@ public class LocationLikeController {
     public ApiResponse<Void> like(
             @PathVariable Long locationId,
             @AuthenticationPrincipal
-                    com.tracek.global.security.authentication.AuthenticationPrincipal principal
-    ){
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal) {
         locationLikeCommandService.like(principal.userId(), locationId);
         return ApiResponse.success(GeneralSuccessCode.OK);
     }
@@ -29,10 +28,8 @@ public class LocationLikeController {
     public ApiResponse<Void> unlike(
             @PathVariable Long locationId,
             @AuthenticationPrincipal
-                    com.tracek.global.security.authentication.AuthenticationPrincipal principal
-    ) {
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal) {
         locationLikeCommandService.unlike(principal.userId(), locationId);
         return ApiResponse.success(GeneralSuccessCode.OK);
     }
-
 }

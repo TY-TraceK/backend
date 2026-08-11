@@ -37,11 +37,11 @@ public class Location extends BaseEntity {
     private List<ImageLocation> imageLocations = new ArrayList<>();
 
     public void increaseLikeCount() {
-        this.likeCount++;
+        this.likeCount = (this.likeCount == null ? 0L : this.likeCount) + 1;
     }
 
     public void decreaseLikeCount() {
-        if(this.likeCount>0) {
+        if (this.likeCount != null && this.likeCount > 0) {
             this.likeCount--;
         }
     }
