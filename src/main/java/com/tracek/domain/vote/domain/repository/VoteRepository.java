@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface VoteRepository {
 
-    boolean existsByVoteOwnerAndLocationId(Long aLong, Long aLong1);
+    boolean hasAlreadyVotedLocation(Long userId, Long locationId);
 
     void deleteAllInBatch();
 

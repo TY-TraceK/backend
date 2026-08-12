@@ -1,5 +1,6 @@
 package com.tracek.domain.vote.infrastructure.persistence;
 
+import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.model.Vote;
 import com.tracek.domain.vote.domain.repository.VoteRepository;
 import java.util.List;
@@ -13,8 +14,9 @@ public class VoteRepositoryImpl implements VoteRepository {
     private final VoteJpaRepository voteJpaRepository;
 
     @Override
-    public boolean existsByVoteOwnerAndLocationId(Long userId, Long locationId) {
-        return voteJpaRepository.existsByVoteOwnerAndVoteTarget_LocationId(userId, locationId);
+    public boolean hasAlreadyVotedLocation(Long userId, Long locationId) {
+        return voteJpaRepository.existsByVoteOwnerAndVoteTarget_LocationIdAndVoteStatus(
+                userId, locationId, VoteStatus.VALID);
     }
 
     @Override

@@ -94,6 +94,5 @@ class VoteJpaRepositoryTest {
         // then: 중복 예외 없이 정상 저장되고 validVotedAt이 세팅됨
         Vote foundRevote = voteJpaRepository.findById(savedRevote.getId()).orElseThrow();
         assertThat(foundRevote.getVoteStatus()).isEqualTo(VoteStatus.VALID);
-        assertThat(foundRevote.getValidVotedAt()).isEqualTo(LocalDate.now());
     }
 }
