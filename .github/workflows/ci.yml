@@ -96,7 +96,7 @@ jobs:
           fingerprint: ${{ secrets.EC2_SSH_FINGERPRINT }}
           script: |
             set -e
-            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            cd "${{ secrets.EC2_DEPLOY_PATH }}"
             git fetch origin
             if [ "$(git rev-parse origin/develop)" != "${{ github.sha }}" ]; then
               echo "origin/develop moved past ${{ github.sha }} already; skipping so the newer run deploys instead."
