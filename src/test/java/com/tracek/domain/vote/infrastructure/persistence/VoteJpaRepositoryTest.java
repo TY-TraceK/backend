@@ -1,6 +1,7 @@
 package com.tracek.domain.vote.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.model.Vote;
@@ -13,9 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) // H2 인메모리 DB 사용
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class VoteJpaRepositoryTest {
 
     private Long voteOwner;
@@ -54,5 +56,44 @@ class VoteJpaRepositoryTest {
         Vote canceledVote = voteJpaRepository.findById(savedVote.getId()).orElseThrow();
         assertThat(canceledVote.getVoteStatus()).isEqualTo(VoteStatus.CANCELED);
         assertThat(canceledVote.getValidVotedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("동일 유저가 동일 장소에 VALID 상태로 중복 저장 시 DB 유니크 제약조건 위반 예외가 발생한다.")
+    void duplicate_vote_throws_DataIntegrityViolationException() {
+        // given: 1차 투표 정상 저장
+        Vote vote1 = Vote.createVote(voteOwner, voteTarget);
+        voteJpaRepository.save(vote1);
+        entityManager.flush();
+
+        // when & then: 동일한 조건의 2차 투표 저장 시 save() 호출 시점에 예외 발생 검증
+        Vote vote2 = Vote.createVote(voteOwner, voteTarget);
+
+        assertThatThrownBy(() -> voteJpaRepository.saveAndFlush(vote2))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    @DisplayName("기존 투표를 CANCELED(invalid) 처리하면 동일 유저가 동일 장소에 다시 유효한 투표를 저장할 수 있다.")
+    void revote_success_after_cancellation() {
+        // given: 1차 투표 후 취소 처리
+        Vote vote1 = Vote.createVote(voteOwner, voteTarget);
+        voteJpaRepository.save(vote1);
+        entityManager.flush();
+
+        vote1.invalid();
+        entityManager.flush();
+        entityManager.clear();
+
+        // when: 2차 재투표 저장
+        Vote revote = Vote.createVote(voteOwner, voteTarget);
+        Vote savedRevote = voteJpaRepository.save(revote);
+        entityManager.flush();
+        entityManager.clear();
+
+        // then: 중복 예외 없이 정상 저장되고 validVotedAt이 세팅됨
+        Vote foundRevote = voteJpaRepository.findById(savedRevote.getId()).orElseThrow();
+        assertThat(foundRevote.getVoteStatus()).isEqualTo(VoteStatus.VALID);
+        assertThat(foundRevote.getValidVotedAt()).isEqualTo(LocalDate.now());
     }
 }
