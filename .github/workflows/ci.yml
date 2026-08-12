@@ -74,3 +74,22 @@ jobs:
       # 테스트 제외 최종 빌드 (JAR 생성 검증)
       - name: Build Project
         run: ./gradlew build -x test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            git fetch origin
+            git checkout develop
+            git reset --hard origin/develop
+            docker compose up -d --build
