@@ -10,6 +10,10 @@ on:
     branches:
       - develop
       - main
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -74,3 +78,30 @@ jobs:
       # 테스트 제외 최종 빌드 (JAR 생성 검증)
       - name: Build Project
         run: ./gradlew build -x test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_SSH_FINGERPRINT }}
+          script: |
+            set -e
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            git fetch origin
+            if [ "$(git rev-parse origin/develop)" != "${{ github.sha }}" ]; then
+              echo "origin/develop moved past ${{ github.sha }} already; skipping so the newer run deploys instead."
+              exit 0
+            fi
+            git checkout develop
+            git reset --hard ${{ github.sha }}
+            docker compose up -d --build
