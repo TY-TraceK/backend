@@ -4,6 +4,8 @@ import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationLike;
 import com.tracek.domain.location.domain.repository.LocationRepository;
+import com.tracek.domain.user.application.service.UserQueryService;
+import com.tracek.domain.user.domain.exception.UserErrorCode;
 import com.tracek.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,8 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class LocationLikeCommandService {
 
     private final LocationRepository locationRepository;
+    private final UserQueryService userQueryService;
 
     public void like(Long userId, Long locationId) {
+
+        validateActiveUser(userId);
 
         // 이미 좋아요를 눌렀는지 확인 (순차 재요청 기준 멱등성 보장 — 동시 요청 시엔 데이터 정합성만 보장, 완전한 멱등성은 미보장)
         if (locationRepository.existsByUserIdAndLocationId(userId, locationId)) {
@@ -44,7 +49,16 @@ public class LocationLikeCommandService {
         }
     }
 
+    private void validateActiveUser(Long userId) {
+        if (!userQueryService.isActiveUser(userId)) {
+            throw new CustomException(UserErrorCode.USER_NOT_ACTIVATED);
+        }
+    }
+
     public void unlike(Long userId, Long locationId) {
+
+        validateActiveUser(userId);
+
         boolean exists = locationRepository.existsByUserIdAndLocationId(userId, locationId);
         if (!exists) {
             return;
