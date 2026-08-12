@@ -19,7 +19,10 @@ public enum GeneralErrorCode implements BaseErrorCode {
 
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_007", "지원하지 않는 HTTP 메서드입니다."),
 
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_008", "서버 내부 에러가 발생했습니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_008", "서버 내부 에러가 발생했습니다."),
+
+    CONFLICT(HttpStatus.CONFLICT, "COMMON_009", "리소스 충돌이 발생했습니다."),
+    CONCURRENT_REQUEST(HttpStatus.CONFLICT, "COMMON_010", "동시에 처리 중인 요청이 있어 잠시 후 다시 시도해주세요.");
 
     private final HttpStatus status;
     private final String code;
