@@ -42,4 +42,6 @@ public interface LocationRepository {
     void deleteByUserIdAndLocationId(Long userId, Long locationId);
 
     void saveLike(LocationLike locationLike);
+
+    Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId);
 }

@@ -1,5 +1,6 @@
 package com.tracek.domain.location.application.service;
 
+import com.tracek.domain.location.application.dto.LocationContentArtistResult;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
@@ -89,5 +90,15 @@ public class LocationQueryService {
         return locationRepository
                 .findByCategory(category, pageable)
                 .map(LocationSummaryResult::from);
+    }
+
+    // contentArtistLocationId 연관관계 기반 매핑 정보 및 관련 ID(Location, Artist, Content) 반환
+    public LocationContentArtistResult getMappingById(Long contentArtistLocationId) {
+        LocationContentArtist mapping =
+                locationRepository
+                        .findMappingById(contentArtistLocationId)
+                        .orElseThrow(
+                                () -> new CustomException(LocationErrorCode.MAPPING_NOT_FOUND));
+        return LocationContentArtistResult.from(mapping);
     }
 }
