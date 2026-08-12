@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public class Vote {
     @Embedded private VoteTarget voteTarget;
 
     @Column(nullable = false)
-    private LocalDate votedAt;
+    private LocalDateTime votedAt;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -54,14 +55,14 @@ public class Vote {
                     "DATE GENERATED ALWAYS AS (CASE WHEN vote_status = 'VALID' THEN voted_at ELSE NULL END)")
     private LocalDate validVotedAt;
 
-    public Vote(Long voteOwner, VoteTarget voteTarget, LocalDate votedAt) {
+    public Vote(Long voteOwner, VoteTarget voteTarget, LocalDateTime votedAt) {
         this.voteOwner = voteOwner;
         this.voteTarget = voteTarget;
         this.votedAt = votedAt;
     }
 
     public static Vote createVote(Long voteOwner, VoteTarget voteTarget) {
-        return new Vote(voteOwner, voteTarget, LocalDate.now());
+        return new Vote(voteOwner, voteTarget, LocalDateTime.now());
     }
 
     public void invalid() {
