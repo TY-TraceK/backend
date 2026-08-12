@@ -91,4 +91,9 @@ public class LocationRepositoryImpl implements LocationRepository {
     public void saveLike(LocationLike locationLike) {
         locationLikeJpaRepository.save(locationLike);
     }
+
+    @Override
+    public Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId) {
+        return locationContentArtistJpaRepository.findById(contentArtistLocationId);
+    }
 }
