@@ -89,6 +89,19 @@ class LocationLikeCommandServiceTest {
     }
 
     @Test
+    @DisplayName("likeCount가 null인 상태에서 좋아요를 취소해도 0으로 정규화된다")
+    void unlike_nullLikeCount() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", null);
+        given(userQueryService.isActiveUser(1L)).willReturn(true);
+        given(locationRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
+        given(locationRepository.findById(1L)).willReturn(Optional.of(location));
+
+        locationLikeCommandService.unlike(1L, 1L);
+
+        assertThat(location.getLikeCount()).isEqualTo(0L);
+    }
+
+    @Test
     @DisplayName("비활성/존재하지 않는 유저가 좋아요 취소를 시도하면 USER_NOT_ACTIVATED 예외가 발생한다")
     void unlike_userNotActive() {
         given(userQueryService.isActiveUser(1L)).willReturn(false);
