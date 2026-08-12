@@ -41,8 +41,7 @@ public class Location extends BaseEntity {
     }
 
     public void decreaseLikeCount() {
-        if (this.likeCount != null && this.likeCount > 0) {
-            this.likeCount--;
-        }
+        long current = this.likeCount == null ? 0L : this.likeCount;
+        this.likeCount = current > 0 ? current - 1 : 0L;
     }
 }
