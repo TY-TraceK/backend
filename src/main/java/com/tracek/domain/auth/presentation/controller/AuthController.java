@@ -24,4 +24,13 @@ public class AuthController implements AuthControllerDocs {
                 GeneralSuccessCode.OK,
                 OAuthLoginResponse.from(oAuthService.createOauthLogin(code, provider)));
     }
+
+    @Override
+    @Profile({"dev", "local"})
+    @PostMapping("/dev/token")
+    public ApiResponse<String> generateDevToken(Long userId) {
+
+        return ApiResponse.success(
+                GeneralSuccessCode.OK, oAuthService.getUserAndAccessToken(userId));
+    }
 }
