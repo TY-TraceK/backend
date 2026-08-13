@@ -1,0 +1,3 @@
+SHOW DATABASES;
+USE tracek;
+SHOW TABLES;
