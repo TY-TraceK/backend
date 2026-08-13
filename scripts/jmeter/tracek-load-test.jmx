@@ -7,7 +7,8 @@
 3) 핫스팟 동시 좋아요취소 (기본 비활성 - 2번 실행 후 결과 확인하고 켜서 재실행)
 
 토큰은 매 반복마다 POST /api/auth/dev/token/{userId} (dev/local 프로필 전용)로 실시간 발급받음.
-실행 전: DB에 userId 1~1000 테스트 유저가 seed-load-test-data.sql 등으로 미리 있어야 함.
+실행 전: DB에 userId 1~1000 테스트 유저가 이미 준비돼 있어야 함(이 저장소 스크립트가 만드는 게
+아니라 별도로 시드된 계정). location/content/artist 더미 데이터는 seed-load-test-data.sql로 준비.
 non-GUI 실행: jmeter -n -t tracek-load-test.jmx -l result.jtl -e -o report -JHOST=&lt;백엔드 사설IP&gt;</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
@@ -115,7 +116,17 @@ non-GUI 실행: jmeter -n -t tracek-load-test.jmx -l result.jtl -e -o report -JH
             <stringProp name="JSONPostProcessor.referenceNames">jwt</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.data</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="토큰 발급 성공 확인" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
           <hashTree/>
         </hashTree>
 
@@ -274,7 +285,17 @@ non-GUI 실행: jmeter -n -t tracek-load-test.jmx -l result.jtl -e -o report -JH
             <stringProp name="JSONPostProcessor.referenceNames">jwt</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.data</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="토큰 발급 성공 확인" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
           <hashTree/>
         </hashTree>
 
@@ -349,7 +370,17 @@ non-GUI 실행: jmeter -n -t tracek-load-test.jmx -l result.jtl -e -o report -JH
             <stringProp name="JSONPostProcessor.referenceNames">jwt</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.data</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="토큰 발급 성공 확인" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
           <hashTree/>
         </hashTree>
 

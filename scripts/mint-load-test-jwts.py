@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""TraceK 부하테스트용 JWT 오프라인 서명 스크립트.
+"""[미사용/보관용] TraceK 부하테스트용 JWT 오프라인 서명 스크립트.
+
+현재 JMeter 시나리오는 이 스크립트 대신 서버의 POST /api/auth/dev/token/{userId}
+(dev/local 프로필 전용)을 매 반복마다 호출해 토큰을 실시간 발급받는다. 이 스크립트는
+그 API가 없던 시절에 쓰던 방식으로, 참고/보관 목적으로만 남겨둔다.
 
 배포 서버의 JwtTokenProvider(HS256, subject=userId, claim role/name)와
 동일한 형식으로 액세스 토큰을 만들어 CSV로 저장한다.
 실제 카카오 로그인을 거치지 않고, 이미 로그인된 사용자를 흉내내는 용도.
 표준 라이브러리만 사용 (pip install 불필요).
 
-사용 예:
-  python mint-load-test-jwts.py --secret "<배포서버 JWT_SECRET>" \
+사용 예 (JWT_SECRET 환경변수로 전달, 커맨드라인/셸 히스토리에 시크릿 노출 방지):
+  JWT_SECRET="<배포서버 JWT_SECRET>" python mint-load-test-jwts.py \
       --start-id 900001 --count 100 --hours 24 --out jmeter/users_flow.csv
-  python mint-load-test-jwts.py --secret "<배포서버 JWT_SECRET>" \
+  JWT_SECRET="<배포서버 JWT_SECRET>" python mint-load-test-jwts.py \
       --start-id 900101 --count 100 --hours 24 --out jmeter/users_hotspot.csv
 
---secret 는 배포 서버 .env의 JWT_SECRET 값을 그대로 넣어야 한다.
+JWT_SECRET은 배포 서버 .env의 JWT_SECRET 값을 그대로 넣어야 한다.
 로컬 default 값과 다를 수 있으니 반드시 배포 서버에서 확인할 것.
 """
 
@@ -22,6 +26,7 @@ import csv
 import hashlib
 import hmac
 import json
+import os
 import time
 
 
@@ -40,13 +45,19 @@ def sign_hs256(secret: str, payload: dict) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--secret", required=True, help="배포 서버 .env의 JWT_SECRET 값")
+    parser.add_argument(
+        "--secret",
+        default=os.environ.get("JWT_SECRET"),
+        help="배포 서버 .env의 JWT_SECRET 값 (기본값: JWT_SECRET 환경변수)",
+    )
     parser.add_argument("--start-id", type=int, default=900001, help="시작 userId")
     parser.add_argument("--count", type=int, default=100, help="발급할 토큰 개수")
     parser.add_argument("--role", default="USER")
     parser.add_argument("--hours", type=float, default=24, help="토큰 유효시간(시간)")
     parser.add_argument("--out", default="users.csv")
     args = parser.parse_args()
+    if not args.secret:
+        parser.error("JWT_SECRET을 환경변수로 넘기거나 --secret으로 지정하세요.")
 
     now = int(time.time())
     exp = now + int(args.hours * 3600)

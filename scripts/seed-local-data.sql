@@ -4,6 +4,7 @@
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+DELETE FROM location_likes;
 DELETE FROM location_content_artist;
 DELETE FROM image_location;
 DELETE FROM location;
@@ -47,8 +48,8 @@ INSERT INTO content (id, title, category, image_url) VALUES
 (1, '킹더랜드', 'DRAMA', 'https://picsum.photos/seed/content1/800/600'),
 (2, '도깨비', 'DRAMA', 'https://picsum.photos/seed/content2/800/600'),
 (3, '런닝맨', 'ENTERTAINMENT', 'https://picsum.photos/seed/content3/800/600'),
-(4, 'Super Shy', 'MV', 'https://picsum.photos/seed/content4/800/600'),
-(5, '1박 2일', 'VARIETY', 'https://picsum.photos/seed/content5/800/600'),
+(4, 'Super Shy', 'MOVIE', 'https://picsum.photos/seed/content4/800/600'),
+(5, '1박 2일', 'ENTERTAINMENT', 'https://picsum.photos/seed/content5/800/600'),
 (6, '눈물의 여왕', 'DRAMA', 'https://picsum.photos/seed/content6/800/600');
 
 -- ==================== 아티스트 (artist) ====================

@@ -2,23 +2,25 @@
 -- seed-local-data.sql과 동일한 패턴, 다만 location/content/artist 수를 늘려서
 -- 좋아요 부하테스트 시 여러 location_id에 스레드를 분산시킬 수 있게 함.
 -- 앱 기동(ddl-auto: update)으로 테이블이 이미 생성된 뒤에 실행하세요.
--- 재실행 가능하도록 기존 더미 데이터를 먼저 지웁니다 (FK 역순 삭제).
+-- 재실행 가능하도록 기존 더미 데이터를 먼저 지웁니다. 배포 DB에 이 스크립트가
+-- 다루지 않는 다른 데이터가 섞여 있을 수 있어, DELETE는 이 스크립트가 만드는
+-- ID 구간(location 1~50, content 1~15, artist 1~15, image 1~8)으로만 제한합니다.
 --
 -- users 테이블은 LocationLikeCommandService에 isActiveUser 검증이 추가되면서
--- 좋아요/취소 API가 실제로 조회합니다. 다만 배포 DB에는 이미 실사용자(팀원 등)
--- 계정이 있을 수 있어 기존 users는 절대 DELETE하지 않고, ID 900001~900200
--- 구간에만 부하테스트 전용 유저를 새로 추가합니다 (재실행해도 안전하도록 INSERT IGNORE).
--- JMeter에서 쓸 JWT는 이 ID 구간(900001~900200)으로 오프라인 서명하면 됩니다.
+-- 좋아요/취소 API가 실제로 조회합니다. userId 1~1000 테스트 유저는 이 스크립트가
+-- 만드는 게 아니라 별도로 이미 준비돼 있어야 하고(현재는 /api/auth/dev/token/{userId}
+-- API로 실시간 토큰 발급받아 씀), 900001~900200 구간은 그 이전에 오프라인 서명
+-- 방식(mint-load-test-jwts.py, 현재 미사용)으로 썼던 잔재라 참고용으로만 남겨둠.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-DELETE FROM location_likes;
-DELETE FROM location_content_artist;
-DELETE FROM image_location;
-DELETE FROM location;
-DELETE FROM content;
-DELETE FROM artist;
-DELETE FROM image;
+DELETE FROM location_likes WHERE location_id <= 50;
+DELETE FROM location_content_artist WHERE location_id <= 50;
+DELETE FROM image_location WHERE location_id <= 50;
+DELETE FROM location WHERE id <= 50;
+DELETE FROM content WHERE id <= 15;
+DELETE FROM artist WHERE id <= 15;
+DELETE FROM image WHERE id <= 8;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==================== 관광지 (location) : 50개 ====================
@@ -60,7 +62,7 @@ INSERT INTO location (id, name, category, like_count, city, district, address, l
 (32, '월정리해변', 'ATTRACTION', 733, '제주특별자치도', '제주시', '월정1리 26', 33.5566, 126.7963, 'https://picsum.photos/seed/loc32/800/600'),
 (33, '가로수길', 'FESTIVAL', 288, '서울특별시', '강남구', '가로수길', 37.5202, 127.0231, 'https://picsum.photos/seed/loc33/800/600'),
 (34, '경복궁 서촌', 'CULTURE', 245, '서울특별시', '종로구', '자하문로 15길', 37.5804, 126.9689, 'https://picsum.photos/seed/loc34/800/600'),
-(35, '전주 객리단길', 'RESTAURANT', 356, '전라북도', '전주시 완산구', '경fg원로 지역', 35.8110, 127.1420, 'https://picsum.photos/seed/loc35/800/600'),
+(35, '전주 객리단길', 'RESTAURANT', 356, '전라북도', '전주시 완산구', '경원로 32', 35.8110, 127.1420, 'https://picsum.photos/seed/loc35/800/600'),
 (36, '부산 감천문화마을', 'CULTURE', 812, '부산광역시', '사하구', '감내2로 203', 35.0975, 129.0107, 'https://picsum.photos/seed/loc36/800/600'),
 (37, '제주 협재해수욕장', 'ATTRACTION', 690, '제주특별자치도', '제주시', '협재리 2497', 33.3941, 126.2397, 'https://picsum.photos/seed/loc37/800/600'),
 (38, '경주 첨성대', 'CULTURE', 401, '경상북도', '경주시', '첨성로 169', 35.8348, 129.2192, 'https://picsum.photos/seed/loc38/800/600'),
