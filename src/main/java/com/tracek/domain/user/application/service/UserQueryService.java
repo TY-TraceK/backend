@@ -9,4 +9,6 @@ public interface UserQueryService {
     boolean isActiveUser(Long userId);
 
     UserProfileDataResult getUserProfileData(Long userId);
+
+    SyncUserResult getUserSummaryData(Long userId);
 }

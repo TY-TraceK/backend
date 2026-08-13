@@ -11,7 +11,7 @@ public record SyncUserResult(long userId, boolean isNewUser, String userName, St
                 .userId(user.getId())
                 .isNewUser(isNewUser)
                 .userName(user.getUserProfile().getNickname())
-                .userName(user.getUserRole().name())
+                .userRole(user.getUserRole().name())
                 .build();
     }
 }
