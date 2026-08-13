@@ -10,13 +10,14 @@
 실제 카카오 로그인을 거치지 않고, 이미 로그인된 사용자를 흉내내는 용도.
 표준 라이브러리만 사용 (pip install 불필요).
 
-사용 예 (scripts/ 디렉토리에서 실행, JWT_SECRET 환경변수로 전달해 커맨드라인/셸
-히스토리에 시크릿 노출 방지):
+사용 예 (scripts/ 디렉토리에서 실행. 시크릿을 커맨드라인에 직접 안 쓰고 read로
+입력해서 셸 히스토리에 안 남게 함):
   cd scripts
-  JWT_SECRET="<JWT_SECRET>" python mint-load-test-jwts.py \
-      --start-id 900001 --count 100 --hours 24 --out jmeter/users_flow.csv
-  JWT_SECRET="<JWT_SECRET>" python mint-load-test-jwts.py \
-      --start-id 900101 --count 100 --hours 24 --out jmeter/users_hotspot.csv
+  read -r -s JWT_SECRET
+  export JWT_SECRET
+  python mint-load-test-jwts.py --start-id 900001 --count 100 --hours 24 --out jmeter/users_flow.csv
+  python mint-load-test-jwts.py --start-id 900101 --count 100 --hours 24 --out jmeter/users_hotspot.csv
+  unset JWT_SECRET
 
 주의: 여기 쓰는 시크릿이 실제 배포 서버의 JWT_SECRET과 같으면, 이 스크립트로 만든
 토큰이 진짜 로그인 세션과 위조 불가능하게 구별이 안 된다. 가능하면 로컬 개발용
