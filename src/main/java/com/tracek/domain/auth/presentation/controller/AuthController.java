@@ -28,7 +28,7 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @Profile({"dev", "local"})
-    @PostMapping("/dev/token")
+    @PostMapping("/dev/token/{userId}")
     public ApiResponse<String> generateDevToken(Long userId) {
 
         return ApiResponse.success(
