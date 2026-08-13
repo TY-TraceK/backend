@@ -1,5 +1,6 @@
 package com.tracek.domain.user.application.service;
 
+import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 
 public interface UserQueryService {

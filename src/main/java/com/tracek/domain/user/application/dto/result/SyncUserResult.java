@@ -1,4 +1,4 @@
-package com.tracek.domain.user.application.service;
+package com.tracek.domain.user.application.dto.result;
 
 import com.tracek.domain.user.domain.model.User;
 import lombok.Builder;

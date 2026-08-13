@@ -1,7 +1,7 @@
 package com.tracek.domain.user.application.service.impl;
 
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
-import com.tracek.domain.user.application.service.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.application.service.UserCommandService;
 import com.tracek.domain.user.domain.enums.OAuthProvider;
 import com.tracek.domain.user.domain.model.OAuthInfo;
