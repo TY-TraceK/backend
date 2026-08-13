@@ -1,5 +1,6 @@
 package com.tracek.domain.user.application.service.impl;
 
+import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.domain.user.domain.enums.UserStatus;
@@ -31,5 +32,14 @@ public class UserQueryServiceImpl implements UserQueryService {
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND)));
+    }
+
+    @Override
+    public SyncUserResult getUserSummaryData(Long userId) {
+        return SyncUserResult.from(
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND)),
+                false);
     }
 }

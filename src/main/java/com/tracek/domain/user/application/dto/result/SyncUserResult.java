@@ -1,4 +1,4 @@
-package com.tracek.domain.user.application.service;
+package com.tracek.domain.user.application.dto.result;
 
 import com.tracek.domain.user.domain.model.User;
 import lombok.Builder;
@@ -11,7 +11,7 @@ public record SyncUserResult(long userId, boolean isNewUser, String userName, St
                 .userId(user.getId())
                 .isNewUser(isNewUser)
                 .userName(user.getUserProfile().getNickname())
-                .userName(user.getUserRole().name())
+                .userRole(user.getUserRole().name())
                 .build();
     }
 }

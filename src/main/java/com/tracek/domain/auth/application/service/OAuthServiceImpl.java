@@ -7,8 +7,9 @@ import com.tracek.domain.auth.application.provider.OAuthClientProvider;
 import com.tracek.domain.auth.domain.enums.OAuthProvider;
 import com.tracek.domain.auth.domain.exception.AuthErrorCode;
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
-import com.tracek.domain.user.application.service.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.application.service.UserCommandService;
+import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class OAuthServiceImpl implements OAuthService {
 
     private final OAuthClientProvider oAuthClientProvider;
     private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
@@ -60,5 +62,12 @@ public class OAuthServiceImpl implements OAuthService {
         }
         String oAuthAccessToken = client.exchangeAuthorizationCode(code);
         return client.getOAuthUserData(oAuthAccessToken);
+    }
+
+    @Override
+    public String getUserAndAccessToken(Long userId) {
+        SyncUserResult userResult = userQueryService.getUserSummaryData(userId);
+        return jwtTokenProvider.createAccessToken(
+                userResult.userId(), userResult.userRole(), userResult.userName());
     }
 }

@@ -5,4 +5,6 @@ import com.tracek.domain.auth.application.dto.result.OAuthLoginResult;
 public interface OAuthService {
 
     OAuthLoginResult createOauthLogin(String code, String provider);
+
+    String getUserAndAccessToken(Long userId);
 }

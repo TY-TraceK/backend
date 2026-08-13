@@ -13,7 +13,7 @@ import com.tracek.domain.auth.application.provider.OAuthClientProvider;
 import com.tracek.domain.auth.domain.enums.OAuthProvider;
 import com.tracek.domain.auth.domain.exception.AuthErrorCode;
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
-import com.tracek.domain.user.application.service.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.application.service.UserCommandService;
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.security.jwt.JwtTokenProvider;
