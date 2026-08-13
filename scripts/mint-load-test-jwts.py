@@ -10,14 +10,18 @@
 실제 카카오 로그인을 거치지 않고, 이미 로그인된 사용자를 흉내내는 용도.
 표준 라이브러리만 사용 (pip install 불필요).
 
-사용 예 (JWT_SECRET 환경변수로 전달, 커맨드라인/셸 히스토리에 시크릿 노출 방지):
-  JWT_SECRET="<배포서버 JWT_SECRET>" python mint-load-test-jwts.py \
+사용 예 (scripts/ 디렉토리에서 실행, JWT_SECRET 환경변수로 전달해 커맨드라인/셸
+히스토리에 시크릿 노출 방지):
+  cd scripts
+  JWT_SECRET="<JWT_SECRET>" python mint-load-test-jwts.py \
       --start-id 900001 --count 100 --hours 24 --out jmeter/users_flow.csv
-  JWT_SECRET="<배포서버 JWT_SECRET>" python mint-load-test-jwts.py \
+  JWT_SECRET="<JWT_SECRET>" python mint-load-test-jwts.py \
       --start-id 900101 --count 100 --hours 24 --out jmeter/users_hotspot.csv
 
-JWT_SECRET은 배포 서버 .env의 JWT_SECRET 값을 그대로 넣어야 한다.
-로컬 default 값과 다를 수 있으니 반드시 배포 서버에서 확인할 것.
+주의: 여기 쓰는 시크릿이 실제 배포 서버의 JWT_SECRET과 같으면, 이 스크립트로 만든
+토큰이 진짜 로그인 세션과 위조 불가능하게 구별이 안 된다. 가능하면 로컬 개발용
+JWT_SECRET(운영과 분리된 값)으로만 실행하고, 정말 배포 서버 대상으로 테스트해야
+한다면 결과 CSV 유출에 각별히 주의할 것.
 """
 
 import argparse
@@ -26,6 +30,7 @@ import csv
 import hashlib
 import hmac
 import json
+import math
 import os
 import time
 
@@ -58,6 +63,10 @@ def main():
     args = parser.parse_args()
     if not args.secret:
         parser.error("JWT_SECRET을 환경변수로 넘기거나 --secret으로 지정하세요.")
+    if args.count <= 0:
+        parser.error("--count는 1 이상이어야 합니다.")
+    if not math.isfinite(args.hours) or args.hours < (1 / 3600):
+        parser.error("--hours는 최소 1초(1/3600시간) 이상의 유한한 값이어야 합니다.")
 
     now = int(time.time())
     exp = now + int(args.hours * 3600)
