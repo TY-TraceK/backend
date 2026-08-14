@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -47,6 +48,7 @@ public interface VoteControllerDocs {
                         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
             })
     @PostMapping()
+    @SecurityRequirement(name = "jwtAuth")
     ApiResponse<VoteCreateResponse> createVote(
             @Parameter(hidden = true) @AuthenticationPrincipal
                     com.tracek.global.security.authentication.AuthenticationPrincipal principal,
