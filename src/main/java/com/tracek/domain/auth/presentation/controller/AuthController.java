@@ -6,7 +6,6 @@ import com.tracek.domain.auth.presentation.dto.response.OAuthLoginResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,14 +23,5 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 OAuthLoginResponse.from(oAuthService.createOauthLogin(code, provider)));
-    }
-
-    @Override
-    @Profile({"dev", "local"})
-    @PostMapping("/dev/token/{userId}")
-    public ApiResponse<String> generateDevToken(Long userId) {
-
-        return ApiResponse.success(
-                GeneralSuccessCode.OK, oAuthService.getUserAndAccessToken(userId));
     }
 }

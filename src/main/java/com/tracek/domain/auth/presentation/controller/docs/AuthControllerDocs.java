@@ -19,10 +19,4 @@ public interface AuthControllerDocs {
                     @NotBlank(message = "Oauth에서 발급된 코드를 입력해주세요.")
                     String code,
             @Parameter(description = "Oauth 종류", required = true) @PathVariable String provider);
-
-    @Operation(
-            summary = "개발용 테스트 토큰 발급",
-            description = "유저 ID를 직접 입력하여 JWT Access Token을 즉시 발급받습니다.")
-    ApiResponse<String> generateDevToken(
-            @Parameter(description = "유저 아이디", required = true) @PathVariable Long userId);
 }

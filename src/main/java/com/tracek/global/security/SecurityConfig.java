@@ -35,7 +35,7 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/actuator/**")
                                         .permitAll()
-                                        .requestMatchers("/api/public/**")
+                                        .requestMatchers("/api/public/**", "/api/test/**")
                                         .permitAll()
                                         .requestMatchers(
                                                 HttpMethod.GET,
