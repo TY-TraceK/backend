@@ -41,7 +41,7 @@ class LocationLikeCommandServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(userQueryService.isActiveUser(1L)).willReturn(true);
         given(locationRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(false);
-        given(locationRepository.findById(1L)).willReturn(Optional.of(location));
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
 
         locationLikeCommandService.like(1L, 1L);
 
@@ -65,13 +65,15 @@ class LocationLikeCommandServiceTest {
     @Test
     @DisplayName("이미 좋아요를 누른 상태면 저장 없이 조용히 종료한다")
     void like_alreadyLiked() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(userQueryService.isActiveUser(1L)).willReturn(true);
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
         given(locationRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
 
         locationLikeCommandService.like(1L, 1L);
 
         verify(locationRepository, never()).saveLike(org.mockito.ArgumentMatchers.any());
-        verify(locationRepository, never()).findById(org.mockito.ArgumentMatchers.any());
+        assertThat(location.getLikeCount()).isEqualTo(100L);
     }
 
     @Test
@@ -80,7 +82,7 @@ class LocationLikeCommandServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         given(userQueryService.isActiveUser(1L)).willReturn(true);
         given(locationRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
-        given(locationRepository.findById(1L)).willReturn(Optional.of(location));
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
 
         locationLikeCommandService.unlike(1L, 1L);
 
@@ -94,7 +96,7 @@ class LocationLikeCommandServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", null);
         given(userQueryService.isActiveUser(1L)).willReturn(true);
         given(locationRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
-        given(locationRepository.findById(1L)).willReturn(Optional.of(location));
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
 
         locationLikeCommandService.unlike(1L, 1L);
 
