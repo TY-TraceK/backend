@@ -3,6 +3,7 @@ package com.tracek.domain.location.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -60,6 +62,11 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(UserErrorCode.USER_NOT_ACTIVATED);
 
+        // findByIdForUpdate가 트랜잭션의 첫 DB 작업이어야 하는 순서 자체를 고정 -
+        // 이 순서가 깨지면 REPEATABLE READ 스냅샷 문제가 재발할 수 있음(LOAD_TEST_LOG.md 참고)
+        InOrder inOrder = inOrder(locationRepository, userQueryService);
+        inOrder.verify(locationRepository).findByIdForUpdate(1L);
+        inOrder.verify(userQueryService).isActiveUser(1L);
         verify(locationRepository, never())
                 .existsByUserIdAndLocationId(
                         org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
@@ -119,6 +126,9 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(UserErrorCode.USER_NOT_ACTIVATED);
 
+        InOrder inOrder = inOrder(locationRepository, userQueryService);
+        inOrder.verify(locationRepository).findByIdForUpdate(1L);
+        inOrder.verify(userQueryService).isActiveUser(1L);
         verify(locationRepository, never())
                 .existsByUserIdAndLocationId(
                         org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
