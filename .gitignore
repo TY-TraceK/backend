@@ -41,3 +41,7 @@ out/
 ### 부하테스트 산출물 (실제 JWT가 담긴 파일이라 커밋 금지) ###
 users.csv
 scripts/jmeter/users*.csv
+
+### 부하테스트 결과 리포트 (용량 크고 매 실행마다 갱신되는 산출물) ###
+scripts/jmeter/results/
+scripts/jmeter/jmeter.log
