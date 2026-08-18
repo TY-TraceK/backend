@@ -96,4 +96,11 @@ public class LocationRepositoryImpl implements LocationRepository {
     public Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId) {
         return locationContentArtistJpaRepository.findById(contentArtistLocationId);
     }
+
+    @Override
+    public Optional<Location> findByIdForUpdate(Long id) {
+        return locationJpaRepository.findByIdForUpdate(id);
+    }
+
+
 }

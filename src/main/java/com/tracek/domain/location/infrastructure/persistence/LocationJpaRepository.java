@@ -4,10 +4,15 @@ import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface LocationJpaRepository extends JpaRepository<Location, Long> {
 
@@ -23,4 +28,10 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
     List<Location> findNearbyLocations(GeoLocation userLocation, double radiusMeter);
 
     Page<Location> findByCategory(LocationCategory category, Pageable pageable);
+
+    // 비관적 락을 걸고 장소 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT l FROM Location l WHERE l.id = :id")
+    Optional<Location> findByIdForUpdate(@Param("id") Long id);
+
 }
