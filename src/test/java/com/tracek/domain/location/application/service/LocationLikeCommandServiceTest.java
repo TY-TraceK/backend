@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
@@ -52,6 +51,8 @@ class LocationLikeCommandServiceTest {
     @Test
     @DisplayName("비활성/존재하지 않는 유저가 좋아요를 누르면 USER_NOT_ACTIVATED 예외가 발생한다")
     void like_userNotActive() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
         given(userQueryService.isActiveUser(1L)).willReturn(false);
 
         assertThatThrownBy(() -> locationLikeCommandService.like(1L, 1L))
@@ -59,7 +60,10 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(UserErrorCode.USER_NOT_ACTIVATED);
 
-        verifyNoInteractions(locationRepository);
+        verify(locationRepository, never())
+                .existsByUserIdAndLocationId(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(locationRepository, never()).saveLike(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -106,6 +110,8 @@ class LocationLikeCommandServiceTest {
     @Test
     @DisplayName("비활성/존재하지 않는 유저가 좋아요 취소를 시도하면 USER_NOT_ACTIVATED 예외가 발생한다")
     void unlike_userNotActive() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        given(locationRepository.findByIdForUpdate(1L)).willReturn(Optional.of(location));
         given(userQueryService.isActiveUser(1L)).willReturn(false);
 
         assertThatThrownBy(() -> locationLikeCommandService.unlike(1L, 1L))
@@ -113,6 +119,11 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(UserErrorCode.USER_NOT_ACTIVATED);
 
-        verifyNoInteractions(locationRepository);
+        verify(locationRepository, never())
+                .existsByUserIdAndLocationId(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(locationRepository, never())
+                .deleteByUserIdAndLocationId(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 }
