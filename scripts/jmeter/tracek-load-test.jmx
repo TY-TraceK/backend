@@ -557,7 +557,7 @@ if (jwt == null || jwt.isEmpty() || jwt == "TOKEN_NOT_FOUND") {
       </hashTree>
 
       <!-- ==================== 4. 동일 유저 중복 좋아요 (멱등성 검증) ==================== -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="4_동일유저_중복좋아요_멱등성검증" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="4_동일유저_중복좋아요_멱등성검증" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
