@@ -25,11 +25,11 @@ public class LocationLikeCommandService {
         validateActiveUser(userId);
 
         // 락 획득
-        Location location = locationRepository
-                .findByIdForUpdate(locationId)
-                .orElseThrow(
-                        () -> new CustomException(LocationErrorCode.LOCATION_NOT_FOUND));
-
+        Location location =
+                locationRepository
+                        .findByIdForUpdate(locationId)
+                        .orElseThrow(
+                                () -> new CustomException(LocationErrorCode.LOCATION_NOT_FOUND));
 
         // 이미 좋아요를 눌렀는지 확인 (위에서 location row 락을 먼저 잡기 때문에 동시 요청도 순차
         // 처리됨 — 완전한 멱등성 보장)
@@ -61,7 +61,8 @@ public class LocationLikeCommandService {
 
         // 락 획득
         Location location =
-                locationRepository.findByIdForUpdate(locationId)
+                locationRepository
+                        .findByIdForUpdate(locationId)
                         .orElseThrow(
                                 () -> new CustomException(LocationErrorCode.LOCATION_NOT_FOUND));
 
