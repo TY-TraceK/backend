@@ -2,14 +2,19 @@ package com.tracek.domain.vote.application.service;
 
 import com.tracek.domain.location.application.dto.LocationContentArtistResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
+import com.tracek.domain.vote.application.dto.command.VoteCancelCommand;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
+import com.tracek.domain.vote.application.dto.result.VoteCancelResult;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
+import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
 import com.tracek.domain.vote.domain.model.Vote;
 import com.tracek.domain.vote.domain.model.VoteTarget;
 import com.tracek.domain.vote.domain.repository.VoteRepository;
 import com.tracek.global.exception.CustomException;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,5 +49,27 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                                 command.voteTargetNameSnapShot()));
         Vote saveVote = voteRepository.save(vote);
         return VoteCreateResult.from(saveVote);
+    }
+
+    @Override
+    @Transactional
+    public VoteCancelResult cancelVote(VoteCancelCommand command) {
+        // 투표 찾기
+        Vote vote =
+                voteRepository
+                        .findById(command.voteId())
+                        .orElseThrow(() -> new CustomException(VoteErrorCode.VOTE_NOT_FOUND));
+        if (!Objects.equals(vote.getVoteOwner(), command.userId())) {
+            throw new CustomException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS);
+        }
+        // 이미 취소된 경우에는 별도 예외 처리를 하진 않음
+        if (vote.getVoteStatus() == VoteStatus.VALID) {
+            // 오늘 것만 취소 가능
+            if (!Objects.equals(vote.getValidVotedAt(), LocalDate.now())) {
+                throw new CustomException(VoteErrorCode.VOTE_CANNOT_BE_CANCELLED);
+            }
+            vote.invalid();
+        }
+        return VoteCancelResult.from(vote);
     }
 }
