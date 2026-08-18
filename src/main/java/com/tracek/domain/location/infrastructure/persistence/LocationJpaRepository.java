@@ -3,10 +3,9 @@ package com.tracek.domain.location.infrastructure.persistence;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationCategory;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
-
-import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,5 +32,4 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT l FROM Location l WHERE l.id = :id")
     Optional<Location> findByIdForUpdate(@Param("id") Long id);
-
 }
