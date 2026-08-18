@@ -44,4 +44,6 @@ public interface LocationRepository {
     void saveLike(LocationLike locationLike);
 
     Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId);
+
+    Optional<Location> findByIdForUpdate(Long id);
 }
