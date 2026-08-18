@@ -4,6 +4,7 @@ import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.model.Vote;
 import com.tracek.domain.vote.domain.repository.VoteRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,5 +33,10 @@ public class VoteRepositoryImpl implements VoteRepository {
     @Override
     public Vote save(Vote vote) {
         return voteJpaRepository.save(vote);
+    }
+
+    @Override
+    public Optional<Vote> findById(Long voteId) {
+        return voteJpaRepository.findById(voteId);
     }
 }
