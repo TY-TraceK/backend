@@ -21,7 +21,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean findByIdAndUserStatusIs(Long userId, UserStatus userStatus) {
-        return userJpaRepository.findByIdAndUserStatusIs(userId, userStatus);
+        return userJpaRepository.existsByIdAndUserStatusIs(userId, userStatus);
     }
 
     @Override

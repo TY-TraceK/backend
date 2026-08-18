@@ -10,5 +10,5 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByoAuthInfo(OAuthInfo oAuthInfo);
 
-    boolean findByIdAndUserStatusIs(Long id, UserStatus userStatus);
+    boolean existsByIdAndUserStatusIs(Long id, UserStatus userStatus);
 }
