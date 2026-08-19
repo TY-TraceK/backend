@@ -1,13 +1,16 @@
 package com.tracek.domain.vote.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.location.application.dto.LocationContentArtistResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
+import com.tracek.domain.vote.application.dto.command.VoteCancelCommand;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
+import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
 import com.tracek.domain.vote.domain.model.Vote;
 import com.tracek.domain.vote.domain.repository.VoteRepository;
@@ -20,12 +23,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
@@ -66,102 +71,212 @@ class VoteServiceImplTest {
         voteRepository.deleteAllInBatch();
     }
 
-    @Test
-    @DisplayName("성공: 투표 생성 요청 시 정상적으로 투표가 저장되고 Result가 반환된다.")
-    void createVote_success() {
-        // given
-        VoteCreateCommand command =
-                new VoteCreateCommand(userId, locationId, locationContentArtistId, snapshotName);
+    @Nested
+    @DisplayName("투표 생성 테스트")
+    class CreateVoteTest {
 
-        // when
-        VoteCreateResult result = voteService.createVote(command);
-
-        // then
-        assertThat(result).isNotNull();
-
-        List<Vote> votes = voteRepository.findAll();
-        assertThat(votes).hasSize(1);
-        Vote savedVote = votes.getFirst();
-        assertThat(savedVote.getVoteOwner()).isEqualTo(userId);
-        assertThat(savedVote.getVoteTarget().getLocationId()).isEqualTo(locationId);
-    }
-
-    @Test
-    @DisplayName("실패: 이미 투표한 관광지에 다시 투표를 시도하면 AlreadyVotedException이 발생한다.")
-    void createVote_fail_alreadyVoted() {
-        // given: 1차 투표 진행
-        VoteCreateCommand command =
-                new VoteCreateCommand(userId, locationId, locationContentArtistId, snapshotName);
-        voteService.createVote(command);
-
-        // when & then: 동일 커맨드로 2차 투표 시도시 예외 발생
-        assertThatThrownBy(() -> voteService.createVote(command))
-                .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(VoteErrorCode.ALREADY_VOTED);
-    }
-
-    @Test
-    @DisplayName("동시성: 동일한 유저가 동시에 2개의 스레드로 투표를 요청하면 1건만 성공하고 1건은 실패한다.")
-    void createVote_concurrency_twoThreads() throws InterruptedException {
-        int threadCount = 2;
-        AtomicInteger successCount;
-        AtomicInteger failCount;
-        try (ExecutorService executorService = Executors.newFixedThreadPool(threadCount)) {
-            CountDownLatch startLatch = new CountDownLatch(1);
-            CountDownLatch endLatch = new CountDownLatch(threadCount);
-
+        @Test
+        @DisplayName("성공: 투표 생성 요청 시 정상적으로 투표가 저장되고 Result가 반환된다.")
+        void createVote_success() {
+            // given
             VoteCreateCommand command =
                     new VoteCreateCommand(
                             userId, locationId, locationContentArtistId, snapshotName);
 
-            successCount = new AtomicInteger(0);
-            failCount = new AtomicInteger(0);
+            // when
+            VoteCreateResult result = voteService.createVote(command);
 
-            for (int i = 0; i < threadCount; i++) {
-                final int threadIndex = i;
-                executorService.submit(
-                        () -> {
-                            try {
-                                startLatch.await();
-                                voteService.createVote(command);
-                                System.out.println(">>> [스레드 " + threadIndex + "] 성공!");
-                                successCount.incrementAndGet();
-                            } catch (CustomException e) {
-                                System.out.println(
-                                        ">>> [스레드 "
-                                                + threadIndex
-                                                + "] CustomException 발생: "
-                                                + e.getErrorCode());
-                                failCount.incrementAndGet();
-                            } catch (DataIntegrityViolationException e) {
-                                System.out.println(">>> [스레드 " + threadIndex + "] DB 유니크 충돌 발생!");
-                                failCount.incrementAndGet();
-                            } catch (Throwable t) {
-                                // 이 부분이 범인입니다!
-                                System.err.println(
-                                        ">>> [스레드 "
-                                                + threadIndex
-                                                + "] 예상치 못한 치명적 예외: "
-                                                + t.getClass().getName()
-                                                + " - "
-                                                + t.getMessage());
-                                t.printStackTrace();
-                            } finally {
-                                endLatch.countDown();
-                            }
-                        });
-            }
+            // then
+            assertThat(result).isNotNull();
 
-            startLatch.countDown();
-            endLatch.await();
-            executorService.shutdown();
+            List<Vote> votes = voteRepository.findAll();
+            assertThat(votes).hasSize(1);
+            Vote savedVote = votes.getFirst();
+            assertThat(savedVote.getVoteOwner()).isEqualTo(userId);
+            assertThat(savedVote.getVoteTarget().getLocationId()).isEqualTo(locationId);
         }
 
-        System.out.println(
-                "최종 successCount = " + successCount.get() + ", failCount = " + failCount.get());
+        @Test
+        @DisplayName("실패: 이미 투표한 관광지에 다시 투표를 시도하면 AlreadyVotedException이 발생한다.")
+        void createVote_fail_alreadyVoted() {
+            // given: 1차 투표 진행
+            VoteCreateCommand command =
+                    new VoteCreateCommand(
+                            userId, locationId, locationContentArtistId, snapshotName);
+            voteService.createVote(command);
 
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(1);
+            // when & then: 동일 커맨드로 2차 투표 시도시 예외 발생
+            assertThatThrownBy(() -> voteService.createVote(command))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(VoteErrorCode.ALREADY_VOTED);
+        }
+
+        @Test
+        @DisplayName("동시성: 동일한 유저가 동시에 2개의 스레드로 투표를 요청하면 1건만 성공하고 1건은 실패한다.")
+        void createVote_concurrency_twoThreads() throws InterruptedException {
+            int threadCount = 2;
+            AtomicInteger successCount;
+            AtomicInteger failCount;
+            try (ExecutorService executorService = Executors.newFixedThreadPool(threadCount)) {
+                CountDownLatch startLatch = new CountDownLatch(1);
+                CountDownLatch endLatch = new CountDownLatch(threadCount);
+
+                VoteCreateCommand command =
+                        new VoteCreateCommand(
+                                userId, locationId, locationContentArtistId, snapshotName);
+
+                successCount = new AtomicInteger(0);
+                failCount = new AtomicInteger(0);
+
+                for (int i = 0; i < threadCount; i++) {
+                    final int threadIndex = i;
+                    executorService.submit(
+                            () -> {
+                                try {
+                                    startLatch.await();
+                                    voteService.createVote(command);
+                                    System.out.println(">>> [스레드 " + threadIndex + "] 성공!");
+                                    successCount.incrementAndGet();
+                                } catch (CustomException e) {
+                                    System.out.println(
+                                            ">>> [스레드 "
+                                                    + threadIndex
+                                                    + "] CustomException 발생: "
+                                                    + e.getErrorCode());
+                                    failCount.incrementAndGet();
+                                } catch (DataIntegrityViolationException e) {
+                                    System.out.println(
+                                            ">>> [스레드 " + threadIndex + "] DB 유니크 충돌 발생!");
+                                    failCount.incrementAndGet();
+                                } catch (Throwable t) {
+                                    System.err.println(
+                                            ">>> [스레드 "
+                                                    + threadIndex
+                                                    + "] 예상치 못한 치명적 예외: "
+                                                    + t.getClass().getName()
+                                                    + " - "
+                                                    + t.getMessage());
+                                    t.printStackTrace();
+                                } finally {
+                                    endLatch.countDown();
+                                }
+                            });
+                }
+
+                startLatch.countDown();
+                endLatch.await();
+                executorService.shutdown();
+            }
+
+            System.out.println(
+                    "최종 successCount = " + successCount.get() + ", failCount = " + failCount.get());
+
+            assertThat(successCount.get()).isEqualTo(1);
+            assertThat(failCount.get()).isEqualTo(1);
+        }
+    }
+
+    @Nested
+    @DisplayName("투표 취소 테스트")
+    class CancelVoteTest {
+
+        @Test
+        @DisplayName("성공: 유효한 투표이고 당일 생성된 투표라면 정상적으로 취소(CANCELED)된다.")
+        void cancelVote_success() {
+            // given: 투표 생성
+            VoteCreateCommand createCommand =
+                    new VoteCreateCommand(
+                            userId, locationId, locationContentArtistId, snapshotName);
+            VoteCreateResult createResult = voteService.createVote(createCommand);
+
+            VoteCancelCommand cancelCommand = new VoteCancelCommand(createResult.voteId(), userId);
+
+            // when
+            voteService.cancelVote(cancelCommand);
+
+            // then
+            Vote vote = voteRepository.findById(createResult.voteId()).orElseThrow();
+            assertThat(vote.getVoteStatus()).isEqualTo(VoteStatus.CANCELED);
+        }
+
+        @Test
+        @DisplayName("실패: 존재하지 않는 투표 ID로 취소를 요청하면 VOTE_NOT_FOUND 예외가 발생한다.")
+        void cancelVote_fail_notFound() {
+            // given
+            VoteCancelCommand cancelCommand =
+                    new VoteCancelCommand(
+                            99999L, userId // 존재하지 않는 ID
+                            );
+
+            // when & then
+            assertThatThrownBy(() -> voteService.cancelVote(cancelCommand))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(VoteErrorCode.VOTE_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("실패: 투표 소유자가 아닌 유저가 취소를 요청하면 UNAUTHORIZED_VOTE_ACCESS 예외가 발생한다.")
+        void cancelVote_fail_unauthorized() {
+            // given: 유저 1이 투표 생성
+            VoteCreateCommand createCommand =
+                    new VoteCreateCommand(
+                            userId, locationId, locationContentArtistId, snapshotName);
+            VoteCreateResult createResult = voteService.createVote(createCommand);
+
+            VoteCancelCommand cancelCommand = new VoteCancelCommand(createResult.voteId(), 99999L);
+
+            // when & then
+            assertThatThrownBy(() -> voteService.cancelVote(cancelCommand))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS);
+        }
+
+        @Test
+        @DisplayName("실패: 당일 생성된 투표가 아니라면 취소할 수 없고 VOTE_CANNOT_BE_CANCELLED 예외가 발생한다.")
+        void cancelVote_fail_notToday() {
+            // given: 투표 생성 후, 리플렉션을 이용해 강제로 날짜를 어제로 조작
+            VoteCreateCommand createCommand =
+                    new VoteCreateCommand(
+                            userId, locationId, locationContentArtistId, snapshotName);
+            VoteCreateResult createResult = voteService.createVote(createCommand);
+
+            Vote vote = voteRepository.findById(createResult.voteId()).orElseThrow();
+
+            ReflectionTestUtils.setField(
+                    vote, "votedAt", java.time.LocalDateTime.now().minusDays(1));
+            voteRepository.save(vote);
+
+            VoteCancelCommand cancelCommand = new VoteCancelCommand(createResult.voteId(), userId);
+
+            // when & then
+            assertThatThrownBy(() -> voteService.cancelVote(cancelCommand))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(VoteErrorCode.VOTE_CANNOT_BE_CANCELLED);
+        }
+
+        @Test
+        @DisplayName("성공: 이미 취소된 투표에 대해 다시 취소 요청을 보내도 예외 없이 정상 종료된다 (멱등성/방어 로직 검증).")
+        void cancelVote_alreadyCancelled_successIgnored() {
+            // given: 투표 생성
+            VoteCreateCommand createCommand =
+                    new VoteCreateCommand(
+                            userId, locationId, locationContentArtistId, snapshotName);
+            VoteCreateResult createResult = voteService.createVote(createCommand);
+
+            VoteCancelCommand cancelCommand = new VoteCancelCommand(createResult.voteId(), userId);
+
+            // 1차 취소
+            voteService.cancelVote(cancelCommand);
+
+            // when & then: 2차 취소 요청 시 예외가 발생하지 않고 그대로 통과되는지 확인
+            assertThatCode(() -> voteService.cancelVote(cancelCommand)).doesNotThrowAnyException();
+
+            Vote vote = voteRepository.findById(createResult.voteId()).orElseThrow();
+            assertThat(vote.getVoteStatus()).isEqualTo(VoteStatus.CANCELED);
+        }
     }
 }
