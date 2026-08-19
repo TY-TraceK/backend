@@ -297,3 +297,87 @@ p50(133ms) 대비 확 튀는 건 round-c와 동일한 패턴. round-d는 시나�
 
 Lock 전략별 비교(로드맵 목표)를 위해 낙관적 락(`@Version`)으로도 동일 시나리오를 재측정 →
 비관적 락과 TPS/응답시간 비교. 이후 Redisson 분산락 + Redis atomic(INCR) 단계로 진행 예정.
+
+## 3차: 낙관적 락(Optimistic Lock) 적용 — 2026-08-19~20
+
+`feat/SCRUM-61-optimistic-lock` 별도 브랜치에서 진행(#109) — develop 미반영, EC2에 수동
+배포(`git checkout` + 재빌드)로만 테스트. `Location`에 `@Version` 추가,
+`findByIdWithOptimisticLock`(`LockModeType.OPTIMISTIC`), 재시도 래퍼
+(`LocationLikeCommandService`)와 실제 `@Transactional` 로직(`LocationLikeTransactionalWriter`)을
+별도 빈으로 분리해 구현.
+
+### 구현 중 발견된 버그 3개
+
+1. **self-invocation으로 `@Transactional` 무시됨** — 재시도 루프와 트랜잭션 로직이 같은
+   빈 안에 있어서 `this.메서드()` 호출이 프록시를 안 거침. 배포 전 코드리뷰로 발견, 빈 분리로 해결.
+2. **기존 row `version` NULL로 인한 100% 실패** (무효 라운드, 파일 삭제함) —
+   `Cannot invoke "Object.equals(Object)" because ... "EntityEntry.getVersion()" is null`.
+   `@Version` 컬럼을 Hibernate `ddl-auto=update`로 추가하면 기존 row는 NULL로 남는데,
+   이 상태로 커밋하면 100% 실패함. `UPDATE location SET version=0 WHERE version IS NULL;`
+   백필로 해결 — 실서비스라면 스키마 마이그레이션 스크립트에 포함해야 할 부분.
+3. **`UnexpectedRollbackException`** (round-f, 시나리오4 6/30건 500) — `saveLike()`의
+   `DataIntegrityViolationException`을 `@Transactional` 메서드 안에서 잡아 삼켰지만,
+   Spring이 이미 트랜잭션을 rollback-only로 표시한 뒤라 커밋 시점에 다른 예외가 대신 발생함
+   (비관적 락 땐 완전 직렬화라 이 경로 자체가 실행된 적이 없어서 안 드러났던 버그). 트랜잭션
+   밖(재시도 래퍼)에서 "이미 저장됨 = 성공"으로 처리하도록 수정.
+
+### round-g: 재시도 5회 + 고정 지터(30~80ms) — 첫 유효한 결과
+
+| 항목 | 값 |
+|---|---|
+| 시나리오2(100명 동시 좋아요) | 51/100 성공, 49건 CONCURRENCY_ERROR(409) |
+| 시나리오2 DB 정합성 | row=count=51 — 성공분은 완벽 |
+| 시나리오4(30명 중복좋아요) | 30/30 성공 |
+| 전체 에러율 | 2.17% |
+
+### round-h: 재시도 10회 + 지수 백오프(Full Jitter)로 튜닝 후
+
+고정 지터 대신 지수 백오프+Full Jitter(AWS 아키텍처 블로그 표준 패턴) 적용:
+`sleep = random(0, min(500ms, 20ms * 2^retryCount))`.
+
+| 항목 | round-g (5회, 고정지터) | round-h (10회, 지수백오프) |
+|---|---|---|
+| 시나리오2 성공률 (클라이언트 기준) | 51% | 81% |
+| 시나리오2 DB 실제 반영 개수 | 51 | **83** |
+| 전체 에러율 | 2.17% | 0.84% |
+
+**새로 발견된 트레이드오프:** DB엔 83개가 반영됐는데 클라이언트는 81건만 성공으로 관측함 —
+재시도 대기가 길어지면서 서버는 결국 성공했는데 클라이언트(JMeter 10초 타임아웃)가 먼저
+포기해버린 것으로 보임(`SocketTimeoutException` 3건 관측). 재시도를 늘릴수록 성공률은
+오르지만, 그만큼 길어진 대기시간이 클라이언트 타임아웃과 충돌할 위험이 커짐.
+
+### round-i-unlike: 좋아요취소(감소) 방향 검증
+
+round-h가 남긴 좋아요 83개 위에서 시나리오3(핫스팟 동시 좋아요취소, 100명)만 이어서 실행
+(비관적 락 round-d와 동일한 방식 — round-h 직후가 정확한 실행 시점).
+
+| 항목 | 값 |
+|---|---|
+| HTTP 응답 | 93/100 성공(200), 7건 CONCURRENCY_ERROR(409) |
+| DB `location_likes` 잔여 row | 7개 |
+| `location.like_count` | 7 |
+
+93건의 200 중 실제로는 76건이 진짜 삭제(83개 있던 것 중), 17건은 애초에 좋아요가 없던
+유저라 no-op으로 성공 처리됨(76+17=93 일치). 재시도를 다 소진한 7명의 좋아요는 그대로
+남아 `count`=`row`=7로 정확히 일치 — **증가/감소 양방향 모두 Lost Update 없이 정합성
+유지됨**을 확인.
+
+### 비관적 락 vs 낙관적 락 (고경합 시나리오 기준) 종합
+
+| 항목 | 비관적 락 (round-c/d) | 낙관적 락 (round-h/round-i, 튜닝 후) |
+|---|---|---|
+| 시나리오2 성공률 | 100% | 81% (DB 기준 83%) |
+| 시나리오3 성공률 | 100% | 93% |
+| 정합성(성공분) | 완벽 | 완벽 |
+| 전체 에러율 | 0.00% | 0.84%~3.5% |
+| 실패 시 동작 | 없음 (대기 후 결국 성공) | 명시적 에러 (사용자에게 재시도 요구) |
+
+**중간 판단:** "좋아요"는 인기 컨텐츠에 핫스팟이 몰리기 쉬운 기능이라, 비관적 락처럼 "느릴 순
+있어도 항상 성공"하는 쪽이 UX상 더 안전해 보임. 다만 이번 라운드는 일부러 100명 동시
+핫스팟만 재본 것이라, **저경합(일반적인 트래픽) 상황에서 낙관적 락의 오버헤드 이점**까지
+확인해야 최종 판단이 완결됨 — 다음 라운드에서 진행 예정.
+
+### Next
+
+저경합 시나리오로 낙관적 락 재측정(이 브랜치 + develop 양쪽에서 비교) → 평상시 오버헤드/
+응답시간 비교. 그 결과까지 보고 비관적/낙관적 중 최종 채택 결정.
