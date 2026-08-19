@@ -4,6 +4,7 @@ import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.global.exception.CustomException;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,10 @@ public class LocationLikeCommandService {
         while (true) {
             try {
                 locationLikeTransactionalWriter.like(userId, locationId);
+                return;
+            } catch (DataIntegrityViolationException e) {
+                // 동시에 같은 유저가 중복 요청해서 UNIQUE 제약에 걸린 경우 - 결과적으로
+                // 좋아요는 이미 저장된 상태이므로 성공으로 간주하고 재시도하지 않음
                 return;
             } catch (ObjectOptimisticLockingFailureException e) {
                 // 동시 충돌 발생

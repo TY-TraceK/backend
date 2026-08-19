@@ -8,7 +8,6 @@ import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.domain.user.domain.exception.UserErrorCode;
 import com.tracek.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +36,16 @@ public class LocationLikeTransactionalWriter {
         }
 
         // 좋아요 저장 + Like Count 증가
-        try {
-            LocationLike like = LocationLike.of(userId, locationId);
-            locationRepository.saveLike(like);
-            location.increaseLikeCount();
-        } catch (DataIntegrityViolationException e) {
-            // 방어적으로 남겨둠: 정상 흐름에선 낙관적 락(버전 충돌)이 먼저 걸려서 여기 도달하지 않음.
-        }
+        //
+        // 주의: 낙관적 락은 동시 요청을 막지 않으므로(비관적 락과 달리) 같은 유저가 동시에
+        // 여러 번 요청하면 둘 다 existsBy를 통과한 뒤 저장을 시도할 수 있음 -> UNIQUE 제약
+        // 위반(DataIntegrityViolationException)이 실제로 발생 가능. 여기서 잡아서 삼키면
+        // Spring이 이미 트랜잭션을 rollback-only로 표시해놓은 상태라 커밋 시점에
+        // UnexpectedRollbackException이 대신 터짐 - 그래서 여기서 잡지 않고 그대로
+        // 전파시켜서 LocationLikeCommandService(재시도 래퍼)에서 "이미 처리됨"으로 처리함.
+        LocationLike like = LocationLike.of(userId, locationId);
+        locationRepository.saveLike(like);
+        location.increaseLikeCount();
     }
 
     @Transactional

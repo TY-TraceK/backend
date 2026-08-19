@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 // 재시도 로직만 검증 - 실제 비즈니스 로직(락/정합성)은 LocationLikeTransactionalWriterTest 참고.
@@ -67,6 +68,21 @@ class LocationLikeCommandServiceTest {
 
         // MAX_RETRY_COUNT(5)번 시도 후 포기
         verify(locationLikeTransactionalWriter, times(5)).like(1L, 1L);
+    }
+
+    @Test
+    @DisplayName(
+            "같은 유저의 동시 요청이 UNIQUE 제약에 걸려도(DataIntegrityViolationException) "
+                    + "이미 저장된 것으로 보고 재시도 없이 성공 처리한다")
+    void like_duplicateInsert_treatedAsSuccess() {
+        willThrow(new DataIntegrityViolationException("duplicate"))
+                .given(locationLikeTransactionalWriter)
+                .like(1L, 1L);
+
+        locationLikeCommandService.like(1L, 1L);
+
+        // 재시도 없이 딱 1번만 호출되고 끝나야 함
+        verify(locationLikeTransactionalWriter, times(1)).like(1L, 1L);
     }
 
     @Test
