@@ -3,6 +3,7 @@ package com.tracek.domain.vote.infrastructure.persistence;
 import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.model.Vote;
 import com.tracek.domain.vote.domain.repository.VoteRepository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,11 @@ public class VoteRepositoryImpl implements VoteRepository {
     @Override
     public Optional<Vote> findById(Long voteId) {
         return voteJpaRepository.findById(voteId);
+    }
+
+    @Override
+    public Optional<Vote> findUserLocationVoteByDate(Long userId, Long locationId, LocalDate date) {
+        return voteJpaRepository.findByVoteOwnerAndVoteTarget_LocationIdAndValidVotedAt(
+                userId, locationId, date);
     }
 }
