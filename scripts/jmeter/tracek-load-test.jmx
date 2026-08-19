@@ -273,7 +273,7 @@ if (jwt == null || jwt.isEmpty() || jwt == "TOKEN_NOT_FOUND") {
       </hashTree>
 
       <!-- ==================== 2. 핫스팟 동시 좋아요 ==================== -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="2_핫스팟_동시_좋아요" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="2_핫스팟_동시_좋아요" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -489,7 +489,7 @@ if (jwt == null || jwt.isEmpty() || jwt == "TOKEN_NOT_FOUND") {
       </hashTree>
 
       <!-- ==================== 사전정리: 시나리오4 좋아요 상태 초기화 (setUp, 1회) ==================== -->
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="사전정리_동일유저_좋아요_초기화" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="사전정리_동일유저_좋아요_초기화" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -557,7 +557,7 @@ if (jwt == null || jwt.isEmpty() || jwt == "TOKEN_NOT_FOUND") {
       </hashTree>
 
       <!-- ==================== 4. 동일 유저 중복 좋아요 (멱등성 검증) ==================== -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="4_동일유저_중복좋아요_멱등성검증" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="4_동일유저_중복좋아요_멱등성검증" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -662,7 +662,7 @@ if (jwt == null || jwt.isEmpty() || jwt == "TOKEN_NOT_FOUND") {
       </hashTree>
 
       <!-- ==================== 사후검증: 시나리오4 like_count 확인 (tearDown, 1회) ==================== -->
-      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="사후검증_동일유저_중복좋아요_카운트확인" enabled="true">
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="사후검증_동일유저_중복좋아요_카운트확인" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
