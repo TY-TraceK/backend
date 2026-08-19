@@ -1,4 +1,4 @@
-package com.tracek.domain.vote.application.service;
+package com.tracek.domain.vote.application.service.impl;
 
 import com.tracek.domain.location.application.dto.LocationContentArtistResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
@@ -6,6 +6,7 @@ import com.tracek.domain.vote.application.dto.command.VoteCancelCommand;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
 import com.tracek.domain.vote.application.dto.result.VoteCancelResult;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
+import com.tracek.domain.vote.application.service.VoteCommandService;
 import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
 import com.tracek.domain.vote.domain.model.Vote;
