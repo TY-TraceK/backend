@@ -206,7 +206,7 @@ class VoteServiceImplTest {
             // given
             VoteCancelCommand cancelCommand =
                     new VoteCancelCommand(
-                            userId, 99999L // 존재하지 않는 ID
+                            99999L, userId // 존재하지 않는 ID
                             );
 
             // when & then
