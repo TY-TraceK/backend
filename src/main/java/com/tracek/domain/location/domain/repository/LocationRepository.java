@@ -45,5 +45,9 @@ public interface LocationRepository {
 
     Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId);
 
+    // 비관적 락
     Optional<Location> findByIdForUpdate(Long id);
+
+    // 낙관적 락
+    Optional<Location> findByIdWithOptimisticLock(Long id);
 }

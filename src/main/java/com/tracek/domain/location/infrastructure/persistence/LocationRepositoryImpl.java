@@ -101,4 +101,9 @@ public class LocationRepositoryImpl implements LocationRepository {
     public Optional<Location> findByIdForUpdate(Long id) {
         return locationJpaRepository.findByIdForUpdate(id);
     }
+
+    @Override
+    public Optional<Location> findByIdWithOptimisticLock(Long id) {
+        return locationJpaRepository.findByIdWithOptimisticLock(id);
+    }
 }

@@ -33,6 +33,8 @@ public class Location extends BaseEntity {
 
     @Embedded private ImageUrl mainImageUrl; // 목록/지도 핀용 대표 이미지 VO
 
+    @Version private Long version;
+
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageLocation> imageLocations = new ArrayList<>();
 

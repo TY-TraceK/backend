@@ -32,4 +32,9 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT l FROM Location l WHERE l.id = :id")
     Optional<Location> findByIdForUpdate(@Param("id") Long id);
+
+    // 낙관적 락 (기본 findById로도 @Version 검사 작동)
+    @Lock(LockModeType.OPTIMISTIC)
+    @Query("SELECT l FROM Location l WHERE l.id = :id")
+    Optional<Location> findByIdWithOptimisticLock(@Param("id") Long id);
 }

@@ -13,7 +13,9 @@ public enum LocationErrorCode implements BaseErrorCode {
     INVALID_ADDRESS(HttpStatus.BAD_REQUEST, "LOC003", "상세 주소 정보는 필수 입력값입니다."),
     INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "LOC004", "올바른 URL 형식(http/https)이 아닙니다."),
     INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "LOC005", "올바르지 않은 관광지 카테고리입니다."),
-    MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "LOC006", "해당 매핑 정보를 찾을 수 없습니다.");
+    MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "LOC006", "해당 매핑 정보를 찾을 수 없습니다."),
+    CONCURRENCY_ERROR(
+            HttpStatus.CONFLICT, "LOCATION_409_1", "동시 요청이 많아 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
     private final String code;
