@@ -12,13 +12,18 @@ import org.springframework.stereotype.Service;
 // 로직은 LocationLikeTransactionalWriter에 있음 - 같은 빈 안에서 this.메서드()로 호출하면
 // @Transactional 프록시를 안 거쳐서 트랜잭션이 안 걸리므로(self-invocation 문제) 반드시
 // 별도 빈으로 분리해서 호출해야 함.
+//
+// 재시도 대기는 "지수 백오프 + Full Jitter" (AWS 아키텍처 블로그의 표준 패턴) 사용:
+// sleep = random(0, min(CAP_MS, BASE_MS * 2^retryCount))
+// 고정 지터(예: 30~80ms 랜덤)는 경합 인원이 많을 때 재시도끼리 계속 비슷한 타이밍에 다시
+// 부딪히기 쉬워서, 재시도할수록 대기 범위 자체를 넓혀 서서히 풀리게 만드는 게 목적.
 @Service
 @RequiredArgsConstructor
 public class LocationLikeCommandService {
 
-    private static final int MAX_RETRY_COUNT = 5;
-    private static final long JITTER_MIN_MS = 30;
-    private static final long JITTER_MAX_MS_EXCLUSIVE = 81;
+    private static final int MAX_RETRY_COUNT = 10;
+    private static final long BASE_DELAY_MS = 20;
+    private static final long CAP_DELAY_MS = 500;
 
     private final LocationLikeTransactionalWriter locationLikeTransactionalWriter;
 
@@ -39,7 +44,7 @@ public class LocationLikeCommandService {
                     throw new CustomException(
                             LocationErrorCode.CONCURRENCY_ERROR); // 재시도 다 실패하면 예외 처리
                 }
-                sleepWithJitter();
+                sleepWithBackoffJitter(retryCount);
             }
         }
     }
@@ -57,15 +62,15 @@ public class LocationLikeCommandService {
                     throw new CustomException(
                             LocationErrorCode.CONCURRENCY_ERROR); // 재시도 다 실패하면 예외 처리
                 }
-                sleepWithJitter();
+                sleepWithBackoffJitter(retryCount);
             }
         }
     }
 
-    private void sleepWithJitter() {
-        // 랜덤 지터 (30ms ~ 80ms 사이의 랜덤 대기) - 동시에 깨어나서 다시 부딪히는 것 방지
-        long randomDelay =
-                ThreadLocalRandom.current().nextLong(JITTER_MIN_MS, JITTER_MAX_MS_EXCLUSIVE);
+    private void sleepWithBackoffJitter(int retryCount) {
+        long exponentialDelay = BASE_DELAY_MS * (1L << Math.min(retryCount, 20));
+        long upperBound = Math.min(CAP_DELAY_MS, exponentialDelay);
+        long randomDelay = ThreadLocalRandom.current().nextLong(0, upperBound + 1);
         try {
             Thread.sleep(randomDelay);
         } catch (InterruptedException ex) {

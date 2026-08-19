@@ -66,8 +66,8 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(LocationErrorCode.CONCURRENCY_ERROR);
 
-        // MAX_RETRY_COUNT(5)번 시도 후 포기
-        verify(locationLikeTransactionalWriter, times(5)).like(1L, 1L);
+        // MAX_RETRY_COUNT(10)번 시도 후 포기
+        verify(locationLikeTransactionalWriter, times(10)).like(1L, 1L);
     }
 
     @Test
@@ -105,7 +105,7 @@ class LocationLikeCommandServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(LocationErrorCode.CONCURRENCY_ERROR);
 
-        verify(locationLikeTransactionalWriter, times(5)).unlike(1L, 1L);
+        verify(locationLikeTransactionalWriter, times(10)).unlike(1L, 1L);
         verify(locationLikeTransactionalWriter, never())
                 .like(ArgumentMatchers.any(), ArgumentMatchers.any());
     }
