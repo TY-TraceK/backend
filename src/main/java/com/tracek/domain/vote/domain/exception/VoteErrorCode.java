@@ -20,7 +20,8 @@ public enum VoteErrorCode implements BaseErrorCode {
     CONCURRENT_VOTE_REQUEST(
             HttpStatus.TOO_MANY_REQUESTS, "VOTE_007", "현재 투표 처리 중입니다. 잠시 후 다시 시도해 주세요."),
 
-    INVALID_VOTE_REQUEST(HttpStatus.BAD_REQUEST, "VOTE_008", "올바르지 않은 투표 요청 데이터입니다.");
+    INVALID_VOTE_REQUEST(HttpStatus.BAD_REQUEST, "VOTE_008", "올바르지 않은 투표 요청 데이터입니다."),
+    INVALID_VOTE_DATE(HttpStatus.BAD_REQUEST, "VOTE_009", "시작일은 종료일보다 늦을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

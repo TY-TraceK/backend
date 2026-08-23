@@ -2,8 +2,10 @@ package com.tracek.domain.vote.presentation.controller.docs;
 
 import com.tracek.domain.vote.presentation.dto.VoteCancelResponse;
 import com.tracek.domain.vote.presentation.dto.request.VoteCreateRequest;
+import com.tracek.domain.vote.presentation.dto.request.VoteHistoriesSearchRequest;
 import com.tracek.domain.vote.presentation.dto.request.VoteStatusSearchRequest;
 import com.tracek.domain.vote.presentation.dto.response.VoteCreateResponse;
+import com.tracek.domain.vote.presentation.dto.response.VoteHistoriesResponse;
 import com.tracek.domain.vote.presentation.dto.response.VoteStatusSearchResponse;
 import com.tracek.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -108,4 +114,21 @@ public interface VoteControllerDocs {
             @PathVariable Long locationId,
             @Valid @Parameter(required = false) @ModelAttribute
                     VoteStatusSearchRequest voteStatusSearchRequest);
+
+    @Operation(summary = "나의 투표 내역 전체 조회", description = "내가 투표한 내역에 대해 조회할 수 있습니다.")
+    @ApiResponses(
+            value = {
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "200",
+                        description = "투표 조회 성공",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+            })
+    @SecurityRequirement(name = "jwtAuth")
+    ApiResponse<VoteHistoriesResponse> getMyVoteHistories(
+            @Parameter(hidden = true) @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal,
+            @Valid @Parameter(required = false) @ParameterObject
+                    VoteHistoriesSearchRequest voteHistoriesSearchRequest,
+            @ParameterObject @PageableDefault(size = 10, direction = Sort.Direction.DESC)
+                    Pageable pageable);
 }

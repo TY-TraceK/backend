@@ -6,13 +6,16 @@ import com.tracek.domain.vote.application.service.VoteQueryService;
 import com.tracek.domain.vote.presentation.controller.docs.VoteControllerDocs;
 import com.tracek.domain.vote.presentation.dto.VoteCancelResponse;
 import com.tracek.domain.vote.presentation.dto.request.VoteCreateRequest;
+import com.tracek.domain.vote.presentation.dto.request.VoteHistoriesSearchRequest;
 import com.tracek.domain.vote.presentation.dto.request.VoteStatusSearchRequest;
 import com.tracek.domain.vote.presentation.dto.response.VoteCreateResponse;
+import com.tracek.domain.vote.presentation.dto.response.VoteHistoriesResponse;
 import com.tracek.domain.vote.presentation.dto.response.VoteStatusSearchResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,5 +60,18 @@ public class VoteController implements VoteControllerDocs {
                 VoteStatusSearchResponse.from(
                         voteQueryService.getMyVoteStatus(
                                 request.toCondition(locationId, principal.userId()))));
+    }
+
+    @Override
+    @GetMapping("/histories/me")
+    public ApiResponse<VoteHistoriesResponse> getMyVoteHistories(
+            AuthenticationPrincipal principal,
+            VoteHistoriesSearchRequest request,
+            Pageable pageable) {
+        return ApiResponse.success(
+                GeneralSuccessCode.OK,
+                VoteHistoriesResponse.from(
+                        voteQueryService.getMyHistories(
+                                request.toCondition(principal.userId()), pageable)));
     }
 }

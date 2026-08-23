@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,7 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
+import com.tracek.domain.vote.application.dto.condition.VoteHistoriesSearchCondition;
+import com.tracek.domain.vote.application.dto.condition.VoteStatusSearchCondition;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
+import com.tracek.domain.vote.application.dto.result.VoteHistoriesResult;
+import com.tracek.domain.vote.application.dto.result.VoteStatusSearchResult;
 import com.tracek.domain.vote.application.service.VoteCommandService;
 import com.tracek.domain.vote.application.service.VoteQueryService;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
@@ -20,6 +25,7 @@ import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.GeneralErrorCode;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import com.tracek.global.security.jwt.JwtTokenProvider;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -146,8 +153,7 @@ class VoteControllerTest {
         }
 
         @Test
-        @DisplayName(
-                "실패 (동시성/DB 무결성 충돌): DataIntegrityViolationException 발생 시 409 CONFLICT를 반환V한다.")
+        @DisplayName("실패 (동시성/DB 무결성 충돌): DataIntegrityViolationException 발생 시 409 CONFLICT를 반환한다.")
         void createVote_fail_dataIntegrityViolation() throws Exception {
             // given
             VoteCreateRequest request =
@@ -166,6 +172,76 @@ class VoteControllerTest {
                     .andDo(print())
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.code").value(GeneralErrorCode.CONFLICT.getCode()));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/locations/{locationId}/me - 나의 투표 상태 조회 API")
+    class GetMyVoteStatusControllerTest {
+
+        @Test
+        @DisplayName("성공: 특정 장소의 나의 투표 상태를 정상 조회한다.")
+        void getMyVoteStatus_success() throws Exception {
+            // given
+            Long locationId = 100L;
+            VoteStatusSearchResult mockResult =
+                    new VoteStatusSearchResult(true, 42L, LocalDate.of(2026, 8, 19));
+
+            given(voteQueryService.getMyVoteStatus(any(VoteStatusSearchCondition.class)))
+                    .willReturn(mockResult);
+
+            // when & then
+            mockMvc.perform(
+                            get("/api/votes/locations/{locationId}/me", locationId)
+                                    .with(authentication(mockAuthentication))
+                                    .param("targetDate", "2026-08-19"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.isVoted").value(true))
+                    .andExpect(jsonPath("$.data.voteId").value(42L));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/votes/histories - 나의 투표 이력 조회 API")
+    class GetMyVoteHistoriesControllerTest {
+
+        @Test
+        @DisplayName("성공: 조건과 페이징 정보로 투표 이력을 조회한다.")
+        void getMyVoteHistories_success() throws Exception {
+            // given
+            VoteHistoriesResult mockResult = new VoteHistoriesResult(Page.empty());
+
+            given(voteQueryService.getMyHistories(any(VoteHistoriesSearchCondition.class), any()))
+                    .willReturn(mockResult);
+
+            // when & then
+            mockMvc.perform(
+                            get("/api/votes/histories/me")
+                                    .with(authentication(mockAuthentication))
+                                    .param("startDate", "2026-08-01")
+                                    .param("endDate", "2026-09-01")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").exists());
+        }
+
+        @Test
+        @DisplayName("실패 (@AssertTrue): 시작 날짜가 종료 날짜보다 늦으면 400 Bad Request를 반환한다.")
+        void getMyVoteHistories_fail_invalidDateRange() throws Exception {
+            // given: startDate가 endDate보다 늦은 경우 (검증 실패 유발)
+            // when & then
+            mockMvc.perform(
+                            get("/api/votes/histories/me")
+                                    .with(authentication(mockAuthentication))
+                                    .param("startDate", "2026-09-01")
+                                    .param("endDate", "2026-08-01")
+                                    .param("page", "0")
+                                    .param("size", "20"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
         }
     }
 }
