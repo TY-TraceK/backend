@@ -1,9 +1,12 @@
 package com.tracek.domain.vote.domain.repository;
 
 import com.tracek.domain.vote.domain.model.Vote;
+import com.tracek.domain.vote.domain.model.VoteHistoryCriteria;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface VoteRepository {
 
@@ -18,4 +21,6 @@ public interface VoteRepository {
     Optional<Vote> findById(Long voteId);
 
     Optional<Vote> findUserLocationVoteByDate(Long userId, Long locationID, LocalDate date);
+
+    Page<Vote> findHistoriesByCriteria(VoteHistoryCriteria voteHistoryCriteria, Pageable pageable);
 }
