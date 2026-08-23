@@ -227,5 +227,45 @@ class VoteQueryServiceImplTest {
                                                             .equals(searchCondition.endDate())),
                             eq(pageable));
         }
+
+        @Test
+        @DisplayName("성공: 오름차순(ASC) 등 다른 정렬 조건이 요청되어도 QueryDSL 내부 정의에 따라 최신순으로 고정 처리된다.")
+        void getMyHistories_success_ignoreExternalSort() {
+            // given: 클라이언트가 임의로 오름차순(ASC) 정렬을 요청한 Pageable 생성
+            Pageable requestedPageable =
+                    PageRequest.of(
+                            0, 20, org.springframework.data.domain.Sort.by("votedAt").ascending());
+
+            Vote vote =
+                    Vote.createVote(
+                            userId,
+                            VoteTarget.of(
+                                    locationId,
+                                    locationContentArtistId,
+                                    artistId,
+                                    contentId,
+                                    snapshotName));
+
+            ReflectionTestUtils.setField(vote, "id", 42L);
+
+            Page<Vote> votes = new PageImpl<>(List.of(vote), requestedPageable, 1);
+
+            given(
+                            voteRepository.findHistoriesByCriteria(
+                                    any(VoteHistoryCriteria.class), any(Pageable.class)))
+                    .willReturn(votes);
+
+            // when
+            VoteHistoriesResult result =
+                    voteQueryService.getMyHistories(searchCondition, requestedPageable);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.histories()).isNotEmpty();
+
+            // 레포지토리 호출 시 페이징 객체가 정상적으로 전달되었는지 검증
+            verify(voteRepository)
+                    .findHistoriesByCriteria(any(VoteHistoryCriteria.class), eq(requestedPageable));
+        }
     }
 }
