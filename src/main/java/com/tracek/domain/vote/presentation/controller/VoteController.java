@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/vote")
+@RequestMapping("/api/votes")
 @RequiredArgsConstructor
 public class VoteController implements VoteControllerDocs {
 

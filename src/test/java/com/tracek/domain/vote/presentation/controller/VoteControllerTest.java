@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
 import com.tracek.domain.vote.application.service.VoteCommandService;
+import com.tracek.domain.vote.application.service.VoteQueryService;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
 import com.tracek.domain.vote.presentation.dto.request.VoteCreateRequest;
 import com.tracek.global.exception.CustomException;
@@ -42,6 +43,8 @@ class VoteControllerTest {
 
     @MockitoBean private VoteCommandService voteService;
 
+    @MockitoBean private VoteQueryService voteQueryService;
+
     @MockitoBean private JwtTokenProvider jwtTokenProvider;
 
     private Authentication mockAuthentication;
@@ -57,7 +60,7 @@ class VoteControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/vote - 투표 생성 API")
+    @DisplayName("POST /api/votes - 투표 생성 API")
     class CreateVoteTest {
 
         @Test
@@ -74,7 +77,7 @@ class VoteControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/vote")
+                            post("/api/votes")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -94,7 +97,7 @@ class VoteControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/vote")
+                            post("/api/votes")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +115,7 @@ class VoteControllerTest {
 
             // when & then: authentication 없이 요청
             mockMvc.perform(
-                            post("/api/vote")
+                            post("/api/votes")
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
@@ -132,7 +135,7 @@ class VoteControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/vote")
+                            post("/api/votes")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -143,7 +146,8 @@ class VoteControllerTest {
         }
 
         @Test
-        @DisplayName("실패 (동시성/DB 무결성 충돌): DataIntegrityViolationException 발생 시 409 CONFLICT를 반환한다.")
+        @DisplayName(
+                "실패 (동시성/DB 무결성 충돌): DataIntegrityViolationException 발생 시 409 CONFLICT를 반환V한다.")
         void createVote_fail_dataIntegrityViolation() throws Exception {
             // given
             VoteCreateRequest request =
@@ -154,7 +158,7 @@ class VoteControllerTest {
 
             // when & then
             mockMvc.perform(
-                            post("/api/vote")
+                            post("/api/votes")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
