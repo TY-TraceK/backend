@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.global.exception.CustomException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,10 +73,14 @@ class LocationLikeCommandServiceTest {
 
     @Test
     @DisplayName(
-            "같은 유저의 동시 요청이 UNIQUE 제약에 걸려도(DataIntegrityViolationException) "
+            "같은 유저의 동시 요청이 좋아요 UNIQUE 제약(uk_location_like_user_location)에 걸려도 "
                     + "이미 저장된 것으로 보고 재시도 없이 성공 처리한다")
     void like_duplicateInsert_treatedAsSuccess() {
-        willThrow(new DataIntegrityViolationException("duplicate"))
+        willThrow(
+                        new DataIntegrityViolationException(
+                                "duplicate",
+                                new ConstraintViolationException(
+                                        "dup", null, "uk_location_like_user_location")))
                 .given(locationLikeTransactionalWriter)
                 .like(1L, 1L);
 
@@ -83,6 +88,39 @@ class LocationLikeCommandServiceTest {
 
         // 재시도 없이 딱 1번만 호출되고 끝나야 함
         verify(locationLikeTransactionalWriter, times(1)).like(1L, 1L);
+    }
+
+    @Test
+    @DisplayName("좋아요 UNIQUE 제약이 아닌 다른 무결성 위반은 그대로 전파한다")
+    void like_unrelatedIntegrityViolation_propagates() {
+        DataIntegrityViolationException unrelated =
+                new DataIntegrityViolationException(
+                        "fk violation",
+                        new ConstraintViolationException("fk", null, "fk_location_like_user"));
+        willThrow(unrelated).given(locationLikeTransactionalWriter).like(1L, 1L);
+
+        assertThatThrownBy(() -> locationLikeCommandService.like(1L, 1L)).isSameAs(unrelated);
+
+        verify(locationLikeTransactionalWriter, times(1)).like(1L, 1L);
+    }
+
+    @Test
+    @DisplayName("재시도 대기 중 인터럽트되면 재시도를 멈추고 예외를 전파한다")
+    void like_interruptedDuringRetry_stopsRetryingAndPropagates() {
+        willThrow(new ObjectOptimisticLockingFailureException(Object.class, 1L))
+                .given(locationLikeTransactionalWriter)
+                .like(1L, 1L);
+
+        Thread.currentThread().interrupt();
+        try {
+            assertThatThrownBy(() -> locationLikeCommandService.like(1L, 1L))
+                    .isInstanceOf(IllegalStateException.class);
+
+            // 인터럽트로 즉시 중단되어 최초 1회만 시도해야 함
+            verify(locationLikeTransactionalWriter, times(1)).like(1L, 1L);
+        } finally {
+            Thread.interrupted(); // 이후 테스트에 인터럽트 상태가 새지 않도록 초기화
+        }
     }
 
     @Test

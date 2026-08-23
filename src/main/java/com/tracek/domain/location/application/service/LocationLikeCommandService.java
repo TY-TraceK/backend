@@ -4,6 +4,7 @@ import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.global.exception.CustomException;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class LocationLikeCommandService {
     private static final int MAX_RETRY_COUNT = 10;
     private static final long BASE_DELAY_MS = 20;
     private static final long CAP_DELAY_MS = 500;
+    private static final String DUPLICATE_LIKE_CONSTRAINT_NAME = "uk_location_like_user_location";
 
     private final LocationLikeTransactionalWriter locationLikeTransactionalWriter;
 
@@ -34,6 +36,9 @@ public class LocationLikeCommandService {
                 locationLikeTransactionalWriter.like(userId, locationId);
                 return;
             } catch (DataIntegrityViolationException e) {
+                if (!isDuplicateLikeConstraintViolation(e)) {
+                    throw e; // 중복 좋아요가 아닌 다른 무결성 위반은 그대로 전파
+                }
                 // 동시에 같은 유저가 중복 요청해서 UNIQUE 제약에 걸린 경우 - 결과적으로
                 // 좋아요는 이미 저장된 상태이므로 성공으로 간주하고 재시도하지 않음
                 return;
@@ -67,6 +72,11 @@ public class LocationLikeCommandService {
         }
     }
 
+    private boolean isDuplicateLikeConstraintViolation(DataIntegrityViolationException e) {
+        return e.getCause() instanceof ConstraintViolationException cve
+                && DUPLICATE_LIKE_CONSTRAINT_NAME.equals(cve.getConstraintName());
+    }
+
     private void sleepWithBackoffJitter(int retryCount) {
         long exponentialDelay = BASE_DELAY_MS * (1L << Math.min(retryCount, 20));
         long upperBound = Math.min(CAP_DELAY_MS, exponentialDelay);
@@ -75,6 +85,8 @@ public class LocationLikeCommandService {
             Thread.sleep(randomDelay);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+            // 인터럽트(취소)를 재시도로 덮지 않고 호출자에게 그대로 전파
+            throw new IllegalStateException("재시도 대기 중 인터럽트됨", ex);
         }
     }
 }
