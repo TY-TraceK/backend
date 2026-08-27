@@ -23,7 +23,7 @@ public class ArtistRanking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long artistId;
 
     @Column(nullable = false)
@@ -47,6 +47,8 @@ public class ArtistRanking {
     }
 
     public void decreaseVoteCount() {
-        this.totalVoteCount--;
+        if (this.totalVoteCount > 0) {
+            this.totalVoteCount--;
+        }
     }
 }

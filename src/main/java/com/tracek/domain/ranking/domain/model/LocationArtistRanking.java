@@ -58,6 +58,8 @@ public class LocationArtistRanking {
     }
 
     public void decreaseVoteCount() {
-        this.totalVoteCount--;
+        if (this.totalVoteCount > 0) {
+            this.totalVoteCount--;
+        }
     }
 }
