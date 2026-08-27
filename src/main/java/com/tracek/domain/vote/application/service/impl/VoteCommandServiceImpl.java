@@ -6,6 +6,8 @@ import com.tracek.domain.vote.application.dto.command.VoteCancelCommand;
 import com.tracek.domain.vote.application.dto.command.VoteCreateCommand;
 import com.tracek.domain.vote.application.dto.result.VoteCancelResult;
 import com.tracek.domain.vote.application.dto.result.VoteCreateResult;
+import com.tracek.domain.vote.application.event.VoteCanceledEvent;
+import com.tracek.domain.vote.application.event.VoteCreatedEvent;
 import com.tracek.domain.vote.application.service.VoteCommandService;
 import com.tracek.domain.vote.domain.enums.VoteStatus;
 import com.tracek.domain.vote.domain.exception.VoteErrorCode;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,6 +30,7 @@ public class VoteCommandServiceImpl implements VoteCommandService {
 
     private final VoteRepository voteRepository;
     private final LocationQueryService locationQueryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     @Override
@@ -48,8 +52,11 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                                 locationContentArtistResult.getArtistId(),
                                 locationContentArtistResult.getContentId(),
                                 command.voteTargetNameSnapShot()));
-        Vote saveVote = voteRepository.save(vote);
-        return VoteCreateResult.from(saveVote);
+        Vote savedVote = voteRepository.save(vote);
+
+        // 이벤트 발행
+        applicationEventPublisher.publishEvent(VoteCreatedEvent.from(savedVote));
+        return VoteCreateResult.from(savedVote);
     }
 
     @Override
@@ -70,6 +77,8 @@ public class VoteCommandServiceImpl implements VoteCommandService {
                 throw new CustomException(VoteErrorCode.VOTE_CANNOT_BE_CANCELLED);
             }
             vote.invalid();
+            // 이벤트 발행
+            applicationEventPublisher.publishEvent(VoteCanceledEvent.from(vote));
         }
         return VoteCancelResult.from(vote);
     }
