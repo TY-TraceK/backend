@@ -11,6 +11,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(
+        name = "location",
+        indexes = {
+            @Index(
+                    name = "idx_location_category",
+                    columnList = "category, id DESC") // category 조건 필터링 + id 내림차순 정렬/커서 최적화
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
