@@ -9,8 +9,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(
+        name = "content",
+        indexes = {
+            @Index(
+                    name = "idx_content_category",
+                    columnList = "category, id DESC") // category 조건 필터링 + id 내림차순 정렬/커서 최적화
+        })
 @Getter
-@Table(name = "content")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Content extends BaseEntity {
