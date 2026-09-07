@@ -28,7 +28,6 @@ public class ArtistDetailResponse {
         private String name;
         private String alias;
         private String pictureUrl;
-        private String description;
         private Long groupId;
 
         public static ArtistInfoResponse from(ArtistDetailResult.ArtistInfo artistInfo) {
@@ -37,7 +36,6 @@ public class ArtistDetailResponse {
                     artistInfo.getName(),
                     artistInfo.getAlias(),
                     artistInfo.getPictureUrl(),
-                    artistInfo.getDescription(),
                     artistInfo.getGroupId());
         }
     }

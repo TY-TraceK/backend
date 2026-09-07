@@ -31,9 +31,18 @@ public class Content extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ContentCategory category;
 
+    @Column(length = 500)
+    private String description;
+
     @Embedded private ImageUrl pictureUrl;
 
-    public static Content create(String title, String category, ImageUrl pictureUrl) {
-        return new Content(null, title, ContentCategory.from(category), pictureUrl);
+    private Long fanCount = 0L;
+
+    private Long totalVerificationCount = 0L;
+
+    public static Content create(
+            String title, String category, String description, ImageUrl pictureUrl) {
+        return new Content(
+                null, title, ContentCategory.from(category), description, pictureUrl, 0L, 0L);
     }
 }

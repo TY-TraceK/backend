@@ -32,8 +32,6 @@ public class Location extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private LocationCategory category;
 
-    private Long likeCount = 0L;
-
     @Embedded private Address address;
 
     @Embedded private GeoLocation geoLocation;
@@ -42,6 +40,26 @@ public class Location extends BaseEntity {
 
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageLocation> imageLocations = new ArrayList<>();
+
+    @Column(length = 20)
+    private String tel;
+
+    @Column(length = 100)
+    private String businessHours;
+
+    @Column(length = 500)
+    private String overview;
+
+    private Long externalContentId; // 데이터 배치 시 중복 삽입 방지
+
+    @Column(length = 20)
+    private String sourceType; // 데이터 배치 출처 ("TOUR_API", "CURATED")
+
+    private Long likeCount = 0L;
+
+    private Long archiveCount = 0L;
+
+    private Long totalVerificationCount = 0L;
 
     public void increaseLikeCount() {
         this.likeCount = (this.likeCount == null ? 0L : this.likeCount) + 1;

@@ -26,7 +26,6 @@ public class ArtistDetailResult {
         private String name;
         private String alias;
         private String pictureUrl;
-        private String description;
         private Long groupId;
 
         public static ArtistInfo of(Artist artist) {
@@ -35,7 +34,6 @@ public class ArtistDetailResult {
                     artist.getName(),
                     artist.getAlias(),
                     artist.getPictureUrl() == null ? null : artist.getPictureUrl().getImageUrl(),
-                    artist.getDescription(),
                     artist.getGroup() == null ? null : artist.getGroup().getId());
         }
     }
