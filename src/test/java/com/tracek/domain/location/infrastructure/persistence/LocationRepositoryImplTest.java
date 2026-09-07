@@ -79,7 +79,11 @@ class LocationRepositoryImplTest {
     void relatedMappings_delegate() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
-                Content.create("궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/c.jpg"));
+                Content.create(
+                        "궁궐 브이로그",
+                        "ENTERTAINMENT",
+                        "궁궐 브이로그 콘텐츠 소개",
+                        ImageUrl.from("http://image.com/c.jpg"));
         Artist artist =
                 Artist.create("아이유", "IU", ImageUrl.from("http://image.com/a.jpg"), null, null);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);

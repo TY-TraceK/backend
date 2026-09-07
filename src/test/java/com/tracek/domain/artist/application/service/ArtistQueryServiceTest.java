@@ -41,8 +41,7 @@ class ArtistQueryServiceTest {
     @DisplayName("존재하는 아티스트 ID로 조회하면 Artist 엔티티를 반환한다")
     void getArtistEntity_success() {
         Artist artist =
-                Artist.create(
-                        "아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), "가수 겸 배우", null);
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 1L);
         given(artistRepository.findById(1L)).willReturn(Optional.of(artist));
 
@@ -63,7 +62,7 @@ class ArtistQueryServiceTest {
         ReflectionTestUtils.setField(group, "id", 10L);
 
         Artist member =
-                Artist.create("멤버", null, ImageUrl.from("http://image.com/m.jpg"), null, group);
+                Artist.create("멤버", null, ImageUrl.from("http://image.com/m.jpg"), group, false);
         ReflectionTestUtils.setField(member, "id", 2L);
         given(artistRepository.findById(2L)).willReturn(Optional.of(member));
 
@@ -87,8 +86,7 @@ class ArtistQueryServiceTest {
     @DisplayName("ID 목록으로 조회하면 배치로 ArtistResult 목록을 반환한다")
     void getArtistsByIds_success() {
         Artist artist =
-                Artist.create(
-                        "아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), "가수 겸 배우", null);
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 1L);
         given(artistRepository.findAllByIds(List.of(1L))).willReturn(List.of(artist));
 
