@@ -8,20 +8,20 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class ArtistLocationVisitRankingRepositoryImpl implements
-    ArtistLocationVisitRankingRepository {
+public class ArtistLocationVisitRankingRepositoryImpl
+        implements ArtistLocationVisitRankingRepository {
 
-  private final ArtistLocationVisitRankingJpaRepository artistLocationVisitRankingJpaRepository;
+    private final ArtistLocationVisitRankingJpaRepository artistLocationVisitRankingJpaRepository;
 
-  @Override
-  public Optional<ArtistLocationVisitRanking> findByLocationIdAndArtistId(Long locationId,
-      Long artistId) {
-    return artistLocationVisitRankingJpaRepository.findByLocationIdAndArtistId(locationId,
-        artistId);
-  }
+    @Override
+    public Optional<ArtistLocationVisitRanking> findByLocationIdAndArtistId(
+            Long locationId, Long artistId) {
+        return artistLocationVisitRankingJpaRepository.findByLocationIdAndArtistId(
+                locationId, artistId);
+    }
 
-  @Override
-  public ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking) {
-    return artistLocationVisitRankingJpaRepository.save(artistLocationVisitRanking);
-  }
+    @Override
+    public ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking) {
+        return artistLocationVisitRankingJpaRepository.save(artistLocationVisitRanking);
+    }
 }

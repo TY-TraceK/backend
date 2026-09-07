@@ -10,15 +10,15 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class LocationVisitRankingRepositoryImpl implements LocationVisitRankingRepository {
 
-  private final LocationVisitRankingJpaRepository locationVisitRankingJpaRepository;
+    private final LocationVisitRankingJpaRepository locationVisitRankingJpaRepository;
 
-  @Override
-  public Optional<LocationVisitRanking> findByLocationId(Long locationId) {
-    return locationVisitRankingJpaRepository.findByLocationId(locationId);
-  }
+    @Override
+    public Optional<LocationVisitRanking> findByLocationId(Long locationId) {
+        return locationVisitRankingJpaRepository.findByLocationId(locationId);
+    }
 
-  @Override
-  public LocationVisitRanking save(LocationVisitRanking locationVisitRanking) {
-    return locationVisitRankingJpaRepository.save(locationVisitRanking);
-  }
+    @Override
+    public LocationVisitRanking save(LocationVisitRanking locationVisitRanking) {
+        return locationVisitRankingJpaRepository.save(locationVisitRanking);
+    }
 }

@@ -15,46 +15,46 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Table(
-    name = "artist_location_ranking",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_location_artist_ranking_location_artist",
-            columnNames = {"location_id", "artist_id"})
-    })
+        name = "artist_location_ranking",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_location_artist_ranking_location_artist",
+                    columnNames = {"location_id", "artist_id"})
+        })
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArtistLocationVisitRanking {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(name = "location_id", nullable = false)
-  private Long locationId;
+    @Column(name = "location_id", nullable = false)
+    private Long locationId;
 
-  @Column(name = "artist_id", nullable = false)
-  private Long artistId;
+    @Column(name = "artist_id", nullable = false)
+    private Long artistId;
 
-  @Column(name = "total_visit_verification_count", nullable = false)
-  private long totalVerificationCount;
+    @Column(name = "total_visit_verification_count", nullable = false)
+    private long totalVerificationCount;
 
-  private ArtistLocationVisitRanking(Long locationId, Long artistId) {
-    this.locationId = locationId;
-    this.artistId = artistId;
-    this.totalVerificationCount = 0L;
-  }
-
-  public static ArtistLocationVisitRanking create(Long locationId, Long artistId) {
-    return new ArtistLocationVisitRanking(locationId, artistId);
-  }
-
-  public void increaseVerificationCount() {
-    this.totalVerificationCount++;
-  }
-
-  public void decreaseVerificationCount() {
-    if (this.totalVerificationCount > 0) {
-      this.totalVerificationCount--;
+    private ArtistLocationVisitRanking(Long locationId, Long artistId) {
+        this.locationId = locationId;
+        this.artistId = artistId;
+        this.totalVerificationCount = 0L;
     }
-  }
+
+    public static ArtistLocationVisitRanking create(Long locationId, Long artistId) {
+        return new ArtistLocationVisitRanking(locationId, artistId);
+    }
+
+    public void increaseVerificationCount() {
+        this.totalVerificationCount++;
+    }
+
+    public void decreaseVerificationCount() {
+        if (this.totalVerificationCount > 0) {
+            this.totalVerificationCount--;
+        }
+    }
 }

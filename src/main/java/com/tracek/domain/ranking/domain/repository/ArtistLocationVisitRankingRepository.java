@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ArtistLocationVisitRankingRepository {
 
-  Optional<ArtistLocationVisitRanking> findByLocationIdAndArtistId(Long locationId, Long artistId);
+    Optional<ArtistLocationVisitRanking> findByLocationIdAndArtistId(
+            Long locationId, Long artistId);
 
-  ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking);
+    ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking);
 }

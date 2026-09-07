@@ -11,15 +11,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class VisitVerificationEventListener {
 
-  private final VisitRankingProjectionService commandService;
+    private final VisitRankingProjectionService commandService;
 
-  @EventListener()
-  public void handle(VisitVerificationCreatedEvent event) {
-    commandService.increase(event.locationId(), event.contentId(), event.artistId());
-  }
+    @EventListener()
+    public void handle(VisitVerificationCreatedEvent event) {
+        commandService.increase(event.locationId(), event.contentId(), event.artistId());
+    }
 
-  @EventListener()
-  public void handle(VisitVerificationCanceledEvent event) {
-    commandService.decrease(event.locationId(), event.contentId(), event.artistId());
-  }
+    @EventListener()
+    public void handle(VisitVerificationCanceledEvent event) {
+        commandService.decrease(event.locationId(), event.contentId(), event.artistId());
+    }
 }
