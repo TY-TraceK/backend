@@ -16,4 +16,12 @@ public class EpisodeQueryService {
     public List<ContentArtistPair> getContentArtistPairs(Long locationId) {
         return episodeQueryRepository.getContentGroupsByLocationId(locationId);
     }
+
+    public Boolean isRelatedContent(Long locationId, Long contentId) {
+        return episodeQueryRepository.isRelatedContent(locationId, contentId);
+    }
+
+    public Boolean isRelatedContentAndArtist(Long locationId, Long contentId, Long artistId) {
+        return episodeQueryRepository.isRelatedContentAndArtist(locationId, contentId, artistId);
+    }
 }
