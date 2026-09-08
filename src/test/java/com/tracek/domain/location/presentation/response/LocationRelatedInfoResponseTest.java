@@ -12,25 +12,25 @@ class LocationRelatedInfoResponseTest {
     @Test
     @DisplayName("LocationRelatedInfoResult를 LocationRelatedInfoResponse로 변환한다")
     void from_success() {
-        LocationRelatedInfoResult.RelatedItemResult item =
-                LocationRelatedInfoResult.RelatedItemResult.of(
-                        10L,
-                        2L,
-                        "궁궐 브이로그",
-                        "VARIETY",
-                        "http://image.com/c.jpg",
-                        3L,
-                        "아이유",
-                        "http://image.com/ar.jpg");
-        LocationRelatedInfoResult result = LocationRelatedInfoResult.of(1L, "경복궁", List.of(item));
+        LocationRelatedInfoResult.RelatedArtistResult artist =
+                LocationRelatedInfoResult.RelatedArtistResult.of(
+                        3L, "아이유", "http://image.com/ar.jpg", false);
+        LocationRelatedInfoResult.RelatedContentGroup group =
+                LocationRelatedInfoResult.RelatedContentGroup.of(
+                        2L, "궁궐 브이로그", "VARIETY", "http://image.com/c.jpg", List.of(artist));
+        LocationRelatedInfoResult result =
+                LocationRelatedInfoResult.of(1L, "경복궁", "서울특별시", List.of(group));
 
         LocationRelatedInfoResponse response = LocationRelatedInfoResponse.from(result);
 
         assertThat(response.getLocationId()).isEqualTo(1L);
         assertThat(response.getLocationName()).isEqualTo("경복궁");
-        assertThat(response.getRelatedItems()).hasSize(1);
-        assertThat(response.getRelatedItems().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
-        assertThat(response.getRelatedItems().get(0).getArtistName()).isEqualTo("아이유");
-        assertThat(response.getRelatedItems().get(0).getContentArtistLocationId()).isEqualTo(10L);
+        assertThat(response.getCity()).isEqualTo("서울특별시");
+        assertThat(response.getRelatedContentGroups()).hasSize(1);
+        assertThat(response.getRelatedContentGroups().get(0).getContentTitle())
+                .isEqualTo("궁궐 브이로그");
+        assertThat(response.getRelatedContentGroups().get(0).getArtists()).hasSize(1);
+        assertThat(response.getRelatedContentGroups().get(0).getArtists().get(0).getArtistName())
+                .isEqualTo("아이유");
     }
 }

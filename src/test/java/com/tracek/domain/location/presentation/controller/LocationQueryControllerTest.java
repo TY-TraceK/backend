@@ -79,7 +79,7 @@ class LocationQueryControllerTest {
     @DisplayName("관광지 연관 콘텐츠-아티스트 조회 결과를 응답으로 감싸서 반환한다")
     void getRelatedContentAndArtists_success() {
         LocationRelatedInfoResult result =
-                LocationRelatedInfoResult.of(1L, "경복궁", Collections.emptyList());
+                LocationRelatedInfoResult.of(1L, "경복궁", "서울특별시", Collections.emptyList());
         given(locationFacade.getRelatedContentAndArtists(1L)).willReturn(result);
 
         ApiResponse<LocationRelatedInfoResponse> response =

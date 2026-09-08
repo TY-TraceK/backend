@@ -3,11 +3,14 @@ package com.tracek.domain.location.application.facade;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.artist.domain.model.Artist;
+import com.tracek.domain.content.application.dto.ContentArtistPair;
 import com.tracek.domain.content.application.dto.ContentResult;
 import com.tracek.domain.content.application.service.ContentQueryService;
+import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.image.application.service.ImageQueryService;
@@ -36,6 +39,8 @@ class LocationFacadeTest {
     @Mock private ContentQueryService contentQueryService;
     @Mock private ArtistQueryService artistQueryService;
     @Mock private ImageQueryService imageQueryService;
+    @Mock private EpisodeQueryService episodeQueryService;
+    @Mock private JPAQueryFactory queryFactory;
 
     private LocationFacade locationFacade;
 
@@ -46,7 +51,9 @@ class LocationFacadeTest {
                         locationQueryService,
                         contentQueryService,
                         artistQueryService,
-                        imageQueryService);
+                        imageQueryService,
+                        episodeQueryService,
+                        queryFactory);
     }
 
     @Test
@@ -66,7 +73,7 @@ class LocationFacadeTest {
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(
-                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 3L);
         LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
         ReflectionTestUtils.setField(mapping, "id", 99L);
@@ -127,13 +134,12 @@ class LocationFacadeTest {
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(
-                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, null);
+                        "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 3L);
-        LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
-        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
-        given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of(mapping));
+        given(episodeQueryService.getContentArtistPairs(1L))
+                .willReturn(List.of(ContentArtistPair.of(2L, 3L)));
         given(contentQueryService.getContentsByIds(List.of(2L)))
                 .willReturn(List.of(ContentResult.from(content)));
         given(artistQueryService.getArtistsByIds(List.of(3L)))
@@ -142,9 +148,15 @@ class LocationFacadeTest {
         LocationRelatedInfoResult result = locationFacade.getRelatedContentAndArtists(1L);
 
         assertThat(result.getLocationId()).isEqualTo(1L);
-        assertThat(result.getRelatedItems()).hasSize(1);
-        assertThat(result.getRelatedItems().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
-        assertThat(result.getRelatedItems().get(0).getArtistName()).isEqualTo("아이유");
-        assertThat(result.getRelatedItems().get(0).getContentArtistLocationId()).isEqualTo(99L);
+        assertThat(result.getRelatedContentGroups()).hasSize(1);
+        assertThat(result.getRelatedContentGroups().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
+        assertThat(result.getRelatedContentGroups().get(0).getRelatedArtists()).hasSize(1);
+        assertThat(
+                        result.getRelatedContentGroups()
+                                .get(0)
+                                .getRelatedArtists()
+                                .get(0)
+                                .getArtistName())
+                .isEqualTo("아이유");
     }
 }
