@@ -15,8 +15,10 @@ public class ArtistResult {
     private String name;
     private String alias;
     private String pictureUrl;
-    private String description;
     private Long groupId;
+    private Boolean isGroup;
+    private Long fanCount;
+    private Long totalVerificationCount;
     private List<LocationResult> locations;
     private List<ContentResult> contents;
 
@@ -27,8 +29,10 @@ public class ArtistResult {
                 artist.getName(),
                 artist.getAlias(),
                 artist.getPictureUrl().getImageUrl(),
-                artist.getDescription(),
                 artist.getGroup() == null ? null : artist.getGroup().getId(),
+                artist.getGroup() != null,
+                0L,
+                0L,
                 Collections.emptyList(),
                 Collections.emptyList());
     }
@@ -40,8 +44,10 @@ public class ArtistResult {
                 artist.getName(),
                 artist.getAlias(),
                 artist.getPictureUrl().getImageUrl(),
-                artist.getDescription(),
                 artist.getGroup() == null ? null : artist.getGroup().getId(),
+                artist.getGroup() != null,
+                artist.getFanCount(),
+                artist.getTotalVerificationCount(),
                 locations == null ? Collections.emptyList() : locations,
                 contents == null ? Collections.emptyList() : contents);
     }

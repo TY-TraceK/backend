@@ -14,7 +14,10 @@ public class ContentResult {
     private Long contentId;
     private String title;
     private String category;
+    private String description;
     private String pictureUrl;
+    private Long fanCount;
+    private Long totalVerificationCount;
     private List<LocationResult> locations;
     private List<ArtistResult> artists;
 
@@ -24,7 +27,10 @@ public class ContentResult {
                 content.getId(),
                 content.getTitle(),
                 content.getCategory() == null ? null : content.getCategory().name(),
+                content.getDescription(),
                 content.getPictureUrl().getImageUrl(),
+                0L,
+                0L,
                 Collections.emptyList(),
                 Collections.emptyList());
     }
@@ -35,7 +41,10 @@ public class ContentResult {
                 content.getId(),
                 content.getTitle(),
                 content.getCategory() == null ? null : content.getCategory().name(),
+                content.getDescription(),
                 content.getPictureUrl().getImageUrl(),
+                content.getFanCount(),
+                content.getTotalVerificationCount(),
                 locations == null ? Collections.emptyList() : locations,
                 artists == null ? Collections.emptyList() : artists);
     }

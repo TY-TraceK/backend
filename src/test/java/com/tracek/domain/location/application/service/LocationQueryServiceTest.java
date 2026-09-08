@@ -110,7 +110,10 @@ class LocationQueryServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create(
-                        "궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/content.jpg"));
+                        "궁궐 브이로그",
+                        "ENTERTAINMENT",
+                        "궁궐 브이로그 콘텐츠 소개",
+                        ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(
@@ -133,7 +136,10 @@ class LocationQueryServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create(
-                        "궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/content.jpg"));
+                        "궁궐 브이로그",
+                        "ENTERTAINMENT",
+                        "궁궐 브이로그 콘텐츠 소개",
+                        ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(
@@ -156,7 +162,10 @@ class LocationQueryServiceTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         Content content =
                 Content.create(
-                        "궁궐 브이로그", "ENTERTAINMENT", ImageUrl.from("http://image.com/content.jpg"));
+                        "궁궐 브이로그",
+                        "ENTERTAINMENT",
+                        "궁궐 브이로그 콘텐츠 소개",
+                        ImageUrl.from("http://image.com/content.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         Artist artist =
                 Artist.create(

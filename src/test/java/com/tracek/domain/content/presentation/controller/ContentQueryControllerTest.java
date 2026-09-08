@@ -41,7 +41,9 @@ class ContentQueryControllerTest {
     @Test
     @DisplayName("콘텐츠 단건 상세 조회 성공 시 성공 응답으로 감싸서 반환한다")
     void getContentDetails_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult result =
                 ContentDetailResult.from(ContentDetailResult.ContentInfo.of(content), List.of());
@@ -56,7 +58,9 @@ class ContentQueryControllerTest {
     @Test
     @DisplayName("콘텐츠 전체 목록을 페이징 응답으로 감싸서 반환한다")
     void getContents_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         Pageable pageable = PageRequest.of(0, 10);
         Page<ContentSummaryResult> resultPage =
@@ -73,7 +77,9 @@ class ContentQueryControllerTest {
     @Test
     @DisplayName("카테고리별 콘텐츠 목록을 페이징 응답으로 감싸서 반환한다")
     void getContentsByCategory_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         Pageable pageable = PageRequest.of(0, 10);
         Page<ContentSummaryResult> resultPage =

@@ -20,7 +20,9 @@ class ContentDetailResponseTest {
     @Test
     @DisplayName("ContentDetailResult를 ContentDetailResponse로 변환하면 관광지/아티스트가 계층형으로 모두 매핑된다")
     void from_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult.ContentInfo contentInfo = ContentDetailResult.ContentInfo.of(content);
 
@@ -56,7 +58,9 @@ class ContentDetailResponseTest {
     @Test
     @DisplayName("연관 관광지가 없으면 빈 리스트로 변환된다")
     void from_withoutLocations() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult result =
                 ContentDetailResult.from(ContentDetailResult.ContentInfo.of(content), List.of());

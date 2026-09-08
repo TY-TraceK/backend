@@ -1,5 +1,6 @@
 package com.tracek.domain.location.domain.model;
 
+import com.tracek.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
         })
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-public class LocationLike {
+public class LocationLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

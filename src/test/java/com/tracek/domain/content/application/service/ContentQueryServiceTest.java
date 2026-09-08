@@ -41,7 +41,9 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("존재하는 콘텐츠 ID로 조회하면 Content 엔티티를 반환한다")
     void getContentEntity_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         given(contentRepository.findById(1L)).willReturn(Optional.of(content));
 
@@ -67,7 +69,9 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("ID 목록으로 조회하면 배치로 ContentResult 목록을 반환한다")
     void getContentsByIds_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         given(contentRepository.findAllByIds(List.of(1L))).willReturn(List.of(content));
 
@@ -88,7 +92,9 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("카테고리를 지정하면 해당 카테고리의 콘텐츠만 페이징 조회한다")
     void getContentsByCategory_withCategory() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         Pageable pageable = PageRequest.of(0, 10);
         given(contentRepository.findByCategory(ContentCategory.KPOP, pageable))
                 .willReturn(new PageImpl<>(List.of(content), pageable, 1));
@@ -114,7 +120,9 @@ class ContentQueryServiceTest {
     @Test
     @DisplayName("전체 콘텐츠 목록을 페이징 조회한다")
     void getAllContents_success() {
-        Content content = Content.create("데뷔 앨범", "KPOP", ImageUrl.from("http://image.com/a.jpg"));
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         Pageable pageable = PageRequest.of(0, 10);
         given(contentRepository.findAll(pageable))
                 .willReturn(new PageImpl<>(List.of(content), pageable, 1));
