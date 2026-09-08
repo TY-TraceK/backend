@@ -60,6 +60,14 @@ public class LocationQueryService {
                 .collect(Collectors.toList());
     }
 
+    // 사용자 위치(lat, lng)가 관광지(locationId) 내 radiusMeter 내에 있는지
+    public Boolean isWithinDistance(double lat, double lng, double radiusMeter, Long locationId) {
+        GeoLocation userLocation = GeoLocation.of(lat, lng);
+        Location location = getLocationEntity(locationId);
+        double meter = userLocation.calculateDistanceMeterTo(location.getGeoLocation());
+        return meter <= radiusMeter;
+    }
+
     // 관광지 관련 데이터(콘텐츠-아티스트) 매핑 정보(LocationContentArtist 도메인) 조회 요청시
     public List<LocationContentArtist> getMappingsByLocationId(Long locationId) {
         return locationRepository.findRelatedContentAndArtists(locationId);
