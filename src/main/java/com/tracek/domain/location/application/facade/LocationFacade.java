@@ -13,7 +13,6 @@ import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
-import com.tracek.domain.location.domain.model.LocationContentArtist;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,15 +58,13 @@ public class LocationFacade {
                                                 m.getDisplayOrder()))
                         .toList();
 
-        // 관광지 ID 기준 매핑 정보(LocationContentArtist) 전체 조회
-        List<LocationContentArtist> mappings =
-                locationQueryService.getMappingsByLocationId(locationId);
-
         // IN 절 배치 조회를 위한 Content ID / Artist ID 추출
+        List<ContentArtistPair> pairs = episodeQueryService.getContentArtistPairs(locationId);
+
         List<Long> contentIds =
-                mappings.stream().map(m -> m.getContent().getId()).distinct().toList();
+                pairs.stream().map(ContentArtistPair::getContentId).distinct().toList();
         List<Long> artistIds =
-                mappings.stream().map(m -> m.getArtist().getId()).distinct().toList();
+                pairs.stream().map(ContentArtistPair::getArtistId).distinct().toList();
 
         // IN 절 Batch Query로 N+1 문제 최적화 조회
         List<ContentResult> contents = contentQueryService.getContentsByIds(contentIds);
@@ -77,21 +74,20 @@ public class LocationFacade {
         Map<Long, ArtistResult> artistResultMap =
                 artists.stream().collect(Collectors.toMap(ArtistResult::getId, a -> a));
 
-        // Content ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑 (매핑 PK도 함께 전달)
+        // Content ID 기준으로 연관된 ArtistResult들을 리스트로 그룹핑
         Map<Long, List<LocationDetailResult.ArtistResult>> contentArtistGroupMap =
-                mappings.stream()
+                pairs.stream()
                         .collect(
                                 Collectors.groupingBy(
-                                        m -> m.getContent().getId(),
+                                        ContentArtistPair::getContentId,
                                         Collectors.mapping(
-                                                m -> {
+                                                pair -> {
                                                     ArtistResult artist =
-                                                            artistResultMap.get(
-                                                                    m.getArtist().getId());
+                                                            artistResultMap.get(pair.getArtistId());
                                                     return artist == null
                                                             ? null
                                                             : LocationDetailResult.ArtistResult
-                                                                    .from(m.getId(), artist);
+                                                                    .from(artist);
                                                 },
                                                 Collectors.filtering(
                                                         Objects::nonNull, Collectors.toList()))));

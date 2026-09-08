@@ -20,7 +20,6 @@ import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.ImageLocation;
 import com.tracek.domain.location.domain.model.Location;
-import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
 import com.tracek.global.common.vo.ImageUrl;
 import java.util.List;
@@ -75,13 +74,12 @@ class LocationFacadeTest {
                 Artist.create(
                         "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 3L);
-        LocationContentArtist mapping = LocationContentArtist.create(location, content, artist);
-        ReflectionTestUtils.setField(mapping, "id", 99L);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of(5L)))
                 .willReturn(List.of(ImageResult.from(image)));
-        given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of(mapping));
+        given(episodeQueryService.getContentArtistPairs(1L))
+                .willReturn(List.of(ContentArtistPair.of(2L, 3L)));
         given(contentQueryService.getContentsByIds(List.of(2L)))
                 .willReturn(List.of(ContentResult.from(content)));
         given(artistQueryService.getArtistsByIds(List.of(3L)))
@@ -99,8 +97,6 @@ class LocationFacadeTest {
         assertThat(result.getContents().get(0).getArtists()).hasSize(1);
         assertThat(result.getContents().get(0).getArtists().get(0).getArtistName())
                 .isEqualTo("아이유");
-        assertThat(result.getContents().get(0).getArtists().get(0).getContentArtistLocationId())
-                .isEqualTo(99L);
     }
 
     @Test
@@ -110,7 +106,7 @@ class LocationFacadeTest {
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of())).willReturn(List.of());
-        given(locationQueryService.getMappingsByLocationId(1L)).willReturn(List.of());
+        given(episodeQueryService.getContentArtistPairs(1L)).willReturn(List.of());
         given(contentQueryService.getContentsByIds(List.of())).willReturn(List.of());
         given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());
 
