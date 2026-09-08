@@ -34,20 +34,30 @@ public class LocationDetailResponse {
         private Long locationId;
         private String name;
         private String category;
-        private Long likeCount;
         private Address address;
         private GeoLocation geoLocation;
         private String mainImageUrl;
+        private String tel;
+        private String businessHours;
+        private String overview;
+        private Long archiveCount;
+        private Long likeCount;
+        private Long totalVerificationCount;
 
         public static LocationInfoResponse from(LocationDetailResult.LocationInfo locationInfo) {
             return new LocationInfoResponse(
                     locationInfo.getId(),
                     locationInfo.getName(),
                     locationInfo.getCategory(),
-                    locationInfo.getLikeCount(),
                     locationInfo.getAddress(),
                     locationInfo.getGeoLocation(),
-                    locationInfo.getMainImageUrl());
+                    locationInfo.getMainImageUrl(),
+                    locationInfo.getTel(),
+                    locationInfo.getBusinessHours(),
+                    locationInfo.getOverview(),
+                    locationInfo.getArchiveCount(),
+                    locationInfo.getLikeCount(),
+                    locationInfo.getTotalVerificationCount());
         }
     }
 
@@ -95,14 +105,12 @@ public class LocationDetailResponse {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class LocationArtistResponse {
-        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static LocationArtistResponse from(LocationDetailResult.ArtistResult artistResult) {
             return new LocationArtistResponse(
-                    artistResult.getContentArtistLocationId(),
                     artistResult.getArtistId(),
                     artistResult.getArtistName(),
                     artistResult.getArtistPictureUrl());

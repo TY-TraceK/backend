@@ -48,7 +48,7 @@ class LocationDetailResponseTest {
         LocationDetailResult.ContentResult detailContentResult =
                 LocationDetailResult.ContentResult.of(
                         contentResult,
-                        List.of(LocationDetailResult.ArtistResult.from(10L, artistResult)));
+                        List.of(LocationDetailResult.ArtistResult.from(artistResult)));
 
         LocationDetailResult result =
                 LocationDetailResult.from(
@@ -65,8 +65,6 @@ class LocationDetailResponseTest {
         assertThat(response.getContents().get(0).getArtists()).hasSize(1);
         assertThat(response.getContents().get(0).getArtists().get(0).getArtistName())
                 .isEqualTo("아이유");
-        assertThat(response.getContents().get(0).getArtists().get(0).getContentArtistLocationId())
-                .isEqualTo(10L);
     }
 
     @Test

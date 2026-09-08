@@ -33,20 +33,34 @@ public class LocationDetailResult {
         private Long id;
         private String name;
         private String category;
-        private Long likeCount;
         private Address address;
         private GeoLocation geoLocation;
         private String mainImageUrl;
+        private String tel;
+        private String businessHours;
+        private String overview;
+        private Long externalContentId;
+        private String sourceType;
+        private Long archiveCount;
+        private Long likeCount;
+        private Long totalVerificationCount;
 
         public static LocationInfo of(Location location) {
             return new LocationInfo(
                     location.getId(),
                     location.getName(),
                     location.getCategory() == null ? null : location.getCategory().name(),
-                    location.getLikeCount(),
                     location.getAddress(),
                     location.getGeoLocation(),
-                    location.getMainImageUrl().getImageUrl());
+                    location.getMainImageUrl().getImageUrl(),
+                    location.getTel(),
+                    location.getBusinessHours(),
+                    location.getOverview(),
+                    location.getExternalContentId(),
+                    location.getSourceType(),
+                    location.getArchiveCount(),
+                    location.getLikeCount(),
+                    location.getTotalVerificationCount());
         }
     }
 
@@ -92,19 +106,13 @@ public class LocationDetailResult {
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ArtistResult {
-        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static ArtistResult from(
-                Long contentArtistLocationId,
                 com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(
-                    contentArtistLocationId,
-                    artist.getId(),
-                    artist.getName(),
-                    artist.getPictureUrl());
+            return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
         }
     }
 }
