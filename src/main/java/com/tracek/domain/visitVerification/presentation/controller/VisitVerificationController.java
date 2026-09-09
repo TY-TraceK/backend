@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/visitVerifications")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class VisitVerificationController implements VisitVerificationControllerDocs {
 
@@ -31,30 +31,30 @@ public class VisitVerificationController implements VisitVerificationControllerD
     private final VisitVerificationQueryService visitVerificationQueryService;
 
     @Override
-    @PostMapping()
-    public ApiResponse<VisitVerificationCreateResponse> createvisitVerification(
+    @PostMapping("/visit-verifications")
+    public ApiResponse<VisitVerificationCreateResponse> createVisitVerification(
             AuthenticationPrincipal principal, VisitVerificationCreateRequest request) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 VisitVerificationCreateResponse.from(
-                        visitVerificationCommandService.createvisitVerification(
+                        visitVerificationCommandService.createVisitVerification(
                                 request.toCommand(principal.userId()))));
     }
 
     @Override
-    @PatchMapping("/{visitVerificationId}")
-    public ApiResponse<VisitVerificationCancelResponse> cancelvisitVerification(
+    @PatchMapping("/visit-verifications/{visitVerificationId}")
+    public ApiResponse<VisitVerificationCancelResponse> cancelVisitVerification(
             AuthenticationPrincipal principal, Long visitVerificationId) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 VisitVerificationCancelResponse.from(
-                        visitVerificationCommandService.cancelvisitVerification(
+                        visitVerificationCommandService.cancelVisitVerification(
                                 VisitVerificationCancelCommand.of(
                                         visitVerificationId, principal.userId()))));
     }
 
     @Override
-    @GetMapping("/locations/{locationId}/me")
+    @GetMapping("/locations/{locationId}/visit-verifications/today")
     public ApiResponse<VisitVerificationStatusSearchResponse> getMyvisitVerificationStatus(
             AuthenticationPrincipal principal,
             Long locationId,
@@ -67,7 +67,7 @@ public class VisitVerificationController implements VisitVerificationControllerD
     }
 
     @Override
-    @GetMapping("/histories/me")
+    @GetMapping("/users/me/visit-verifications")
     public ApiResponse<VisitVerificationHistoriesResponse> getMyvisitVerificationHistories(
             AuthenticationPrincipal principal,
             VisitVerificationHistoriesSearchRequest request,
