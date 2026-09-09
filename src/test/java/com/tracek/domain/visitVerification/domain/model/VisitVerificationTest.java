@@ -12,26 +12,27 @@ import org.junit.jupiter.api.Test;
 class VisitVerificationTest {
 
     private Long visitVerificationOwner;
+    private Long locationId;
     private VisitVerificationTarget visitVerificationTarget;
 
     @BeforeEach
     void setUp() {
         visitVerificationOwner = 1L;
-        visitVerificationTarget =
-                VisitVerificationTarget.of(100L, 1000L, 10L, 20L, "경복궁 | BTS | Run BTS Ep.100");
+        locationId = 100L;
+        visitVerificationTarget = VisitVerificationTarget.of(1000L, 10L);
     }
 
     @Nested
-    @DisplayName("투표 생성 테스트")
+    @DisplayName("방문 인증 생성 테스트")
     class CreateVisitVerificationTest {
 
         @Test
-        @DisplayName("createvisitVerification 정적 팩토리 메서드로 투표를 성공적으로 생성한다.")
+        @DisplayName("createvisitVerification 정적 팩토리 메서드로 방문 인증를 성공적으로 생성한다.")
         void createvisitVerification_success() {
             // when
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            visitVerificationOwner, visitVerificationTarget);
+                            visitVerificationOwner, locationId, visitVerificationTarget);
 
             // then
             assertThat(visitVerification).isNotNull();
@@ -42,13 +43,13 @@ class VisitVerificationTest {
         }
 
         @Test
-        @DisplayName("생성자로 직접 투표 객체를 올바르게 생성한다.")
+        @DisplayName("생성자로 직접 방문 인증 객체를 올바르게 생성한다.")
         void constructor_success() {
 
             // when
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            visitVerificationOwner, visitVerificationTarget);
+                            visitVerificationOwner, locationId, visitVerificationTarget);
 
             // then
             assertThat(visitVerification.getOwner()).isEqualTo(visitVerificationOwner);
@@ -59,16 +60,16 @@ class VisitVerificationTest {
     }
 
     @Nested
-    @DisplayName("투표 상태 및 무효화 테스트")
+    @DisplayName("방문 인증 상태 및 무효화 테스트")
     class VisitVerificationStatusTest {
 
         @Test
-        @DisplayName("invalid() 호출 시 투표 상태가 CANCELED로 변경된다.")
+        @DisplayName("invalid() 호출 시 방문 인증 상태가 CANCELED로 변경된다.")
         void invalid_success() {
             // given
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            visitVerificationOwner, visitVerificationTarget);
+                            visitVerificationOwner, locationId, visitVerificationTarget);
             assertThat(visitVerification.getStatus()).isEqualTo(VisitVerificationStatus.VALID);
 
             // when
@@ -79,12 +80,12 @@ class VisitVerificationTest {
         }
 
         @Test
-        @DisplayName("투표 상태에 따른 validvisitVerificationdAt 가상 컬럼 동작을 검증한다.")
+        @DisplayName("방문 인증 상태에 따른 validvisitVerificationdAt 가상 컬럼 동작을 검증한다.")
         void validvisitVerificationdAt_behavior_by_status() {
             // given
             VisitVerification validvisitVerification =
                     VisitVerification.createvisitVerification(
-                            visitVerificationOwner, visitVerificationTarget);
+                            visitVerificationOwner, locationId, visitVerificationTarget);
 
             // 1. VALID 상태일 때: DB 트리거 계산 로직상 validvisitVerificationdAt은 visitVerificationdAt과 동일
             assertThat(validvisitVerification.getStatus()).isEqualTo(VisitVerificationStatus.VALID);

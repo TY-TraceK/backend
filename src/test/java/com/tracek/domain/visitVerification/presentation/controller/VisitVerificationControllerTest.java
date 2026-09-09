@@ -58,7 +58,6 @@ class VisitVerificationControllerTest {
 
     @BeforeEach
     void setUp() {
-        // 실제 AuthenticationPrincipal 레코드(userId, userName, role) 생성
         AuthenticationPrincipal principal = new AuthenticationPrincipal(1L, "yujin", "ROLE_USER");
 
         mockAuthentication =
@@ -67,28 +66,28 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/visitVerifications - 투표 생성 API")
+    @DisplayName("POST /api/visitVerifications - 방문 인증 생성 API")
     class CreateVisitVerificationTest {
 
         @Test
-        @DisplayName("성공: 인증된 유저와 유효한 Request가 전달되면 200 OK와 함께 생성된 투표 정보가 반환된다.")
-        void createvisitVerification_success() throws Exception {
-            // given
+        @DisplayName("성공: 인증된 유저와 유효한 Request가 전달되면 200 OK와 함께 생성된 방문 인증 정보가 반환된다.")
+        void createVisitVerification_success() throws Exception {
+            // given: locationId, contentId, artistId, latitude, longitude
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 1000L, "경복궁 | BTS | Run BTS Ep.100");
+                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
 
             VisitVerificationCreateResult mockResult =
                     new VisitVerificationCreateResult(
                             10L, "VALID", LocalDateTime.of(2026, 8, 12, 12, 0, 0));
 
             given(
-                            visitVerificationService.createvisitVerification(
+                            visitVerificationService.createVisitVerification(
                                     any(VisitVerificationCreateCommand.class)))
                     .willReturn(mockResult);
 
             // when & then
             mockMvc.perform(
-                            post("/api/visitVerifications")
+                            post("/api/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -97,19 +96,19 @@ class VisitVerificationControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.visitVerificationId").value(10L))
                     .andExpect(jsonPath("$.data.visitVerificationStatus").value("VALID"))
-                    .andExpect(jsonPath("$.data.visitVerificationdAt").exists());
+                    .andExpect(jsonPath("$.data.visitVerifiedAt").exists());
         }
 
         @Test
         @DisplayName("실패 (@Valid): 필수 필드가 누락되면 400 Bad Request를 반환한다.")
-        void createvisitVerification_fail_validation() throws Exception {
-            // given: locationId 누락, visitVerificationTargetNameSnapShot 공백
+        void createVisitVerification_fail_validation() throws Exception {
+            // given: locationId를 null로 설정하여 검증 실패 유도
             VisitVerificationCreateRequest invalidRequest =
-                    new VisitVerificationCreateRequest(null, 1000L, "   ");
+                    new VisitVerificationCreateRequest(null, 20L, 10L, 35.123456, 128.123456);
 
             // when & then
             mockMvc.perform(
-                            post("/api/visitVerifications")
+                            post("/api/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -120,14 +119,14 @@ class VisitVerificationControllerTest {
 
         @Test
         @DisplayName("실패 (인증 누락): 인증 정보가 없는 비로그인 유저 요청 시 401 Unauthorized를 반환한다.")
-        void createvisitVerification_fail_unauthorized() throws Exception {
+        void createVisitVerification_fail_unauthorized() throws Exception {
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 1000L, "경복궁 | BTS | Run BTS Ep.100");
+                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
 
-            // when & then: authentication 없이 요청
+            // when & then
             mockMvc.perform(
-                            post("/api/visitVerifications")
+                            post("/api/visit-verifications")
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
@@ -136,21 +135,21 @@ class VisitVerificationControllerTest {
         }
 
         @Test
-        @DisplayName("실패 (비즈니스 예외): 이미 투표한 유저의 요청은 ALREADY_visitVerificationD 에러와 함께 400을 반환한다.")
-        void createvisitVerification_fail_alreadyvisitVerificationd_customException()
-                throws Exception {
+        @DisplayName("실패 (비즈니스 예외): 이미 방문 인증한 유저가 다시 요청하면 400 Bad Request를 반환한다.")
+        void createVisitVerification_fail_alreadyVerified_customException() throws Exception {
+
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 1000L, "경복궁 | BTS | Run BTS Ep.100");
+                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
 
             given(
-                            visitVerificationService.createvisitVerification(
+                            visitVerificationService.createVisitVerification(
                                     any(VisitVerificationCreateCommand.class)))
                     .willThrow(new CustomException(VisitVerificationErrorCode.ALREADY_VERIFIED));
 
             // when & then
             mockMvc.perform(
-                            post("/api/visitVerifications")
+                            post("/api/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -164,19 +163,20 @@ class VisitVerificationControllerTest {
 
         @Test
         @DisplayName("실패 (동시성/DB 무결성 충돌): DataIntegrityViolationException 발생 시 409 CONFLICT를 반환한다.")
-        void createvisitVerification_fail_dataIntegrityViolation() throws Exception {
+        void createVisitVerification_fail_dataIntegrityViolation() throws Exception {
+
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 1000L, "경복궁 | BTS | Run BTS Ep.100");
+                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
 
             given(
-                            visitVerificationService.createvisitVerification(
+                            visitVerificationService.createVisitVerification(
                                     any(VisitVerificationCreateCommand.class)))
                     .willThrow(new DataIntegrityViolationException("Unique constraint violation"));
 
             // when & then
             mockMvc.perform(
-                            post("/api/visitVerifications")
+                            post("/api/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .with(csrf())
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -188,14 +188,15 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/locations/{locationId}/me - 나의 투표 상태 조회 API")
+    @DisplayName("GET /api/visitVerifications/locations/{locationId}/me - 나의 방문 인증 상태 조회 API")
     class GetMyVisitVerificationStatusControllerTest {
 
         @Test
-        @DisplayName("성공: 특정 장소의 나의 투표 상태를 정상 조회한다.")
-        void getMyvisitVerificationStatus_success() throws Exception {
+        @DisplayName("성공: 특정 장소의 나의 방문 인증 상태를 정상 조회한다.")
+        void getMyVisitVerificationStatus_success() throws Exception {
             // given
             Long locationId = 100L;
+
             VisitVerificationStatusSearchResult mockResult =
                     new VisitVerificationStatusSearchResult(true, 42L, LocalDate.of(2026, 8, 19));
 
@@ -206,7 +207,7 @@ class VisitVerificationControllerTest {
 
             // when & then
             mockMvc.perform(
-                            get("/api/visitVerifications/locations/{locationId}/me", locationId)
+                            get("/api/locations/{locationId}/visit-verifications/today", locationId)
                                     .with(authentication(mockAuthentication))
                                     .param("targetDate", "2026-08-19"))
                     .andDo(print())
@@ -217,12 +218,12 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/visitVerifications/histories - 나의 투표 이력 조회 API")
+    @DisplayName("GET /api/visitVerifications/histories - 나의 방문 인증 이력 조회 API")
     class GetMyVisitVerificationHistoriesControllerTest {
 
         @Test
-        @DisplayName("성공: 조건과 페이징 정보로 투표 이력을 조회한다.")
-        void getMyvisitVerificationHistories_success() throws Exception {
+        @DisplayName("성공: 조건과 페이징 정보로 방문 인증 이력을 조회한다.")
+        void getMyVisitVerificationHistories_success() throws Exception {
             // given
             VisitVerificationHistoriesResult mockResult =
                     new VisitVerificationHistoriesResult(Page.empty());
@@ -234,7 +235,7 @@ class VisitVerificationControllerTest {
 
             // when & then
             mockMvc.perform(
-                            get("/api/visitVerifications/histories/me")
+                            get("/api/users/me/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .param("startDate", "2026-08-01")
                                     .param("endDate", "2026-09-01")
@@ -247,11 +248,11 @@ class VisitVerificationControllerTest {
 
         @Test
         @DisplayName("실패 (@AssertTrue): 시작 날짜가 종료 날짜보다 늦으면 400 Bad Request를 반환한다.")
-        void getMyvisitVerificationHistories_fail_invalidDateRange() throws Exception {
-            // given: startDate가 endDate보다 늦은 경우 (검증 실패 유발)
+        void getMyVisitVerificationHistories_fail_invalidDateRange() throws Exception {
+
             // when & then
             mockMvc.perform(
-                            get("/api/visitVerifications/histories/me")
+                            get("/api/users/me/visit-verifications")
                                     .with(authentication(mockAuthentication))
                                     .param("startDate", "2026-09-01")
                                     .param("endDate", "2026-08-01")
