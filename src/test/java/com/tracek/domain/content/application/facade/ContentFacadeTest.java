@@ -6,11 +6,11 @@ import static org.mockito.BDDMockito.given;
 import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.artist.domain.model.Artist;
-import com.tracek.domain.content.application.EpisodeQueryRepository;
 import com.tracek.domain.content.application.dto.ContentDetailResult;
+import com.tracek.domain.content.application.service.ContentArtistQueryService;
 import com.tracek.domain.content.application.service.ContentQueryService;
+import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
-import com.tracek.domain.content.domain.repository.ContentArtistRepository;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
@@ -31,8 +31,8 @@ class ContentFacadeTest {
     @Mock private ContentQueryService contentQueryService;
     @Mock private LocationQueryService locationQueryService;
     @Mock private ArtistQueryService artistQueryService;
-    @Mock private EpisodeQueryRepository episodeQueryRepository;
-    @Mock private ContentArtistRepository contentArtistRepository;
+    @Mock private EpisodeQueryService episodeQueryService;
+    @Mock private ContentArtistQueryService contentArtistQueryService;
 
     private ContentFacade contentFacade;
 
@@ -43,8 +43,8 @@ class ContentFacadeTest {
                         contentQueryService,
                         locationQueryService,
                         artistQueryService,
-                        episodeQueryRepository,
-                        contentArtistRepository);
+                        episodeQueryService,
+                        contentArtistQueryService);
     }
 
     @Test
@@ -61,8 +61,8 @@ class ContentFacadeTest {
         ReflectionTestUtils.setField(artist, "id", 3L);
 
         given(contentQueryService.getContentEntity(1L)).willReturn(content);
-        given(contentArtistRepository.findArtistIdsByContentId(1L)).willReturn(List.of(3L));
-        given(episodeQueryRepository.getLocationIdsByContentId(1L)).willReturn(List.of(2L));
+        given(contentArtistQueryService.findArtistIdsByContentId(1L)).willReturn(List.of(3L));
+        given(episodeQueryService.getLocationIdsByContentId(1L)).willReturn(List.of(2L));
         given(locationQueryService.getLocationByIds(List.of(2L)))
                 .willReturn(List.of(LocationResult.from(location)));
         given(artistQueryService.getArtistsByIds(List.of(3L)))
@@ -87,8 +87,8 @@ class ContentFacadeTest {
         ReflectionTestUtils.setField(content, "id", 1L);
 
         given(contentQueryService.getContentEntity(1L)).willReturn(content);
-        given(contentArtistRepository.findArtistIdsByContentId(1L)).willReturn(List.of());
-        given(episodeQueryRepository.getLocationIdsByContentId(1L)).willReturn(List.of());
+        given(contentArtistQueryService.findArtistIdsByContentId(1L)).willReturn(List.of());
+        given(episodeQueryService.getLocationIdsByContentId(1L)).willReturn(List.of());
         given(locationQueryService.getLocationByIds(List.of())).willReturn(List.of());
         given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());
 

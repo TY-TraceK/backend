@@ -11,14 +11,19 @@ import lombok.Getter;
 public class ArtistDetailResponse {
 
     private ArtistInfoResponse artistInfo;
+    private List<ArtistLocationResponse> locations;
     private List<ArtistContentResponse> contents;
 
     public static ArtistDetailResponse from(ArtistDetailResult result) {
+        List<ArtistLocationResponse> locationResponses =
+                result.getLocations().stream().map(ArtistLocationResponse::from).toList();
         List<ArtistContentResponse> contentResponses =
                 result.getContents().stream().map(ArtistContentResponse::from).toList();
 
         return new ArtistDetailResponse(
-                ArtistInfoResponse.from(result.getArtistInfo()), contentResponses);
+                ArtistInfoResponse.from(result.getArtistInfo()),
+                locationResponses,
+                contentResponses);
     }
 
     @Getter
@@ -29,6 +34,9 @@ public class ArtistDetailResponse {
         private String alias;
         private String pictureUrl;
         private Long groupId;
+        private Boolean isGroup;
+        private Long fanCount;
+        private Long totalVerificationCount;
 
         public static ArtistInfoResponse from(ArtistDetailResult.ArtistInfo artistInfo) {
             return new ArtistInfoResponse(
@@ -36,7 +44,28 @@ public class ArtistDetailResponse {
                     artistInfo.getName(),
                     artistInfo.getAlias(),
                     artistInfo.getPictureUrl(),
-                    artistInfo.getGroupId());
+                    artistInfo.getGroupId(),
+                    artistInfo.getIsGroup(),
+                    artistInfo.getFanCount(),
+                    artistInfo.getTotalVerificationCount());
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class ArtistLocationResponse {
+        private Long locationId;
+        private String locationName;
+        private String locationCategory;
+        private String locationPictureUrl;
+
+        public static ArtistLocationResponse from(
+                ArtistDetailResult.LocationResult locationResult) {
+            return new ArtistLocationResponse(
+                    locationResult.getLocationId(),
+                    locationResult.getLocationName(),
+                    locationResult.getLocationCategory(),
+                    locationResult.getLocationPictureUrl());
         }
     }
 
@@ -47,40 +76,14 @@ public class ArtistDetailResponse {
         private String contentTitle;
         private String contentCategory;
         private String contentPictureUrl;
-        private List<ArtistLocationResponse> locations;
 
         public static ArtistContentResponse from(ArtistDetailResult.ContentResult contentResult) {
-            List<ArtistLocationResponse> locationResponses =
-                    contentResult.getLocations().stream()
-                            .map(ArtistLocationResponse::from)
-                            .toList();
 
             return new ArtistContentResponse(
                     contentResult.getContentId(),
                     contentResult.getContentTitle(),
                     contentResult.getContentCategory(),
-                    contentResult.getContentPictureUrl(),
-                    locationResponses);
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class ArtistLocationResponse {
-        private Long contentArtistLocationId;
-        private Long locationId;
-        private String locationName;
-        private String locationCategory;
-        private String locationPictureUrl;
-
-        public static ArtistLocationResponse from(
-                ArtistDetailResult.LocationResult locationResult) {
-            return new ArtistLocationResponse(
-                    locationResult.getContentArtistLocationId(),
-                    locationResult.getLocationId(),
-                    locationResult.getLocationName(),
-                    locationResult.getLocationCategory(),
-                    locationResult.getLocationPictureUrl());
+                    contentResult.getContentPictureUrl());
         }
     }
 }
