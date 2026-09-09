@@ -16,16 +16,6 @@ import org.springframework.stereotype.Repository;
 public class EpisodeQueryRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<Long> getContentIdsByLocationId(Long locationId) {
-        return queryFactory
-                .select(episode.content.id)
-                .distinct()
-                .from(episodeLocation)
-                .join(episodeLocation.episode, episode) // episode에 content_id 정보가 있음
-                .where(episodeLocation.location.id.eq(locationId))
-                .fetch();
-    }
-
     public List<ContentArtistPair> getContentGroupsByLocationId(Long locationId) {
         List<Tuple> rows =
                 queryFactory
@@ -44,6 +34,16 @@ public class EpisodeQueryRepository {
                                 ContentArtistPair.of(
                                         t.get(episode.content.id), t.get(episodeArtist.artist.id)))
                 .toList();
+    }
+
+    public List<Long> getLocationIdsByContentId(Long contentId) {
+        return queryFactory
+                .select(episodeLocation.location.id)
+                .distinct()
+                .from(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .where(episode.content.id.eq(contentId))
+                .fetch();
     }
 
     public Boolean isRelatedContent(Long locationId, Long contentId) {

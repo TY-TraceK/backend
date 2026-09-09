@@ -13,10 +13,11 @@ import lombok.NoArgsConstructor;
 public class ContentDetailResult {
     private ContentInfo contentInfo;
     private List<LocationResult> locations;
+    private List<ArtistResult> artists;
 
     public static ContentDetailResult from(
-            ContentInfo contentInfo, List<LocationResult> locations) {
-        return new ContentDetailResult(contentInfo, locations);
+            ContentInfo contentInfo, List<LocationResult> locations, List<ArtistResult> artists) {
+        return new ContentDetailResult(contentInfo, locations, artists);
     }
 
     @Getter
@@ -45,17 +46,14 @@ public class ContentDetailResult {
         private String locationName;
         private String locationCategory;
         private String locationPictureUrl;
-        private List<ArtistResult> artists;
 
         public static LocationResult of(
-                com.tracek.domain.location.application.dto.LocationResult locationResult,
-                List<ArtistResult> artists) {
+                com.tracek.domain.location.application.dto.LocationResult locationResult) {
             return new LocationResult(
                     locationResult.getLocationId(),
                     locationResult.getName(),
                     locationResult.getCategory(),
-                    locationResult.getMainImageUrl(),
-                    artists);
+                    locationResult.getMainImageUrl());
         }
     }
 
@@ -63,19 +61,13 @@ public class ContentDetailResult {
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ArtistResult {
-        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
-        public static ArtistResult from(
-                Long contentArtistLocationId,
+        public static ArtistResult of(
                 com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(
-                    contentArtistLocationId,
-                    artist.getId(),
-                    artist.getName(),
-                    artist.getPictureUrl());
+            return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
         }
     }
 }
