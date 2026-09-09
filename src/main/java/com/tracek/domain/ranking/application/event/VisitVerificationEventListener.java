@@ -4,8 +4,9 @@ import com.tracek.domain.ranking.application.service.VisitRankingProjectionServi
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCanceledEvent;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCreatedEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -13,12 +14,12 @@ public class VisitVerificationEventListener {
 
     private final VisitRankingProjectionService commandService;
 
-    @EventListener()
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCreatedEvent event) {
         commandService.increase(event.locationId(), event.contentId(), event.artistId());
     }
 
-    @EventListener()
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCanceledEvent event) {
         commandService.decrease(event.locationId(), event.contentId(), event.artistId());
     }

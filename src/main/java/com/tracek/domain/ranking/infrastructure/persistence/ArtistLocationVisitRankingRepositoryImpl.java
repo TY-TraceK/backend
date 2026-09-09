@@ -24,4 +24,14 @@ public class ArtistLocationVisitRankingRepositoryImpl
     public ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking) {
         return artistLocationVisitRankingJpaRepository.save(artistLocationVisitRanking);
     }
+
+    @Override
+    public void increaseVerificationCount(Long locationId, Long artistId) {
+        artistLocationVisitRankingJpaRepository.increaseVerificationCount(locationId, artistId);
+    }
+
+    @Override
+    public void decreaseVerificationCount(Long locationId, Long artistId) {
+        artistLocationVisitRankingJpaRepository.decreaseVerificationCount(locationId, artistId);
+    }
 }

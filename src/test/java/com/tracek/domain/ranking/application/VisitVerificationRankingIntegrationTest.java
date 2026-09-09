@@ -9,9 +9,6 @@ import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.ranking.domain.model.ArtistLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.ContentLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.LocationVisitRanking;
-import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRepository;
-import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
-import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.ArtistLocationVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.ContentLocationVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.LocationVisitRankingJpaRepository;
@@ -51,43 +48,26 @@ class VisitVerificationRankingIntegrationTest {
 
     @Autowired private VisitVerificationJpaRepository visitVerificationRepository;
 
-    @Autowired private LocationVisitRankingRepository locationVisitRankingRepository;
+    @Autowired private LocationVisitRankingJpaRepository locationVisitRankingRepository;
 
-    @Autowired private ArtistLocationVisitRankingRepository artistLocationVisitRankingRepository;
-
-    @Autowired private ContentLocationVisitRankingRepository contentLocationVisitRankingRepository;
-
-    /*
-     * 테스트 데이터 초기화용
-     */
-    @Autowired private LocationVisitRankingJpaRepository locationVisitRankingJpaRepository;
+    @Autowired private ArtistLocationVisitRankingJpaRepository artistLocationVisitRankingRepository;
 
     @Autowired
-    private ArtistLocationVisitRankingJpaRepository artistLocationVisitRankingJpaRepository;
+    private ContentLocationVisitRankingJpaRepository contentLocationVisitRankingRepository;
 
-    @Autowired
-    private ContentLocationVisitRankingJpaRepository contentLocationVisitRankingJpaRepository;
-
-    /*
-     * VisitVerification 외부 조회만 Mock
-     */
     @MockitoBean private LocationQueryService locationQueryService;
 
     private Long userId;
-
     private Long locationId;
     private Long locationContentArtistId;
-
     private Long artistId;
     private Long contentId;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
-
         locationId = 100L;
         locationContentArtistId = 1000L;
-
         artistId = 10L;
         contentId = 20L;
 
@@ -95,31 +75,33 @@ class VisitVerificationRankingIntegrationTest {
                 org.mockito.Mockito.mock(LocationContentArtistResult.class);
 
         given(mockResult.getLocationId()).willReturn(locationId);
-
         given(mockResult.getArtistId()).willReturn(artistId);
-
         given(mockResult.getContentId()).willReturn(contentId);
-
         given(locationQueryService.getMappingById(anyLong())).willReturn(mockResult);
+
+        initializeRankingRows();
+    }
+
+    /** 랭킹 후보는 사전에 생성되어 있으며 방문 인증이 없는 상태에서는 count = 0으로 존재한다. */
+    private void initializeRankingRows() {
+        locationVisitRankingRepository.save(LocationVisitRanking.create(locationId));
+
+        artistLocationVisitRankingRepository.save(
+                ArtistLocationVisitRanking.create(locationId, artistId));
+
+        contentLocationVisitRankingRepository.save(
+                ContentLocationVisitRanking.create(locationId, contentId));
     }
 
     @AfterEach
     void tearDown() {
-        contentLocationVisitRankingJpaRepository.deleteAllInBatch();
-        artistLocationVisitRankingJpaRepository.deleteAllInBatch();
-        locationVisitRankingJpaRepository.deleteAllInBatch();
-
+        contentLocationVisitRankingRepository.deleteAllInBatch();
+        artistLocationVisitRankingRepository.deleteAllInBatch();
+        locationVisitRankingRepository.deleteAllInBatch();
         visitVerificationRepository.deleteAllInBatch();
     }
 
-    /*
-     * ============================================================
-     * 생성
-     * ============================================================
-     */
-
     private VisitVerificationCreateCommand createCommand(Long userId) {
-
         return VisitVerificationCreateCommand.builder()
                 .userId(userId)
                 .locationId(locationId)
@@ -129,44 +111,106 @@ class VisitVerificationRankingIntegrationTest {
                 .build();
     }
 
-    /*
-     * ============================================================
-     * 취소
-     * ============================================================
-     */
-
-    private LocationVisitRanking getLocationRanking() {
-
-        return locationVisitRankingRepository.findByLocationId(locationId).orElseThrow();
-    }
-
-    /*
-     * ============================================================
-     * Helper
-     * ============================================================
-     */
-
-    private ArtistLocationVisitRanking getArtistRanking() {
-
-        return artistLocationVisitRankingRepository
-                .findByLocationIdAndArtistId(locationId, artistId)
+    private long getLocationRankingCount() {
+        return locationVisitRankingRepository
+                .findByLocationId(locationId)
+                .map(LocationVisitRanking::getTotalVerificationCount)
                 .orElseThrow();
     }
 
-    private ContentLocationVisitRanking getContentRanking() {
+    private long getArtistRankingCount() {
+        return artistLocationVisitRankingRepository
+                .findByLocationIdAndArtistId(locationId, artistId)
+                .map(ArtistLocationVisitRanking::getTotalVerificationCount)
+                .orElseThrow();
+    }
 
+    private long getContentRankingCount() {
         return contentLocationVisitRankingRepository
                 .findByLocationIdAndContentId(locationId, contentId)
+                .map(ContentLocationVisitRanking::getTotalVerificationCount)
                 .orElseThrow();
     }
 
     private void assertRankingCount(long expectedCount) {
+        assertThat(getLocationRankingCount()).isEqualTo(expectedCount);
+        assertThat(getArtistRankingCount()).isEqualTo(expectedCount);
+        assertThat(getContentRankingCount()).isEqualTo(expectedCount);
+    }
 
-        assertThat(getLocationRanking().getTotalVerificationCount()).isEqualTo(expectedCount);
+    /** 랭킹 row 자체는 항상 한 개만 존재해야 한다. */
+    private void assertRankingRowCountIsOne() {
+        assertThat(locationVisitRankingRepository.count()).isEqualTo(1L);
+        assertThat(artistLocationVisitRankingRepository.count()).isEqualTo(1L);
+        assertThat(contentLocationVisitRankingRepository.count()).isEqualTo(1L);
+    }
 
-        assertThat(getArtistRanking().getTotalVerificationCount()).isEqualTo(expectedCount);
+    private void printAllTablesStatus() {
+        System.out.println("\n================ [ 현재 DB 테이블 상태 출력 ] ================");
 
-        assertThat(getContentRanking().getTotalVerificationCount()).isEqualTo(expectedCount);
+        System.out.println("--- VisitVerification 테이블 목록 ---");
+
+        visitVerificationRepository
+                .findAll()
+                .forEach(
+                        verification ->
+                                System.out.println(
+                                        "ID: "
+                                                + verification.getId()
+                                                + ", UserId: "
+                                                + verification.getOwner()
+                                                + ", LocationId: "
+                                                + verification.getLocationId()
+                                                + ", Status: "
+                                                + verification.getStatus()));
+
+        System.out.println("--- LocationVisitRanking 테이블 목록 ---");
+
+        locationVisitRankingRepository
+                .findAll()
+                .forEach(
+                        ranking ->
+                                System.out.println(
+                                        "ID: "
+                                                + ranking.getId()
+                                                + ", LocationId: "
+                                                + ranking.getLocationId()
+                                                + ", Count: "
+                                                + ranking.getTotalVerificationCount()));
+
+        System.out.println("--- ArtistLocationVisitRanking 테이블 목록 ---");
+
+        artistLocationVisitRankingRepository
+                .findAll()
+                .forEach(
+                        ranking ->
+                                System.out.println(
+                                        "ID: "
+                                                + ranking.getId()
+                                                + ", LocationId: "
+                                                + ranking.getLocationId()
+                                                + ", ArtistId: "
+                                                + ranking.getArtistId()
+                                                + ", Count: "
+                                                + ranking.getTotalVerificationCount()));
+
+        System.out.println("--- ContentLocationVisitRanking 테이블 목록 ---");
+
+        contentLocationVisitRankingRepository
+                .findAll()
+                .forEach(
+                        ranking ->
+                                System.out.println(
+                                        "ID: "
+                                                + ranking.getId()
+                                                + ", LocationId: "
+                                                + ranking.getLocationId()
+                                                + ", ContentId: "
+                                                + ranking.getContentId()
+                                                + ", Count: "
+                                                + ranking.getTotalVerificationCount()));
+
+        System.out.println("=========================================================\n");
     }
 
     @Nested
@@ -174,38 +218,48 @@ class VisitVerificationRankingIntegrationTest {
     class CreateVisitVerificationRankingTest {
 
         @Test
-        @DisplayName("방문 인증 1건이 생성되면 관광지/아티스트/콘텐츠 랭킹이 모두 1 증가한다")
+        @DisplayName("기존 랭킹 row가 존재할 때 방문 인증 1건이 생성되면 관광지/아티스트/콘텐츠 랭킹이 모두 1 증가한다")
         void createVisitVerificationReflectsRanking() {
 
             // given
+            assertRankingCount(0L);
+            assertRankingRowCountIsOne();
+
             VisitVerificationCreateCommand command = createCommand(userId);
 
             // when
+            long startTime = System.currentTimeMillis();
+
             visitVerificationCommandService.createVisitVerification(command);
 
+            long endTime = System.currentTimeMillis();
+
             // then
+            System.out.println("단건 생성 실행 시간: " + (endTime - startTime) + "ms");
+
+            printAllTablesStatus();
+
             long originalCount = visitVerificationRepository.countByLocationId(locationId);
-
-            LocationVisitRanking locationRanking = getLocationRanking();
-
-            ArtistLocationVisitRanking artistRanking = getArtistRanking();
-
-            ContentLocationVisitRanking contentRanking = getContentRanking();
 
             assertThat(originalCount).isEqualTo(1L);
 
-            assertThat(locationRanking.getTotalVerificationCount()).isEqualTo(1L);
+            assertRankingCount(1L);
 
-            assertThat(artistRanking.getTotalVerificationCount()).isEqualTo(1L);
-
-            assertThat(contentRanking.getTotalVerificationCount()).isEqualTo(1L);
+            /*
+             * 새로운 랭킹 row가 생성된 것이 아니라
+             * 기존 count=0인 row가 수정되었는지 확인
+             */
+            assertRankingRowCountIsOne();
         }
 
         @Test
-        @DisplayName("여러 사용자가 동시에 동일 조합을 방문 인증해도 원본 수와 랭킹 집계 수가 일치한다")
+        @DisplayName("기존 랭킹 row에 여러 사용자가 동시에 방문 인증해도 원본 수와 랭킹 집계 수가 일치한다")
         void concurrentCreateKeepsRankingConsistency() throws InterruptedException {
 
             // given
+            assertRankingCount(0L);
+            assertRankingRowCountIsOne();
+
             int threadCount = CONCURRENT_REQUEST_COUNT;
 
             CountDownLatch startLatch = new CountDownLatch(1);
@@ -216,19 +270,21 @@ class VisitVerificationRankingIntegrationTest {
 
             AtomicInteger failCount = new AtomicInteger();
 
-            /*
-             * 동일 관광지/콘텐츠/아티스트 조합에
-             * 서로 다른 사용자 10명이 동시에 방문 인증
-             */
+            long startTime = System.currentTimeMillis();
+
+            // when
             try (ExecutorService executorService = Executors.newFixedThreadPool(threadCount)) {
 
                 for (int i = 0; i < threadCount; i++) {
 
                     Long concurrentUserId = 100L + i;
 
+                    final int threadIdx = i + 1;
+
                     executorService.submit(
                             () -> {
                                 try {
+
                                     startLatch.await();
 
                                     VisitVerificationCreateCommand command =
@@ -244,36 +300,42 @@ class VisitVerificationRankingIntegrationTest {
                                     failCount.incrementAndGet();
 
                                     System.err.println(
-                                            "방문 인증 생성 실패: "
+                                            "[스레드 "
+                                                    + threadIdx
+                                                    + "] 방문 인증 생성 실패: "
                                                     + throwable.getClass().getSimpleName()
                                                     + " - "
                                                     + throwable.getMessage());
 
                                 } finally {
+
                                     endLatch.countDown();
                                 }
                             });
                 }
 
-                // 모든 스레드 동시에 시작
                 startLatch.countDown();
 
-                // 모든 스레드 종료 대기
                 endLatch.await();
             }
 
+            long endTime = System.currentTimeMillis();
+
             // then
+            printAllTablesStatus();
+
             long originalCount = visitVerificationRepository.countByLocationId(locationId);
 
-            long locationRankingCount = getLocationRanking().getTotalVerificationCount();
+            long locationRankingCount = getLocationRankingCount();
 
-            long artistRankingCount = getArtistRanking().getTotalVerificationCount();
+            long artistRankingCount = getArtistRankingCount();
 
-            long contentRankingCount = getContentRanking().getTotalVerificationCount();
+            long contentRankingCount = getContentRankingCount();
 
             System.out.printf(
                     """
               ===== 동시 생성 결과 =====
+              실행 소요 시간 = %d ms
               성공 요청 수 = %d
               실패 요청 수 = %d
               VisitVerification = %d
@@ -282,6 +344,7 @@ class VisitVerificationRankingIntegrationTest {
               ContentRanking = %d
               ========================
               %n""",
+                    (endTime - startTime),
                     successCount.get(),
                     failCount.get(),
                     originalCount,
@@ -289,26 +352,29 @@ class VisitVerificationRankingIntegrationTest {
                     artistRankingCount,
                     contentRankingCount);
 
-            /*
-             * 우선 모든 방문 인증 요청 자체가 성공해야 함.
-             *
-             * 여기서 실패한다면
-             * 최초 Ranking row 생성 과정의 UNIQUE 충돌 등을 의심.
-             */
             assertThat(successCount.get()).isEqualTo(threadCount);
 
             assertThat(failCount.get()).isZero();
 
-            /*
-             * Source of Truth와 Projection이 같아야 함.
-             */
             assertThat(originalCount).isEqualTo(threadCount);
 
+            /*
+             * 핵심 동시성 검증
+             *
+             * 10개의 방문 인증이 성공했다면
+             * ranking count도 정확히 10이어야 한다.
+             */
             assertThat(locationRankingCount).isEqualTo(originalCount);
 
             assertThat(artistRankingCount).isEqualTo(originalCount);
 
             assertThat(contentRankingCount).isEqualTo(originalCount);
+
+            /*
+             * 동시 요청으로 인해
+             * 랭킹 row가 추가로 생성되지 않았는지 확인
+             */
+            assertRankingRowCountIsOne();
         }
     }
 
@@ -317,18 +383,13 @@ class VisitVerificationRankingIntegrationTest {
     class CancelVisitVerificationRankingTest {
 
         @Test
-        @DisplayName("방문 인증을 취소하면 관광지/아티스트/콘텐츠 랭킹이 모두 1 감소한다")
+        @DisplayName("방문 인증을 취소하면 기존 관광지/아티스트/콘텐츠 랭킹이 모두 1 감소한다")
         void cancelVisitVerificationReflectsRanking() {
 
             // given
-            /*
-             * 두 명 생성
-             *
-             * 랭킹
-             * Location = 2
-             * Artist   = 2
-             * Content  = 2
-             */
+            assertRankingCount(0L);
+            assertRankingRowCountIsOne();
+
             VisitVerificationCreateResult firstResult =
                     visitVerificationCommandService.createVisitVerification(createCommand(1L));
 
@@ -340,14 +401,21 @@ class VisitVerificationRankingIntegrationTest {
                     new VisitVerificationCancelCommand(firstResult.visitVerificationId(), 1L);
 
             // when
+            long startTime = System.currentTimeMillis();
+
             visitVerificationCommandService.cancelVisitVerification(cancelCommand);
 
+            long endTime = System.currentTimeMillis();
+
             // then
+            System.out.println("단건 취소 실행 시간: " + (endTime - startTime) + "ms");
+
+            printAllTablesStatus();
+
             assertRankingCount(1L);
 
-            /*
-             * 원본 VisitVerification도 실제 CANCELED인지 확인
-             */
+            assertRankingRowCountIsOne();
+
             var canceledVerification =
                     visitVerificationRepository
                             .findById(firstResult.visitVerificationId())
@@ -358,20 +426,23 @@ class VisitVerificationRankingIntegrationTest {
         }
 
         @Test
-        @DisplayName("여러 방문 인증을 동시에 취소해도 관광지/아티스트/콘텐츠 랭킹이 0으로 정확히 감소한다")
+        @DisplayName("기존 랭킹 row에서 여러 방문 인증을 동시에 취소해도 랭킹이 0으로 정확히 감소한다")
         void concurrentCancelKeepsRankingConsistency() throws InterruptedException {
 
             // given
+            assertRankingCount(0L);
+            assertRankingRowCountIsOne();
+
             int threadCount = CONCURRENT_REQUEST_COUNT;
 
-            /*
-             * 우선 서로 다른 사용자 10명의 방문 인증 생성
-             *
-             * 여기서는 동시 생성 테스트와 분리하기 위해
-             * 순차적으로 생성한다.
-             */
             List<VisitVerificationCreateResult> results = new ArrayList<>();
 
+            /*
+             * 먼저 방문 인증 10건 생성
+             *
+             * 시작 랭킹
+             * 0 → 10
+             */
             for (int i = 0; i < threadCount; i++) {
 
                 Long concurrentUserId = 1000L + i;
@@ -383,9 +454,6 @@ class VisitVerificationRankingIntegrationTest {
                 results.add(result);
             }
 
-            /*
-             * 취소 직전에는 정확히 10이어야 함.
-             */
             assertRankingCount(threadCount);
 
             CountDownLatch startLatch = new CountDownLatch(1);
@@ -395,6 +463,8 @@ class VisitVerificationRankingIntegrationTest {
             AtomicInteger successCount = new AtomicInteger();
 
             AtomicInteger failCount = new AtomicInteger();
+
+            long startTime = System.currentTimeMillis();
 
             // when
             try (ExecutorService executorService = Executors.newFixedThreadPool(threadCount)) {
@@ -406,6 +476,7 @@ class VisitVerificationRankingIntegrationTest {
                     executorService.submit(
                             () -> {
                                 try {
+
                                     startLatch.await();
 
                                     Long concurrentUserId = 1000L + index;
@@ -432,27 +503,28 @@ class VisitVerificationRankingIntegrationTest {
                                                     + throwable.getMessage());
 
                                 } finally {
+
                                     endLatch.countDown();
                                 }
                             });
                 }
 
-                // 동시에 취소
                 startLatch.countDown();
 
                 endLatch.await();
             }
 
+            long endTime = System.currentTimeMillis();
+
             // then
-            long locationRankingCount = getLocationRanking().getTotalVerificationCount();
+            printAllTablesStatus();
 
-            long artistRankingCount = getArtistRanking().getTotalVerificationCount();
+            long locationRankingCount = getLocationRankingCount();
 
-            long contentRankingCount = getContentRanking().getTotalVerificationCount();
+            long artistRankingCount = getArtistRankingCount();
 
-            /*
-             * 실제 원본 방문 인증도 모두 CANCELED인지 확인
-             */
+            long contentRankingCount = getContentRankingCount();
+
             long canceledCount =
                     results.stream()
                             .map(VisitVerificationCreateResult::visitVerificationId)
@@ -467,6 +539,7 @@ class VisitVerificationRankingIntegrationTest {
             System.out.printf(
                     """
               ===== 동시 취소 결과 =====
+              실행 소요 시간 = %d ms
               성공 요청 수 = %d
               실패 요청 수 = %d
               CANCELED 원본 수 = %d
@@ -475,6 +548,7 @@ class VisitVerificationRankingIntegrationTest {
               ContentRanking = %d
               ========================
               %n""",
+                    (endTime - startTime),
                     successCount.get(),
                     failCount.get(),
                     canceledCount,
@@ -488,11 +562,22 @@ class VisitVerificationRankingIntegrationTest {
 
             assertThat(canceledCount).isEqualTo(threadCount);
 
+            /*
+             * 10 → 0이 정확히 되어야 한다.
+             *
+             * 현재 dirty checking 방식이라면
+             * 여기서 Lost Update가 발생할 가능성이 있음.
+             */
             assertThat(locationRankingCount).isZero();
 
             assertThat(artistRankingCount).isZero();
 
             assertThat(contentRankingCount).isZero();
+
+            /*
+             * count가 0이 되어도 랭킹 후보 row 자체는 유지한다.
+             */
+            assertRankingRowCountIsOne();
         }
     }
 }
