@@ -3,10 +3,10 @@ package com.tracek.domain.visitVerification.application.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
-import com.tracek.domain.location.application.dto.LocationContentArtistResult;
-import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCancelCommand;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCreateCommand;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationCreateResult;
@@ -41,30 +41,37 @@ class VisitVerificationCommandServiceImplTest {
 
     @Autowired private VisitVerificationRepository visitVerificationRepository;
 
-    @MockitoBean private LocationQueryService locationQueryService;
+    @MockitoBean
+    private com.tracek.domain.content.application.service.EpisodeQueryService episodeQueryService;
+
+    @MockitoBean
+    private com.tracek.domain.location.application.service.LocationQueryService
+            locationQueryService;
 
     private Long userId;
     private Long locationId;
-    private Long locationContentArtistId;
-    private String snapshotName;
+    private Long artistId;
+    private Long contentId;
+    private Double latitude;
+    private Double longitude;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
         locationId = 100L;
-        locationContentArtistId = 1000L;
-        snapshotName = "경복궁 | BTS | Run BTS Ep.100";
+        artistId = 10L;
+        contentId = 20L;
+        latitude = 37.5665;
+        longitude = 126.9780;
 
-        // 1. Mock DTO 생성 및 Getter 설정
-        LocationContentArtistResult mockResult =
-                org.mockito.Mockito.mock(LocationContentArtistResult.class);
-        given(mockResult.getLocationId()).willReturn(locationId);
-        given(mockResult.getArtistId()).willReturn(10L);
-        given(mockResult.getContentId()).willReturn(20L);
+        // 1. 연관 관계가 존재함(true)으로 설정하여 서비스의 !isRelatedVerifiedTarget 통과
+        given(episodeQueryService.isRelatedContentAndArtist(anyLong(), anyLong(), anyLong()))
+                .willReturn(true);
+        given(episodeQueryService.isRelatedContent(anyLong(), anyLong())).willReturn(true);
 
-        // 2. 어떤 Long 값이 들어오더라도 mockResult를 반환하도록 설정
-        given(locationQueryService.getMappingById(org.mockito.ArgumentMatchers.anyLong()))
-                .willReturn(mockResult);
+        // 2. 반경 내에 있음(true)으로 설정하여 서비스의 isWithinDistance 통과
+        given(locationQueryService.isWithinDistance(anyDouble(), anyDouble(), anyLong(), anyLong()))
+                .willReturn(true);
     }
 
     @AfterEach
@@ -73,50 +80,49 @@ class VisitVerificationCommandServiceImplTest {
     }
 
     @Nested
-    @DisplayName("투표 생성 테스트")
+    @DisplayName("방문 인증 생성 테스트")
     class CreateVisitVerificationTest {
 
         @Test
-        @DisplayName("성공: 투표 생성 요청 시 정상적으로 투표가 저장되고 Result가 반환된다.")
+        @DisplayName("성공: 방문 인증 생성 요청 시 정상적으로 방문 인증가 저장되고 Result가 반환된다.")
         void createVisitVerification_success() {
             // given
             VisitVerificationCreateCommand command =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
+                            userId, locationId, artistId, contentId, latitude, longitude);
 
             // when
             VisitVerificationCreateResult result =
-                    visitVerificationService.createvisitVerification(command);
+                    visitVerificationService.createVisitVerification(command);
 
             // then
             assertThat(result).isNotNull();
 
             List<VisitVerification> visitVerifications = visitVerificationRepository.findAll();
             assertThat(visitVerifications).hasSize(1);
-            VisitVerification savedvisitVerification = visitVerifications.getFirst();
-            assertThat(savedvisitVerification.getOwner()).isEqualTo(userId);
-            assertThat(savedvisitVerification.getVerificationTarget().getLocationId())
-                    .isEqualTo(locationId);
+            VisitVerification savedVerification = visitVerifications.getFirst();
+            assertThat(savedVerification.getOwner()).isEqualTo(userId);
+            assertThat(savedVerification.getLocationId()).isEqualTo(locationId);
         }
 
         @Test
-        @DisplayName("실패: 이미 투표한 관광지에 다시 투표를 시도하면 이미 투표했다는 에러가 발생한다.")
-        void createVisitVerification_fail_alreadyvisitVerification() {
-            // given: 1차 투표 진행
+        @DisplayName("실패: 이미 방문 인증한 관광지에 다시 방문 인증를 시도하면 이미 방문 인증했다는 에러가 발생한다.")
+        void createVisitVerification_fail_alreadyVerified() {
+            // given: 1차 방문 인증 진행
             VisitVerificationCreateCommand command =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
-            visitVerificationService.createvisitVerification(command);
+                            userId, locationId, artistId, contentId, latitude, longitude);
+            visitVerificationService.createVisitVerification(command);
 
-            // when & then: 동일 커맨드로 2차 투표 시도시 예외 발생
-            assertThatThrownBy(() -> visitVerificationService.createvisitVerification(command))
+            // when & then: 동일 커맨드로 2차 방문 인증 시도시 예외 발생
+            assertThatThrownBy(() -> visitVerificationService.createVisitVerification(command))
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(VisitVerificationErrorCode.ALREADY_VERIFIED);
         }
 
         @Test
-        @DisplayName("동시성: 동일한 유저가 동시에 2개의 스레드로 투표를 요청하면 1건만 성공하고 1건은 실패한다.")
+        @DisplayName("동시성: 동일한 유저가 동시에 2개의 스레드로 방문 인증를 요청하면 1건만 성공하고 1건은 실패한다.")
         void createVisitVerification_concurrency_twoThreads() throws InterruptedException {
             int threadCount = 2;
             AtomicInteger successCount;
@@ -127,7 +133,7 @@ class VisitVerificationCommandServiceImplTest {
 
                 VisitVerificationCreateCommand command =
                         new VisitVerificationCreateCommand(
-                                userId, locationId, locationContentArtistId, snapshotName);
+                                userId, locationId, artistId, contentId, latitude, longitude);
 
                 successCount = new AtomicInteger(0);
                 failCount = new AtomicInteger(0);
@@ -138,28 +144,11 @@ class VisitVerificationCommandServiceImplTest {
                             () -> {
                                 try {
                                     startLatch.await();
-                                    visitVerificationService.createvisitVerification(command);
-                                    System.out.println(">>> [스레드 " + threadIndex + "] 성공!");
+                                    visitVerificationService.createVisitVerification(command);
                                     successCount.incrementAndGet();
-                                } catch (CustomException e) {
-                                    System.out.println(
-                                            ">>> [스레드 "
-                                                    + threadIndex
-                                                    + "] CustomException 발생: "
-                                                    + e.getErrorCode());
-                                    failCount.incrementAndGet();
-                                } catch (DataIntegrityViolationException e) {
-                                    System.out.println(
-                                            ">>> [스레드 " + threadIndex + "] DB 유니크 충돌 발생!");
+                                } catch (CustomException | DataIntegrityViolationException e) {
                                     failCount.incrementAndGet();
                                 } catch (Throwable t) {
-                                    System.err.println(
-                                            ">>> [스레드 "
-                                                    + threadIndex
-                                                    + "] 예상치 못한 치명적 예외: "
-                                                    + t.getClass().getName()
-                                                    + " - "
-                                                    + t.getMessage());
                                     t.printStackTrace();
                                 } finally {
                                     endLatch.countDown();
@@ -172,33 +161,30 @@ class VisitVerificationCommandServiceImplTest {
                 executorService.shutdown();
             }
 
-            System.out.println(
-                    "최종 successCount = " + successCount.get() + ", failCount = " + failCount.get());
-
             assertThat(successCount.get()).isEqualTo(1);
             assertThat(failCount.get()).isEqualTo(1);
         }
     }
 
     @Nested
-    @DisplayName("투표 취소 테스트")
+    @DisplayName("방문 인증 취소 테스트")
     class CancelVisitVerificationTest {
 
         @Test
-        @DisplayName("성공: 유효한 투표이고 당일 생성된 투표라면 정상적으로 취소(CANCELED)된다.")
+        @DisplayName("성공: 유효한 방문 인증이고 당일 생성된 방문 인증라면 정상적으로 취소(CANCELED)된다.")
         void cancelVisitVerification_success() {
-            // given: 투표 생성
+            // given: 방문 인증 생성
             VisitVerificationCreateCommand createCommand =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
+                            userId, locationId, artistId, contentId, latitude, longitude);
             VisitVerificationCreateResult createResult =
-                    visitVerificationService.createvisitVerification(createCommand);
+                    visitVerificationService.createVisitVerification(createCommand);
 
             VisitVerificationCancelCommand cancelCommand =
                     new VisitVerificationCancelCommand(createResult.visitVerificationId(), userId);
 
             // when
-            visitVerificationService.cancelvisitVerification(cancelCommand);
+            visitVerificationService.cancelVisitVerification(cancelCommand);
 
             // then
             VisitVerification visitVerification =
@@ -209,52 +195,50 @@ class VisitVerificationCommandServiceImplTest {
         }
 
         @Test
-        @DisplayName("실패: 존재하지 않는 투표 ID로 취소를 요청하면 visitVerification_NOT_FOUND 예외가 발생한다.")
+        @DisplayName("실패: 존재하지 않는 방문 인증 ID로 취소를 요청하면 NOT_FOUND 예외가 발생한다.")
         void cancelVisitVerification_fail_notFound() {
             // given
             VisitVerificationCancelCommand cancelCommand =
-                    new VisitVerificationCancelCommand(
-                            99999L, userId // 존재하지 않는 ID
-                            );
+                    new VisitVerificationCancelCommand(99999L, userId);
 
             // when & then
             assertThatThrownBy(
-                            () -> visitVerificationService.cancelvisitVerification(cancelCommand))
+                            () -> visitVerificationService.cancelVisitVerification(cancelCommand))
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
         }
 
         @Test
-        @DisplayName("실패: 투표 소유자가 아닌 유저가 취소를 요청하면 UNAUTHORIZED_visitVerification_ACCESS 예외가 발생한다.")
-        void cancel_visitVerification_fail_unauthorized() {
-            // given: 유저 1이 투표 생성
+        @DisplayName("실패: 방문 인증 소유자가 아닌 유저가 취소를 요청하면 ACCESS_DINED 예외가 발생한다.")
+        void cancelVisitVerification_fail_unauthorized() {
+            // given: 유저 1이 방문 인증 생성
             VisitVerificationCreateCommand createCommand =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
+                            userId, locationId, artistId, contentId, latitude, longitude);
             VisitVerificationCreateResult createResult =
-                    visitVerificationService.createvisitVerification(createCommand);
+                    visitVerificationService.createVisitVerification(createCommand);
 
             VisitVerificationCancelCommand cancelCommand =
                     new VisitVerificationCancelCommand(createResult.visitVerificationId(), 99999L);
 
             // when & then
             assertThatThrownBy(
-                            () -> visitVerificationService.cancelvisitVerification(cancelCommand))
+                            () -> visitVerificationService.cancelVisitVerification(cancelCommand))
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(VisitVerificationErrorCode.ACCESS_DINED);
         }
 
         @Test
-        @DisplayName("실패: 당일 생성된 투표가 아니라면 취소할 수 없고 visitVerification_CANNOT_BE_CANCELLED 예외가 발생한다.")
+        @DisplayName("실패: 당일 생성된 방문 인증가 아니라면 취소할 수 없고 CANNOT_BE_CANCELLED 예외가 발생한다.")
         void cancelVisitVerification_fail_notToday() {
-            // given: 투표 생성 후, 리플렉션을 이용해 강제로 날짜를 어제로 조작
+            // given: 방문 인증 생성 후, 리플렉션을 이용해 강제로 날짜를 어제로 조작
             VisitVerificationCreateCommand createCommand =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
+                            userId, locationId, artistId, contentId, latitude, longitude);
             VisitVerificationCreateResult createResult =
-                    visitVerificationService.createvisitVerification(createCommand);
+                    visitVerificationService.createVisitVerification(createCommand);
 
             VisitVerification visitVerification =
                     visitVerificationRepository
@@ -270,30 +254,30 @@ class VisitVerificationCommandServiceImplTest {
 
             // when & then
             assertThatThrownBy(
-                            () -> visitVerificationService.cancelvisitVerification(cancelCommand))
+                            () -> visitVerificationService.cancelVisitVerification(cancelCommand))
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(VisitVerificationErrorCode.CANNOT_BE_CANCELLED);
         }
 
         @Test
-        @DisplayName("성공: 이미 취소된 투표에 대해 다시 취소 요청을 보내도 예외 없이 정상 종료된다 (멱등성/방어 로직 검증).")
-        void cancel_visitVerification_alreadyCancelled_successIgnored() {
-            // given: 투표 생성
+        @DisplayName("성공: 이미 취소된 방문 인증에 대해 다시 취소 요청을 보내도 예외 없이 정상 종료된다.")
+        void cancelVisitVerification_alreadyCancelled_successIgnored() {
+            // given: 방문 인증 생성
             VisitVerificationCreateCommand createCommand =
                     new VisitVerificationCreateCommand(
-                            userId, locationId, locationContentArtistId, snapshotName);
+                            userId, locationId, artistId, contentId, latitude, longitude);
             VisitVerificationCreateResult createResult =
-                    visitVerificationService.createvisitVerification(createCommand);
+                    visitVerificationService.createVisitVerification(createCommand);
 
             VisitVerificationCancelCommand cancelCommand =
                     new VisitVerificationCancelCommand(createResult.visitVerificationId(), userId);
 
             // 1차 취소
-            visitVerificationService.cancelvisitVerification(cancelCommand);
+            visitVerificationService.cancelVisitVerification(cancelCommand);
 
             // when & then: 2차 취소 요청 시 예외가 발생하지 않고 그대로 통과되는지 확인
-            assertThatCode(() -> visitVerificationService.cancelvisitVerification(cancelCommand))
+            assertThatCode(() -> visitVerificationService.cancelVisitVerification(cancelCommand))
                     .doesNotThrowAnyException();
 
             VisitVerification visitVerification =

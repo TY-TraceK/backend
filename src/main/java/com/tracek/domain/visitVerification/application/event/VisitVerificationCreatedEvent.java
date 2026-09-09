@@ -8,7 +8,7 @@ import lombok.Builder;
 public record VisitVerificationCreatedEvent(
         Long visitVerificationId,
         Long visitVerificationOwner,
-        LocalDateTime visitVerificationdAt,
+        LocalDateTime visitVerifiedAt,
         Long locationId,
         Long artistId,
         Long contentId) {
@@ -17,8 +17,8 @@ public record VisitVerificationCreatedEvent(
         return VisitVerificationCreatedEvent.builder()
                 .visitVerificationId(visitVerification.getId())
                 .visitVerificationOwner(visitVerification.getOwner())
-                .visitVerificationdAt(visitVerification.getVerifiedAt())
-                .locationId(visitVerification.getVerificationTarget().getLocationId())
+                .visitVerifiedAt(visitVerification.getVerifiedAt())
+                .locationId(visitVerification.getLocationId())
                 .artistId(visitVerification.getVerificationTarget().getArtistId())
                 .contentId(visitVerification.getVerificationTarget().getContentId())
                 .build();

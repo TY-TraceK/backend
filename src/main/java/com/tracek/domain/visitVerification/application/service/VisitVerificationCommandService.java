@@ -7,7 +7,7 @@ import com.tracek.domain.visitVerification.application.dto.result.VisitVerificat
 
 public interface VisitVerificationCommandService {
 
-    VisitVerificationCreateResult createvisitVerification(VisitVerificationCreateCommand command);
+    VisitVerificationCreateResult createVisitVerification(VisitVerificationCreateCommand command);
 
-    VisitVerificationCancelResult cancelvisitVerification(VisitVerificationCancelCommand command);
+    VisitVerificationCancelResult cancelVisitVerification(VisitVerificationCancelCommand command);
 }

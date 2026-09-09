@@ -44,6 +44,9 @@ public class VisitVerification {
     private LocalDateTime verifiedAt;
 
     @Column(nullable = false)
+    private Long locationId;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private VisitVerificationStatus status = VisitVerificationStatus.VALID;
 
@@ -56,16 +59,26 @@ public class VisitVerification {
     private LocalDate validVerifiedAt;
 
     public VisitVerification(
-            Long owner, VisitVerificationTarget verificationTarget, LocalDateTime verifiedAt) {
+            Long owner,
+            Long locationId,
+            VisitVerificationTarget verificationTarget,
+            LocalDateTime verifiedAt) {
         this.owner = owner;
+        this.locationId = locationId;
         this.verificationTarget = verificationTarget;
         this.verifiedAt = verifiedAt;
     }
 
     public static VisitVerification createvisitVerification(
-            Long visitVerificationOwner, VisitVerificationTarget visitVerificationTarget) {
+            Long visitVerificationOwner,
+            Long locationId,
+            VisitVerificationTarget visitVerificationTarget) {
         return new VisitVerification(
-                visitVerificationOwner, visitVerificationTarget, LocalDateTime.now());
+                visitVerificationOwner, locationId, visitVerificationTarget, LocalDateTime.now());
+    }
+
+    public void updateVerificationTarget(VisitVerificationTarget target) {
+        this.verificationTarget = target;
     }
 
     public void invalid() {
