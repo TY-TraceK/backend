@@ -46,7 +46,8 @@ class ContentQueryControllerTest {
                         "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult result =
-                ContentDetailResult.from(ContentDetailResult.ContentInfo.of(content), List.of());
+                ContentDetailResult.from(
+                        ContentDetailResult.ContentInfo.of(content), List.of(), List.of());
         given(contentFacade.getContentDetails(1L)).willReturn(result);
 
         ApiResponse<ContentDetailResponse> response = controller.getContentDetails(1L);

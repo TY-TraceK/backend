@@ -12,13 +12,18 @@ public class ContentDetailResponse {
 
     private ContentInfoResponse contentInfo;
     private List<ContentLocationResponse> locations;
+    private List<ContentArtistResponse> artists;
 
     public static ContentDetailResponse from(ContentDetailResult result) {
         List<ContentLocationResponse> locationResponses =
                 result.getLocations().stream().map(ContentLocationResponse::from).toList();
+        List<ContentArtistResponse> artistResponses =
+                result.getArtists().stream().map(ContentArtistResponse::from).toList();
 
         return new ContentDetailResponse(
-                ContentInfoResponse.from(result.getContentInfo()), locationResponses);
+                ContentInfoResponse.from(result.getContentInfo()),
+                locationResponses,
+                artistResponses);
     }
 
     @Getter
@@ -45,33 +50,27 @@ public class ContentDetailResponse {
         private String locationName;
         private String locationCategory;
         private String locationPictureUrl;
-        private List<ContentArtistResponse> artists;
 
         public static ContentLocationResponse from(
                 ContentDetailResult.LocationResult locationResult) {
-            List<ContentArtistResponse> artistResponses =
-                    locationResult.getArtists().stream().map(ContentArtistResponse::from).toList();
 
             return new ContentLocationResponse(
                     locationResult.getLocationId(),
                     locationResult.getLocationName(),
                     locationResult.getLocationCategory(),
-                    locationResult.getLocationPictureUrl(),
-                    artistResponses);
+                    locationResult.getLocationPictureUrl());
         }
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ContentArtistResponse {
-        private Long contentArtistLocationId;
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
 
         public static ContentArtistResponse from(ContentDetailResult.ArtistResult artistResult) {
             return new ContentArtistResponse(
-                    artistResult.getContentArtistLocationId(),
                     artistResult.getArtistId(),
                     artistResult.getArtistName(),
                     artistResult.getArtistPictureUrl());
