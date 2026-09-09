@@ -25,4 +25,14 @@ public class ContentLocationVisitRankingRepositoryImpl
             ContentLocationVisitRanking contentLocationVisitRanking) {
         return contentLocationVisitRankingJpaRepository.save(contentLocationVisitRanking);
     }
+
+    @Override
+    public void increaseVerificationCount(Long locationId, Long contentId) {
+        contentLocationVisitRankingJpaRepository.increaseVerificationCount(locationId, contentId);
+    }
+
+    @Override
+    public void decreaseVerificationCount(Long locationId, Long contentId) {
+        contentLocationVisitRankingJpaRepository.decreaseVerificationCount(locationId, contentId);
+    }
 }

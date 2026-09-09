@@ -10,4 +10,8 @@ public interface LocationVisitRankingRepository {
     Optional<LocationVisitRanking> findByLocationId(Long locationId);
 
     LocationVisitRanking save(LocationVisitRanking locationVisitRanking);
+
+    void increaseVerificationCount(Long locationId);
+
+    void decreaseVerificationCount(Long locationId);
 }

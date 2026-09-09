@@ -21,4 +21,14 @@ public class LocationVisitRankingRepositoryImpl implements LocationVisitRankingR
     public LocationVisitRanking save(LocationVisitRanking locationVisitRanking) {
         return locationVisitRankingJpaRepository.save(locationVisitRanking);
     }
+
+    @Override
+    public void increaseVerificationCount(Long locationId) {
+        locationVisitRankingJpaRepository.increaseVerificationCount(locationId);
+    }
+
+    @Override
+    public void decreaseVerificationCount(Long locationId) {
+        locationVisitRankingJpaRepository.decreaseVerificationCount(locationId);
+    }
 }

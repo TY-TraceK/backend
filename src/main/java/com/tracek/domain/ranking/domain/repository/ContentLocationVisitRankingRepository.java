@@ -11,4 +11,8 @@ public interface ContentLocationVisitRankingRepository {
             Long locationId, Long contentId);
 
     ContentLocationVisitRanking save(ContentLocationVisitRanking contentLocationVisitRanking);
+
+    void increaseVerificationCount(Long locationId, Long contentId);
+
+    void decreaseVerificationCount(Long locationId, Long contentId);
 }

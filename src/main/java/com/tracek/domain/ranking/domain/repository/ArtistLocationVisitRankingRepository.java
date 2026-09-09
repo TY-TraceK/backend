@@ -11,4 +11,8 @@ public interface ArtistLocationVisitRankingRepository {
             Long locationId, Long artistId);
 
     ArtistLocationVisitRanking save(ArtistLocationVisitRanking artistLocationVisitRanking);
+
+    void increaseVerificationCount(Long locationId, Long artistId);
+
+    void decreaseVerificationCount(Long locationId, Long artistId);
 }
