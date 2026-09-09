@@ -18,13 +18,12 @@ public class VisitVerificationRepositoryImpl implements VisitVerificationReposit
 
     private final VisitVerificationJpaRepository visitVerificationJpaRepository;
 
-    //  private final VisitVerificationQueryDslRepository visitVerificationQueryDslRepository;
+    private final VisitVerificationQueryDslRepository visitVerificationQueryDslRepository;
 
     @Override
     public boolean hasAlreadyVerifiedLocation(Long userId, Long locationId) {
-        return visitVerificationJpaRepository
-                .existsByOwnerAndVerificationTarget_LocationIdAndStatus(
-                        userId, locationId, VisitVerificationStatus.VALID);
+        return visitVerificationJpaRepository.existsByOwnerAndLocationIdAndStatus(
+                userId, locationId, VisitVerificationStatus.VALID);
     }
 
     @Override
@@ -50,16 +49,14 @@ public class VisitVerificationRepositoryImpl implements VisitVerificationReposit
     @Override
     public Optional<VisitVerification> findUserLocationVerifiedByDate(
             Long userId, Long locationId, LocalDate date) {
-        return visitVerificationJpaRepository
-                .findByOwnerAndVerificationTarget_LocationIdAndValidVerifiedAt(
-                        userId, locationId, date);
+        return visitVerificationJpaRepository.findByOwnerAndLocationIdAndValidVerifiedAt(
+                userId, locationId, date);
     }
 
     @Override
     public Page<VisitVerification> findHistoriesByCriteria(
             VisitVerificationHistoryCriteria visitVerificationHistoryCriteria, Pageable pageable) {
-        return null;
-        //    return visitVerificationQueryDslRepository.findHistoriesByCriteria(
-        //        visitVerificationHistoryCriteria, pageable);
+        return visitVerificationQueryDslRepository.findHistoriesByCriteria(
+                visitVerificationHistoryCriteria, pageable);
     }
 }

@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface VisitVerificationJpaRepository extends JpaRepository<VisitVerification, Long> {
 
-    boolean existsByOwnerAndVerificationTarget_LocationIdAndStatus(
+    boolean existsByOwnerAndLocationIdAndStatus(
             Long owner, Long locationId, VisitVerificationStatus status);
 
-    Optional<VisitVerification> findByOwnerAndVerificationTarget_LocationIdAndValidVerifiedAt(
+    Optional<VisitVerification> findByOwnerAndLocationIdAndValidVerifiedAt(
             Long owner, Long verificationTarget_locationId, LocalDate validVerifiedAt);
+
+    Long countByLocationId(Long locationId);
 }
