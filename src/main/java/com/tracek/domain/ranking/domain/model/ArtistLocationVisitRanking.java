@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Table(
-        name = "location_artist_ranking",
+        name = "artist_location_ranking",
         uniqueConstraints = {
             @UniqueConstraint(
                     name = "uk_location_artist_ranking_location_artist",
@@ -24,7 +23,7 @@ import lombok.NoArgsConstructor;
         })
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LocationArtistRanking {
+public class ArtistLocationVisitRanking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,30 +35,26 @@ public class LocationArtistRanking {
     @Column(name = "artist_id", nullable = false)
     private Long artistId;
 
-    @Column(name = "total_vote_count", nullable = false)
-    private long totalVoteCount;
+    @Column(name = "total_visit_verification_count", nullable = false)
+    private long totalVerificationCount;
 
-    @Column(name = "ranked_at", nullable = false)
-    private LocalDateTime rankedAt;
-
-    private LocationArtistRanking(Long locationId, Long artistId) {
+    private ArtistLocationVisitRanking(Long locationId, Long artistId) {
         this.locationId = locationId;
         this.artistId = artistId;
-        this.totalVoteCount = 0L;
-        this.rankedAt = LocalDateTime.now();
+        this.totalVerificationCount = 0L;
     }
 
-    public static LocationArtistRanking create(Long locationId, Long artistId) {
-        return new LocationArtistRanking(locationId, artistId);
+    public static ArtistLocationVisitRanking create(Long locationId, Long artistId) {
+        return new ArtistLocationVisitRanking(locationId, artistId);
     }
 
-    public void increaseVoteCount() {
-        this.totalVoteCount++;
+    public void increaseVerificationCount() {
+        this.totalVerificationCount++;
     }
 
-    public void decreaseVoteCount() {
-        if (this.totalVoteCount > 0) {
-            this.totalVoteCount--;
+    public void decreaseVerificationCount() {
+        if (this.totalVerificationCount > 0) {
+            this.totalVerificationCount--;
         }
     }
 }
