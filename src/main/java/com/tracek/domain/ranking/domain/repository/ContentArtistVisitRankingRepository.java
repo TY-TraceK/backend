@@ -4,9 +4,7 @@ import com.tracek.domain.ranking.domain.model.ContentArtistVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
 import java.util.List;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface ContentArtistVisitRankingRepository {
 
     ContentArtistVisitRanking save(ContentArtistVisitRanking contentArtistVisitRanking);
