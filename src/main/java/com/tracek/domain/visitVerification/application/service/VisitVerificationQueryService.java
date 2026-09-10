@@ -4,13 +4,12 @@ import com.tracek.domain.visitVerification.application.dto.condition.VisitVerifi
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationStatusSearchCondition;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationStatusSearchResult;
-import org.springframework.data.domain.Pageable;
 
 public interface VisitVerificationQueryService {
 
-    VisitVerificationStatusSearchResult getMyvisitVerificationStatus(
+    VisitVerificationStatusSearchResult getMyVisitVerificationStatus(
             VisitVerificationStatusSearchCondition condition);
 
     VisitVerificationHistoriesResult getMyHistories(
-            VisitVerificationHistoriesSearchCondition condition, Pageable pageable);
+            VisitVerificationHistoriesSearchCondition condition);
 }
