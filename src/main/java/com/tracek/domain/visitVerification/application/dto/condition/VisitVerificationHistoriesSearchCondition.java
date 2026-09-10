@@ -1,6 +1,7 @@
 package com.tracek.domain.visitVerification.application.dto.condition;
 
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
@@ -10,6 +11,9 @@ public record VisitVerificationHistoriesSearchCondition(
         Long artistId,
         Long contentId,
         Long locationId,
+        String city,
         VisitVerificationStatus status,
         LocalDateTime startDate,
-        LocalDateTime endDate) {}
+        LocalDateTime endDate,
+        LocalDate cursorDate,
+        Integer size) {}

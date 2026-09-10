@@ -15,7 +15,7 @@ public record VisitVerificationHistoriesIndividualResult(
     public static VisitVerificationHistoriesIndividualResult from(
             VisitVerification visitVerification) {
         return new VisitVerificationHistoriesIndividualResult(
-                visitVerification.getVerificationTarget().getLocationId(),
+                visitVerification.getLocationId(),
                 visitVerification.getVerificationTarget().getContentId(),
                 visitVerification.getVerificationTarget().getArtistId(),
                 visitVerification.getVerifiedAt(),
