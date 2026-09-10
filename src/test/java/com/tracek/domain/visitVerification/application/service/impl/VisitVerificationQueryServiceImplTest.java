@@ -2,7 +2,6 @@ package com.tracek.domain.visitVerification.application.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -27,10 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +39,6 @@ class VisitVerificationQueryServiceImplTest {
     private Long locationId;
     private LocalDate targetDate;
     private VisitVerificationStatusSearchCondition condition;
-    private String snapshotName;
     private Long contentId;
     private Long artistId;
     private Long locationContentArtistId;
@@ -57,28 +51,19 @@ class VisitVerificationQueryServiceImplTest {
         locationContentArtistId = 1000L;
         contentId = 10L;
         artistId = 5L;
-        snapshotName = "경복궁 | BTS | Run BTS Ep.100";
         condition = new VisitVerificationStatusSearchCondition(userId, locationId, targetDate);
     }
 
     @Nested
-    @DisplayName("나의 투표 상태 조회 테스트")
+    @DisplayName("나의 방문 인증 상태 조회 테스트")
     class GetMyVisitVerificationStatusTest {
 
         @Test
-        @DisplayName("성공: 해당 날짜에 투표 내역이 존재하면 isVerified가 true이고 투표 정보가 담긴 Result를 반환한다.")
+        @DisplayName("성공: 해당 날짜에 방문 인증 내역이 존재하면 방문 인증 정보가 담긴 Result를 반환한다.")
         void getMy_visitVerificationStatus_success_visitVerified() {
-            // given: 리포지토리가 투표 엔티티를 반환하도록 Mock 설정
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            userId,
-                            VisitVerificationTarget.of(
-                                    locationId,
-                                    locationContentArtistId,
-                                    artistId,
-                                    contentId,
-                                    snapshotName));
-            // ID 값을 임의로 주입 (Reflection 활용)
+                            userId, locationId, VisitVerificationTarget.of(artistId, contentId));
             ReflectionTestUtils.setField(visitVerification, "id", 42L);
 
             given(
@@ -86,49 +71,41 @@ class VisitVerificationQueryServiceImplTest {
                                     userId, locationId, targetDate))
                     .willReturn(Optional.of(visitVerification));
 
-            // when
             VisitVerificationStatusSearchResult result =
-                    visitVerificationQueryService.getMyvisitVerificationStatus(condition);
+                    visitVerificationQueryService.getMyVisitVerificationStatus(condition);
 
-            // then
             assertThat(result).isNotNull();
-            assertThat(result.isvisitVerificationd()).isTrue();
+            assertThat(result.isVisitVerified()).isTrue();
             assertThat(result.visitVerificationId()).isEqualTo(42L);
             assertThat(result.targetDate()).isEqualTo(targetDate);
         }
 
         @Test
-        @DisplayName(
-                "성공: 해당 날짜에 투표 내역이 존재하지 않으면 isVerified가 false이고 visitVerificationId가 null인 Result를 반환한다.")
+        @DisplayName("성공: 해당 날짜에 방문 인증 내역이 존재하지 않으면 visitVerificationId가 null인 Result를 반환한다.")
         void getMy_visitVerificationStatus_success_notVerified() {
-            // given: 리포지토리가 빈 Optional을 반환하도록 Mock 설정 (투표 안 함)
             given(
                             visitVerificationRepository.findUserLocationVerifiedByDate(
                                     userId, locationId, targetDate))
                     .willReturn(Optional.empty());
 
-            // when
             VisitVerificationStatusSearchResult result =
-                    visitVerificationQueryService.getMyvisitVerificationStatus(condition);
+                    visitVerificationQueryService.getMyVisitVerificationStatus(condition);
 
-            // then
             assertThat(result).isNotNull();
-            assertThat(result.isvisitVerificationd()).isFalse();
+            assertThat(result.isVisitVerified()).isFalse();
             assertThat(result.visitVerificationId()).isNull();
             assertThat(result.targetDate()).isEqualTo(targetDate);
         }
     }
 
     @Nested
-    @DisplayName("나의 투표 이력 조회 테스트")
+    @DisplayName("나의 방문 인증 이력 조회 테스트")
     class GetMyHistoriesTest {
 
-        private Pageable pageable;
         private VisitVerificationHistoriesSearchCondition searchCondition;
 
         @BeforeEach
         void setUp() {
-            pageable = PageRequest.of(0, 20);
             LocalDateTime startDate = LocalDateTime.of(2026, 8, 1, 0, 0);
             LocalDateTime endDate = LocalDateTime.of(2026, 9, 1, 0, 0);
 
@@ -141,85 +118,71 @@ class VisitVerificationQueryServiceImplTest {
                             .locationId(locationId)
                             .startDate(startDate)
                             .endDate(endDate)
+                            .size(20)
                             .build();
         }
 
         @Test
-        @DisplayName("성공: 검색 조건과 페이지 정보로 투표 이력을 조회한다.")
+        @DisplayName("성공: 검색 조건과 날짜 그룹 size로 방문 인증 이력을 조회한다.")
         void getMyHistories_success() {
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            userId,
-                            VisitVerificationTarget.of(
-                                    locationId,
-                                    locationContentArtistId,
-                                    artistId,
-                                    contentId,
-                                    snapshotName));
+                            userId, locationId, VisitVerificationTarget.of(artistId, contentId));
+
+            LocalDate testDate = LocalDate.of(2026, 8, 19);
 
             ReflectionTestUtils.setField(visitVerification, "id", 42L);
-
-            Page<VisitVerification> visitVerifications =
-                    new PageImpl<>(List.of(visitVerification), pageable, 1);
-
+            ReflectionTestUtils.setField(visitVerification, "verifiedAt", testDate.atTime(12, 0));
+            ReflectionTestUtils.setField(visitVerification, "validVerifiedAt", testDate);
             given(
                             visitVerificationRepository.findHistoriesByCriteria(
-                                    any(VisitVerificationHistoryCriteria.class), eq(pageable)))
-                    .willReturn(visitVerifications);
+                                    any(VisitVerificationHistoryCriteria.class)))
+                    .willReturn(List.of(visitVerification));
 
-            // when
             VisitVerificationHistoriesResult result =
-                    visitVerificationQueryService.getMyHistories(searchCondition, pageable);
+                    visitVerificationQueryService.getMyHistories(searchCondition);
 
-            // then
             assertThat(result).isNotNull();
             assertThat(result.histories()).isNotEmpty();
 
             verify(visitVerificationRepository)
-                    .findHistoriesByCriteria(
-                            any(VisitVerificationHistoryCriteria.class), eq(pageable));
+                    .findHistoriesByCriteria(any(VisitVerificationHistoryCriteria.class));
         }
 
         @Test
-        @DisplayName("성공: 검색 조건에 값이 없어도 전체 투표 이력을 조회할 수 있다.")
+        @DisplayName("성공: 검색 조건에 값이 없어도 전체 방문 인증 이력을 조회할 수 있다.")
         void getMyHistories_success_withoutFilter() {
-            // given
-            VisitVerificationHistoriesSearchCondition searchCondition =
-                    VisitVerificationHistoriesSearchCondition.builder().userId(userId).build();
-
-            Page<VisitVerification> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+            VisitVerificationHistoriesSearchCondition emptySearchCondition =
+                    VisitVerificationHistoriesSearchCondition.builder()
+                            .userId(userId)
+                            .size(20)
+                            .build();
 
             given(
                             visitVerificationRepository.findHistoriesByCriteria(
-                                    any(VisitVerificationHistoryCriteria.class), eq(pageable)))
-                    .willReturn(emptyPage);
+                                    any(VisitVerificationHistoryCriteria.class)))
+                    .willReturn(List.of());
 
-            // when
             VisitVerificationHistoriesResult result =
-                    visitVerificationQueryService.getMyHistories(searchCondition, pageable);
+                    visitVerificationQueryService.getMyHistories(emptySearchCondition);
 
-            // then
             assertThat(result).isNotNull();
             assertThat(result.histories()).isEmpty();
 
             verify(visitVerificationRepository)
-                    .findHistoriesByCriteria(
-                            any(VisitVerificationHistoryCriteria.class), eq(pageable));
+                    .findHistoriesByCriteria(any(VisitVerificationHistoryCriteria.class));
         }
 
         @Test
         @DisplayName("성공: Application Condition이 Domain Criteria로 올바르게 변환되어 Repository에 전달된다.")
         void getMyHistories_success_convertCriteria() {
-            // given
             given(
                             visitVerificationRepository.findHistoriesByCriteria(
-                                    any(VisitVerificationHistoryCriteria.class), eq(pageable)))
-                    .willReturn(new PageImpl<>(List.of(), pageable, 0));
+                                    any(VisitVerificationHistoryCriteria.class)))
+                    .willReturn(List.of());
 
-            // when
-            visitVerificationQueryService.getMyHistories(searchCondition, pageable);
+            visitVerificationQueryService.getMyHistories(searchCondition);
 
-            // then
             verify(visitVerificationRepository)
                     .findHistoriesByCriteria(
                             org.mockito.ArgumentMatchers.argThat(
@@ -236,54 +199,9 @@ class VisitVerificationQueryServiceImplTest {
                                                     && criteria.startDate()
                                                             .equals(searchCondition.startDate())
                                                     && criteria.endDate()
-                                                            .equals(searchCondition.endDate())),
-                            eq(pageable));
-        }
-
-        @Test
-        @DisplayName("성공: 오름차순(ASC) 등 다른 정렬 조건이 요청되어도 QueryDSL 내부 정의에 따라 최신순으로 고정 처리된다.")
-        void getMyHistories_success_ignoreExternalSort() {
-            // given: 클라이언트가 임의로 오름차순(ASC) 정렬을 요청한 Pageable 생성
-            Pageable requestedPageable =
-                    PageRequest.of(
-                            0,
-                            20,
-                            org.springframework.data.domain.Sort.by("verifiedAt").ascending());
-
-            VisitVerification visitVerification =
-                    VisitVerification.createvisitVerification(
-                            userId,
-                            VisitVerificationTarget.of(
-                                    locationId,
-                                    locationContentArtistId,
-                                    artistId,
-                                    contentId,
-                                    snapshotName));
-
-            ReflectionTestUtils.setField(visitVerification, "id", 42L);
-
-            Page<VisitVerification> visitVerifications =
-                    new PageImpl<>(List.of(visitVerification), requestedPageable, 1);
-
-            given(
-                            visitVerificationRepository.findHistoriesByCriteria(
-                                    any(VisitVerificationHistoryCriteria.class),
-                                    any(Pageable.class)))
-                    .willReturn(visitVerifications);
-
-            // when
-            VisitVerificationHistoriesResult result =
-                    visitVerificationQueryService.getMyHistories(
-                            searchCondition, requestedPageable);
-
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.histories()).isNotEmpty();
-
-            // 레포지토리 호출 시 페이징 객체가 정상적으로 전달되었는지 검증
-            verify(visitVerificationRepository)
-                    .findHistoriesByCriteria(
-                            any(VisitVerificationHistoryCriteria.class), eq(requestedPageable));
+                                                            .equals(searchCondition.endDate())
+                                                    && criteria.size()
+                                                            .equals(searchCondition.size())));
         }
     }
 }

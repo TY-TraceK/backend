@@ -15,6 +15,7 @@ import com.tracek.domain.visitVerification.application.dto.command.VisitVerifica
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationHistoriesSearchCondition;
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationStatusSearchCondition;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationCreateResult;
+import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesIndividualResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationStatusSearchResult;
 import com.tracek.domain.visitVerification.application.service.VisitVerificationCommandService;
@@ -27,6 +28,8 @@ import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -201,18 +203,18 @@ class VisitVerificationControllerTest {
                     new VisitVerificationStatusSearchResult(true, 42L, LocalDate.of(2026, 8, 19));
 
             given(
-                            visitVerificationQueryService.getMyvisitVerificationStatus(
+                            visitVerificationQueryService.getMyVisitVerificationStatus(
                                     any(VisitVerificationStatusSearchCondition.class)))
                     .willReturn(mockResult);
 
             // when & then
             mockMvc.perform(
-                            get("/api/locations/{locationId}/visit-verifications/today", locationId)
+                            get("/api/locations/{locationId}/visit-verifications", locationId)
                                     .with(authentication(mockAuthentication))
                                     .param("targetDate", "2026-08-19"))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.isvisitVerificationd").value(true))
+                    .andExpect(jsonPath("$.data.isVisitVerified").value(true))
                     .andExpect(jsonPath("$.data.visitVerificationId").value(42L));
         }
     }
@@ -225,12 +227,15 @@ class VisitVerificationControllerTest {
         @DisplayName("성공: 조건과 페이징 정보로 방문 인증 이력을 조회한다.")
         void getMyVisitVerificationHistories_success() throws Exception {
             // given
+            Map<LocalDate, List<VisitVerificationHistoriesIndividualResult>> dummyHistories =
+                    Map.of(LocalDate.of(2026, 8, 19), List.of());
+
             VisitVerificationHistoriesResult mockResult =
-                    new VisitVerificationHistoriesResult(Page.empty());
+                    new VisitVerificationHistoriesResult(dummyHistories, false, null);
 
             given(
                             visitVerificationQueryService.getMyHistories(
-                                    any(VisitVerificationHistoriesSearchCondition.class), any()))
+                                    any(VisitVerificationHistoriesSearchCondition.class)))
                     .willReturn(mockResult);
 
             // when & then
