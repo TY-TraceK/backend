@@ -8,7 +8,6 @@ import com.tracek.domain.visitVerification.application.service.VisitVerification
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
 import com.tracek.domain.visitVerification.domain.repository.VisitVerificationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class VisitVerificationQueryServiceImpl implements VisitVerificationQuery
     private final VisitVerificationRepository visitVerificationRepository;
 
     @Override
-    public VisitVerificationStatusSearchResult getMyvisitVerificationStatus(
+    public VisitVerificationStatusSearchResult getMyVisitVerificationStatus(
             VisitVerificationStatusSearchCondition condition) {
         return VisitVerificationStatusSearchResult.from(
                 visitVerificationRepository
@@ -30,8 +29,8 @@ public class VisitVerificationQueryServiceImpl implements VisitVerificationQuery
 
     @Override
     public VisitVerificationHistoriesResult getMyHistories(
-            VisitVerificationHistoriesSearchCondition condition, Pageable pageable) {
-        return VisitVerificationHistoriesResult.from(
+            VisitVerificationHistoriesSearchCondition condition) {
+        return VisitVerificationHistoriesResult.of(
                 visitVerificationRepository.findHistoriesByCriteria(
                         VisitVerificationHistoryCriteria.builder()
                                 .userId(condition.userId())
@@ -41,7 +40,10 @@ public class VisitVerificationQueryServiceImpl implements VisitVerificationQuery
                                 .startDate(condition.startDate())
                                 .endDate(condition.endDate())
                                 .status(condition.status())
-                                .build(),
-                        pageable));
+                                .cursorDate(condition.cursorDate())
+                                .city(condition.city())
+                                .size(condition.size())
+                                .build()),
+                condition.size());
     }
 }

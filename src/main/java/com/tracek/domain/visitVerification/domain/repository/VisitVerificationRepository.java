@@ -5,8 +5,6 @@ import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistory
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface VisitVerificationRepository {
 
@@ -23,6 +21,6 @@ public interface VisitVerificationRepository {
     Optional<VisitVerification> findUserLocationVerifiedByDate(
             Long userId, Long locationID, LocalDate date);
 
-    Page<VisitVerification> findHistoriesByCriteria(
-            VisitVerificationHistoryCriteria visitVerificationHistoryCriteria, Pageable pageable);
+    List<VisitVerification> findHistoriesByCriteria(
+            VisitVerificationHistoryCriteria visitVerificationHistoryCriteria);
 }

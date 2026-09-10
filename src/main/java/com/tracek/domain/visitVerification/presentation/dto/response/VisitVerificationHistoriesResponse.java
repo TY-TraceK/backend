@@ -4,17 +4,45 @@ import com.tracek.domain.visitVerification.application.dto.result.VisitVerificat
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
-import org.springframework.data.domain.Page;
 
 @Builder
 public record VisitVerificationHistoriesResponse(
-        Page<VisitVerificationHistoriesIndividualResponse> histories) {
+        List<VisitVerificationHistoriesGroupResponse> histories,
+        boolean hasNext,
+        LocalDate nextCursorDate) {
 
     public static VisitVerificationHistoriesResponse from(VisitVerificationHistoriesResult result) {
+        List<VisitVerificationHistoriesGroupResponse> groupResponses =
+                result.histories().entrySet().stream()
+                        .map(
+                                entry ->
+                                        VisitVerificationHistoriesGroupResponse.of(
+                                                entry.getKey(), entry.getValue()))
+                        .toList();
 
-        return new VisitVerificationHistoriesResponse(
-                result.histories().map(VisitVerificationHistoriesIndividualResponse::from));
+        return VisitVerificationHistoriesResponse.builder()
+                .histories(groupResponses)
+                .hasNext(result.hasNext())
+                .nextCursorDate(result.nextCursorDate())
+                .build();
+    }
+}
+
+@Builder
+record VisitVerificationHistoriesGroupResponse(
+        LocalDate date, List<VisitVerificationHistoriesIndividualResponse> items) {
+
+    public static VisitVerificationHistoriesGroupResponse of(
+            LocalDate date, List<VisitVerificationHistoriesIndividualResult> results) {
+        return VisitVerificationHistoriesGroupResponse.builder()
+                .date(date)
+                .items(
+                        results.stream()
+                                .map(VisitVerificationHistoriesIndividualResponse::from)
+                                .toList())
+                .build();
     }
 }
 

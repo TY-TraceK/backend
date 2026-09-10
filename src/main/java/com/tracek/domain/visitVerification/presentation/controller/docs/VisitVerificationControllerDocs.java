@@ -17,9 +17,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -110,7 +107,7 @@ public interface VisitVerificationControllerDocs {
                         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
             })
     @SecurityRequirement(name = "jwtAuth")
-    ApiResponse<VisitVerificationStatusSearchResponse> getMyvisitVerificationStatus(
+    ApiResponse<VisitVerificationStatusSearchResponse> getMyVisitVerificationStatus(
             @Parameter(hidden = true) @AuthenticationPrincipal
                     com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @PathVariable Long locationId,
@@ -126,11 +123,10 @@ public interface VisitVerificationControllerDocs {
                         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
             })
     @SecurityRequirement(name = "jwtAuth")
-    ApiResponse<VisitVerificationHistoriesResponse> getMyvisitVerificationHistories(
+    ApiResponse<VisitVerificationHistoriesResponse> getMyVisitVerificationHistories(
             @Parameter(hidden = true) @AuthenticationPrincipal
                     com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @Valid @Parameter(required = false) @ParameterObject
-                    VisitVerificationHistoriesSearchRequest visitVerificationHistoriesSearchRequest,
-            @ParameterObject @PageableDefault(size = 10, direction = Sort.Direction.DESC)
-                    Pageable pageable);
+                    VisitVerificationHistoriesSearchRequest
+                            visitVerificationHistoriesSearchRequest);
 }
