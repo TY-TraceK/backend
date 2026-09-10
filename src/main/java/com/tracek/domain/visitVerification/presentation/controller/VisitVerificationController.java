@@ -15,7 +15,6 @@ import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,28 +53,26 @@ public class VisitVerificationController implements VisitVerificationControllerD
     }
 
     @Override
-    @GetMapping("/locations/{locationId}/visit-verifications/today")
-    public ApiResponse<VisitVerificationStatusSearchResponse> getMyvisitVerificationStatus(
+    @GetMapping("/locations/{locationId}/visit-verifications")
+    public ApiResponse<VisitVerificationStatusSearchResponse> getMyVisitVerificationStatus(
             AuthenticationPrincipal principal,
             Long locationId,
             VisitVerificationStatusSearchRequest request) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 VisitVerificationStatusSearchResponse.from(
-                        visitVerificationQueryService.getMyvisitVerificationStatus(
+                        visitVerificationQueryService.getMyVisitVerificationStatus(
                                 request.toCondition(locationId, principal.userId()))));
     }
 
     @Override
     @GetMapping("/users/me/visit-verifications")
-    public ApiResponse<VisitVerificationHistoriesResponse> getMyvisitVerificationHistories(
-            AuthenticationPrincipal principal,
-            VisitVerificationHistoriesSearchRequest request,
-            Pageable pageable) {
+    public ApiResponse<VisitVerificationHistoriesResponse> getMyVisitVerificationHistories(
+            AuthenticationPrincipal principal, VisitVerificationHistoriesSearchRequest request) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 VisitVerificationHistoriesResponse.from(
                         visitVerificationQueryService.getMyHistories(
-                                request.toCondition(principal.userId()), pageable)));
+                                request.toCondition(principal.userId()))));
     }
 }
