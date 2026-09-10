@@ -8,8 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -54,9 +52,9 @@ public class VisitVerificationRepositoryImpl implements VisitVerificationReposit
     }
 
     @Override
-    public Page<VisitVerification> findHistoriesByCriteria(
-            VisitVerificationHistoryCriteria visitVerificationHistoryCriteria, Pageable pageable) {
+    public List<VisitVerification> findHistoriesByCriteria(
+            VisitVerificationHistoryCriteria visitVerificationHistoryCriteria) {
         return visitVerificationQueryDslRepository.findHistoriesByCriteria(
-                visitVerificationHistoryCriteria, pageable);
+                visitVerificationHistoryCriteria);
     }
 }
