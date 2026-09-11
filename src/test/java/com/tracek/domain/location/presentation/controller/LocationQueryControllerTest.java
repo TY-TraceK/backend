@@ -11,11 +11,13 @@ import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
+import com.tracek.domain.location.presentation.request.LocationDetailRequest;
 import com.tracek.domain.location.presentation.request.LocationNearbyRequest;
 import com.tracek.domain.location.presentation.response.LocationDetailResponse;
 import com.tracek.domain.location.presentation.response.LocationNearbyResponse;
 import com.tracek.domain.location.presentation.response.LocationRelatedInfoResponse;
 import com.tracek.domain.location.presentation.response.LocationSummaryResponse;
+import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.response.ApiResponse;
 import java.util.Collections;
 import java.util.List;
@@ -47,14 +49,17 @@ class LocationQueryControllerTest {
     @DisplayName("관광지 단건 상세 조회 성공 시 성공 응답으로 감싸서 반환한다")
     void getLocationDetails_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        RankingCondition condition = new RankingCondition(null, null, 20);
+        LocationDetailRequest request = new LocationDetailRequest(null, null, 20);
         LocationDetailResult result =
-                LocationDetailResult.from(
-                        LocationDetailResult.LocationInfo.of(location),
+                LocationDetailResult.of(
+                        LocationDetailResult.LocationInfo.from(location),
+                        Collections.emptyList(),
                         Collections.emptyList(),
                         Collections.emptyList());
-        given(locationFacade.getLocationDetails(1L)).willReturn(result);
+        given(locationFacade.getLocationDetails(1L, condition)).willReturn(result);
 
-        ApiResponse<LocationDetailResponse> response = controller.getLocationDetails(1L);
+        ApiResponse<LocationDetailResponse> response = controller.getLocationDetails(1L, request);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getLocationInfo().getLocationId()).isEqualTo(1L);

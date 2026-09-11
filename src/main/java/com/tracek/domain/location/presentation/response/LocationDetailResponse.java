@@ -15,17 +15,21 @@ public class LocationDetailResponse {
     private LocationInfoResponse locationInfo;
     private List<LocationImageResponse> images;
     private List<LocationContentResponse> contents;
+    private List<LocationArtistResponse> artists;
 
     public static LocationDetailResponse from(LocationDetailResult result) {
         List<LocationImageResponse> imageResponses =
                 result.getImages().stream().map(LocationImageResponse::from).toList();
         List<LocationContentResponse> contentResponses =
                 result.getContents().stream().map(LocationContentResponse::from).toList();
+        List<LocationArtistResponse> artistResponses =
+                result.getArtists().stream().map(LocationArtistResponse::from).toList();
 
         return new LocationDetailResponse(
                 LocationInfoResponse.from(result.getLocationInfo()),
                 imageResponses,
-                contentResponses);
+                contentResponses,
+                artistResponses);
     }
 
     @Getter
@@ -86,19 +90,16 @@ public class LocationDetailResponse {
         private String contentTitle;
         private String contentType;
         private String contentPictureUrl;
-        private List<LocationArtistResponse> artists;
+        private Long relatedVerificationsCount;
 
         public static LocationContentResponse from(
                 LocationDetailResult.ContentResult contentResult) {
-            List<LocationArtistResponse> artistResponses =
-                    contentResult.getArtists().stream().map(LocationArtistResponse::from).toList();
-
             return new LocationContentResponse(
                     contentResult.getContentId(),
                     contentResult.getContentTitle(),
                     contentResult.getContentType(),
                     contentResult.getContentImageUrl(),
-                    artistResponses);
+                    contentResult.getRelatedVerificationsCount());
         }
     }
 
@@ -108,12 +109,16 @@ public class LocationDetailResponse {
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
+        private Boolean isGroup;
+        private Long relatedVerificationsCount;
 
         public static LocationArtistResponse from(LocationDetailResult.ArtistResult artistResult) {
             return new LocationArtistResponse(
                     artistResult.getArtistId(),
                     artistResult.getArtistName(),
-                    artistResult.getArtistPictureUrl());
+                    artistResult.getArtistPictureUrl(),
+                    artistResult.getIsGroup(),
+                    artistResult.getRelatedVerificationsCount());
         }
     }
 }

@@ -3,7 +3,6 @@ package com.tracek.domain.location.application.facade;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.artist.domain.model.Artist;
@@ -21,6 +20,11 @@ import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.ImageLocation;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
+import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
+import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
+import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
+import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
+import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
 import com.tracek.global.common.vo.ImageUrl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +43,7 @@ class LocationFacadeTest {
     @Mock private ArtistQueryService artistQueryService;
     @Mock private ImageQueryService imageQueryService;
     @Mock private EpisodeQueryService episodeQueryService;
-    @Mock private JPAQueryFactory queryFactory;
+    @Mock private VisitRankingQueryService visitRankingQueryService;
 
     private LocationFacade locationFacade;
 
@@ -52,7 +56,7 @@ class LocationFacadeTest {
                         artistQueryService,
                         imageQueryService,
                         episodeQueryService,
-                        queryFactory);
+                        visitRankingQueryService);
     }
 
     @Test
@@ -75,17 +79,31 @@ class LocationFacadeTest {
                         "아이유", "IU", ImageUrl.from("http://image.com/artist.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 3L);
 
+        RankingCondition condition = new RankingCondition(null, null, 20);
+
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of(5L)))
                 .willReturn(List.of(ImageResult.from(image)));
-        given(episodeQueryService.getContentArtistPairs(1L))
-                .willReturn(List.of(ContentArtistPair.of(2L, 3L)));
+        given(visitRankingQueryService.getContentsByLocation(1L, condition))
+                .willReturn(
+                        new RankingSliceResult<>(
+                                List.of(new RelatedContentRankingResult(2L, 10L)),
+                                null,
+                                null,
+                                false));
+        given(visitRankingQueryService.getArtistsByLocation(1L, condition))
+                .willReturn(
+                        new RankingSliceResult<>(
+                                List.of(new RelatedArtistRankingResult(3L, 5L)),
+                                null,
+                                null,
+                                false));
         given(contentQueryService.getContentsByIds(List.of(2L)))
                 .willReturn(List.of(ContentResult.from(content)));
         given(artistQueryService.getArtistsByIds(List.of(3L)))
                 .willReturn(List.of(ArtistResult.from(artist)));
 
-        LocationDetailResult result = locationFacade.getLocationDetails(1L);
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition);
 
         assertThat(result.getLocationInfo().getId()).isEqualTo(1L);
         assertThat(result.getLocationInfo().getName()).isEqualTo("경복궁");
@@ -94,23 +112,26 @@ class LocationFacadeTest {
                 .isEqualTo("http://image.com/gyeongbok.jpg");
         assertThat(result.getContents()).hasSize(1);
         assertThat(result.getContents().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
-        assertThat(result.getContents().get(0).getArtists()).hasSize(1);
-        assertThat(result.getContents().get(0).getArtists().get(0).getArtistName())
-                .isEqualTo("아이유");
+        assertThat(result.getArtists()).hasSize(1);
+        assertThat(result.getArtists().get(0).getArtistName()).isEqualTo("아이유");
     }
 
     @Test
     @DisplayName("연관 콘텐츠/아티스트 매핑이 없으면 빈 리스트로 조립된다")
     void getLocationDetails_withoutMappings() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        RankingCondition condition = new RankingCondition(null, null, 20);
 
         given(locationQueryService.getLocationEntity(1L)).willReturn(location);
         given(imageQueryService.getImagesByIds(List.of())).willReturn(List.of());
-        given(episodeQueryService.getContentArtistPairs(1L)).willReturn(List.of());
+        given(visitRankingQueryService.getContentsByLocation(1L, condition))
+                .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
+        given(visitRankingQueryService.getArtistsByLocation(1L, condition))
+                .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
         given(contentQueryService.getContentsByIds(List.of())).willReturn(List.of());
         given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());
 
-        LocationDetailResult result = locationFacade.getLocationDetails(1L);
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition);
 
         assertThat(result.getImages()).isEmpty();
         assertThat(result.getContents()).isEmpty();

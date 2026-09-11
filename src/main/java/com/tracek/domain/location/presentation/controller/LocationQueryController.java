@@ -3,8 +3,10 @@ package com.tracek.domain.location.presentation.controller;
 import com.tracek.domain.location.application.dto.*;
 import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
+import com.tracek.domain.location.presentation.request.LocationDetailRequest;
 import com.tracek.domain.location.presentation.request.LocationNearbyRequest;
 import com.tracek.domain.location.presentation.response.*;
+import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,11 +33,13 @@ public class LocationQueryController {
 
     @Operation(
             summary = "관광지 단건 상세 조회",
-            description = "관광지 ID로 상세 정보와 연관 콘텐츠를 조회합니다. 콘텐츠별로 출연 아티스트가 중첩된 계층형 구조로 응답합니다.")
+            description = "관광지 ID로 상세 정보와 연관 콘텐츠를 조회합니다. 콘텐츠별로 출연 아티스트가 중첩된 계층형 플랫 구조로 응답합니다.")
     @GetMapping("/{locationId}")
     public ApiResponse<LocationDetailResponse> getLocationDetails(
-            @Parameter(description = "관광지 ID") @PathVariable Long locationId) {
-        LocationDetailResult result = locationFacade.getLocationDetails(locationId);
+            @Parameter(description = "관광지 ID") @PathVariable Long locationId,
+            @ParameterObject @ModelAttribute LocationDetailRequest request) {
+        RankingCondition condition = request.toCondition();
+        LocationDetailResult result = locationFacade.getLocationDetails(locationId, condition);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationDetailResponse.from(result));
     }
 
