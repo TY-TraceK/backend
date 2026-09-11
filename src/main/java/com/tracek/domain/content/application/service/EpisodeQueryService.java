@@ -17,6 +17,14 @@ public class EpisodeQueryService {
         return episodeQueryRepository.getContentGroupsByLocationId(locationId);
     }
 
+    public List<Long> getLocationIdsByContentId(Long contentId) {
+        return episodeQueryRepository.getLocationIdsByContentId(contentId);
+    }
+
+    public List<Long> getLocationIdsByArtistId(Long artistId) {
+        return episodeQueryRepository.getLocationIdsByArtistId(artistId);
+    }
+
     public Boolean isRelatedContent(Long locationId, Long contentId) {
         return episodeQueryRepository.isRelatedContent(locationId, contentId);
     }

@@ -18,10 +18,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 class ArtistDetailResponseTest {
 
     @Test
-    @DisplayName("ArtistDetailResult를 ArtistDetailResponse로 변환하면 콘텐츠/관광지가 계층형으로 모두 매핑된다")
+    @DisplayName("ArtistDetailResult를 ArtistDetailResponse로 변환하면 연관 장소/콘텐츠가 플랫하게 모두 매핑된다")
     void from_success() {
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 1L);
         ArtistDetailResult.ArtistInfo artistInfo = ArtistDetailResult.ArtistInfo.of(artist);
 
@@ -30,17 +30,17 @@ class ArtistDetailResponseTest {
                         "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         ContentResult contentResult = ContentResult.from(content);
+        ArtistDetailResult.ContentResult detailContentResult =
+                ArtistDetailResult.ContentResult.of(contentResult);
 
         Location location = LocationTestFixture.newLocation(3L, "경복궁", "ATTRACTION", 100L);
         LocationResult locationResult = LocationResult.from(location);
-
-        ArtistDetailResult.ContentResult detailContentResult =
-                ArtistDetailResult.ContentResult.of(
-                        contentResult,
-                        List.of(ArtistDetailResult.LocationResult.from(10L, locationResult)));
+        ArtistDetailResult.LocationResult detailLocationResult =
+                ArtistDetailResult.LocationResult.of(locationResult);
 
         ArtistDetailResult result =
-                ArtistDetailResult.from(artistInfo, List.of(detailContentResult));
+                ArtistDetailResult.from(
+                        artistInfo, List.of(detailLocationResult), List.of(detailContentResult));
 
         ArtistDetailResponse response = ArtistDetailResponse.from(result);
 
@@ -48,24 +48,23 @@ class ArtistDetailResponseTest {
         assertThat(response.getArtistInfo().getName()).isEqualTo("아이유");
         assertThat(response.getContents()).hasSize(1);
         assertThat(response.getContents().get(0).getContentTitle()).isEqualTo("데뷔 앨범");
-        assertThat(response.getContents().get(0).getLocations()).hasSize(1);
-        assertThat(response.getContents().get(0).getLocations().get(0).getLocationName())
-                .isEqualTo("경복궁");
-        assertThat(response.getContents().get(0).getLocations().get(0).getContentArtistLocationId())
-                .isEqualTo(10L);
+        assertThat(response.getLocations()).hasSize(1);
+        assertThat(response.getLocations().get(0).getLocationName()).isEqualTo("경복궁");
     }
 
     @Test
-    @DisplayName("연관 콘텐츠가 없으면 빈 리스트로 변환된다")
+    @DisplayName("연관 콘텐츠/장소가 없으면 빈 리스트로 변환된다")
     void from_withoutContents() {
         Artist artist =
-                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
         ReflectionTestUtils.setField(artist, "id", 1L);
         ArtistDetailResult result =
-                ArtistDetailResult.from(ArtistDetailResult.ArtistInfo.of(artist), List.of());
+                ArtistDetailResult.from(
+                        ArtistDetailResult.ArtistInfo.of(artist), List.of(), List.of());
 
         ArtistDetailResponse response = ArtistDetailResponse.from(result);
 
         assertThat(response.getContents()).isEmpty();
+        assertThat(response.getLocations()).isEmpty();
     }
 }

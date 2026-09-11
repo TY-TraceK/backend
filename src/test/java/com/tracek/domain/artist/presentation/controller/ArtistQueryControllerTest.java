@@ -45,7 +45,8 @@ class ArtistQueryControllerTest {
                 Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 1L);
         ArtistDetailResult result =
-                ArtistDetailResult.from(ArtistDetailResult.ArtistInfo.of(artist), List.of());
+                ArtistDetailResult.from(
+                        ArtistDetailResult.ArtistInfo.of(artist), List.of(), List.of());
         given(artistFacade.getArtistDetails(1L)).willReturn(result);
 
         ApiResponse<ArtistDetailResponse> response = controller.getArtistDetails(1L);

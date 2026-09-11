@@ -46,6 +46,18 @@ public class EpisodeQueryRepository {
                 .fetch();
     }
 
+    public List<Long> getLocationIdsByArtistId(Long artistId) {
+        return queryFactory
+                .select(episodeLocation.location.id)
+                .distinct()
+                .from(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .join(episodeArtist)
+                .on(episode.id.eq(episodeArtist.episode.id))
+                .where(episodeArtist.artist.id.eq(artistId))
+                .fetch();
+    }
+
     public Boolean isRelatedContent(Long locationId, Long contentId) {
         return queryFactory
                         .selectOne()
