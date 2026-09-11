@@ -97,21 +97,19 @@ public class LocationDetailResult {
                     contentResult.getContentId(),
                     contentResult.getTitle(),
                     contentResult.getCategory(),
-                    contentResult.getPictureUrl(), null
-            );
+                    contentResult.getPictureUrl(),
+                    null);
         }
 
         public static ContentResult of(
                 com.tracek.domain.content.application.dto.ContentResult contentResult,
-                Long visitCount
-        ){
+                Long visitCount) {
             return new ContentResult(
                     contentResult.getContentId(),
                     contentResult.getTitle(),
                     contentResult.getCategory(),
                     contentResult.getPictureUrl(),
-                    visitCount
-            );
+                    visitCount);
         }
     }
 
@@ -127,15 +125,22 @@ public class LocationDetailResult {
 
         public static ArtistResult from(
                 com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(artist.getId(), artist.getName(),
-                    artist.getPictureUrl(), artist.getIsGroup(), null);
+            return new ArtistResult(
+                    artist.getId(),
+                    artist.getName(),
+                    artist.getPictureUrl(),
+                    artist.getIsGroup(),
+                    null);
         }
 
         public static ArtistResult of(
-                com.tracek.domain.artist.application.dto.ArtistResult artist, Long visitCount
-        ){
-            return new ArtistResult(artist.getId(), artist.getName(),
-                    artist.getPictureUrl(), artist.getIsGroup(), visitCount);
+                com.tracek.domain.artist.application.dto.ArtistResult artist, Long visitCount) {
+            return new ArtistResult(
+                    artist.getId(),
+                    artist.getName(),
+                    artist.getPictureUrl(),
+                    artist.getIsGroup(),
+                    visitCount);
         }
     }
 }

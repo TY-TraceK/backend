@@ -1,6 +1,5 @@
 package com.tracek.domain.location.presentation.request;
 
-
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,7 @@ public class LocationDetailRequest {
     private Long lastId;
     private int size;
 
-    public RankingCondition toCondition(){
+    public RankingCondition toCondition() {
         return new RankingCondition(this.lastCount, this.lastId, this.size);
     }
 }

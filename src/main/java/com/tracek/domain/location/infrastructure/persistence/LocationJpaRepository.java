@@ -35,11 +35,12 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
     Optional<Location> findByIdForUpdate(@Param("id") Long id);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount + 1 WHERE l.id = :id")
+    @Query(
+            "UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount + 1 WHERE l.id = :id")
     void increseVerificationCount(@Param("id") Long id);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount - 1 WHERE l.id = :id AND l.totalVerificationCount > 0")
+    @Query(
+            "UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount - 1 WHERE l.id = :id AND l.totalVerificationCount > 0")
     void decreseVerificationCount(@Param("id") Long id);
-
 }

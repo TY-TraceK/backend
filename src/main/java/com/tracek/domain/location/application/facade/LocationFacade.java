@@ -12,16 +12,15 @@ import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,21 +61,32 @@ public class LocationFacade {
                                                 m.getDisplayOrder()))
                         .toList();
 
-
         // 장소 -> 연관된 콘텐츠 조회
-        RankingSliceResult<RelatedContentRankingResult> relatedContentRankingResult = visitRankingQueryService.getContentsByLocation(locationId, condition);
-        List<RelatedContentRankingResult> relatedContentRankings = relatedContentRankingResult.rankings();
+        RankingSliceResult<RelatedContentRankingResult> relatedContentRankingResult =
+                visitRankingQueryService.getContentsByLocation(locationId, condition);
+        List<RelatedContentRankingResult> relatedContentRankings =
+                relatedContentRankingResult.rankings();
         // 장소 -> 연관된 아티스트 조회
-        RankingSliceResult<RelatedArtistRankingResult> relatedArtistRankingResult = visitRankingQueryService.getArtistsByLocation(locationId, condition);
-        List<RelatedArtistRankingResult> relatedArtistRankings = relatedArtistRankingResult.rankings();
+        RankingSliceResult<RelatedArtistRankingResult> relatedArtistRankingResult =
+                visitRankingQueryService.getArtistsByLocation(locationId, condition);
+        List<RelatedArtistRankingResult> relatedArtistRankings =
+                relatedArtistRankingResult.rankings();
 
-        // relatedContentRankingResult.rankings() -> List<RelatedContentRankingResult> -> List(contentId, totalVerificationCount)
-        List<Long> sortedContentIds = relatedContentRankings.stream()
-                .map(RelatedContentRankingResult::contentId).distinct().toList();
+        // relatedContentRankingResult.rankings() -> List<RelatedContentRankingResult> ->
+        // List(contentId, totalVerificationCount)
+        List<Long> sortedContentIds =
+                relatedContentRankings.stream()
+                        .map(RelatedContentRankingResult::contentId)
+                        .distinct()
+                        .toList();
 
-        // relatedArtistRankingResult.rankings() -> List<RelatedArtistRankingResult> -> List(artistId, totalVerificationCount)
-        List<Long> sortedArtistIds = relatedArtistRankings.stream()
-                .map(RelatedArtistRankingResult::artistId).distinct().toList();
+        // relatedArtistRankingResult.rankings() -> List<RelatedArtistRankingResult> ->
+        // List(artistId, totalVerificationCount)
+        List<Long> sortedArtistIds =
+                relatedArtistRankings.stream()
+                        .map(RelatedArtistRankingResult::artistId)
+                        .distinct()
+                        .toList();
 
         // IN 절 Batch Query로 N+1 문제 최적화 조회
         // JPA get- 쿼리는 입력 id 순서 보장 X
@@ -84,33 +94,44 @@ public class LocationFacade {
         List<ArtistResult> artists = artistQueryService.getArtistsByIds(sortedArtistIds);
 
         // id 재정렬을 위한 Map
-        Map<Long, ContentResult> contentResultMap = contents.stream()
-                .collect(Collectors.toMap(
-                        ContentResult::getContentId,
-                        content -> content
-                ));
-        Map<Long, ArtistResult> artistResultMap = artists.stream()
-                .collect(Collectors.toMap(
-                        ArtistResult::getId,
-                        artist -> artist
-                ));
+        Map<Long, ContentResult> contentResultMap =
+                contents.stream()
+                        .collect(Collectors.toMap(ContentResult::getContentId, content -> content));
+        Map<Long, ArtistResult> artistResultMap =
+                artists.stream().collect(Collectors.toMap(ArtistResult::getId, artist -> artist));
 
         // 재정렬 및 합성
-        List<LocationDetailResult.ContentResult> contentResults = relatedContentRankings.stream()
-                .map(ranking -> {
-                   ContentResult content = contentResultMap.get(ranking.contentId());
-                   return content == null ? null : LocationDetailResult.ContentResult.of(content, ranking.totalVerificationCount());
-                }).filter(Objects::nonNull)
-                .toList();
-        List<LocationDetailResult.ArtistResult> artistResults = relatedArtistRankings.stream()
-                .map(   ranking -> {
-                    ArtistResult artist = artistResultMap.get(ranking.artistId());
-                    return artist == null ? null : LocationDetailResult.ArtistResult.of(artist, ranking.totalVerificationCount());
-                }).filter(Objects::nonNull)
-                .toList();
+        List<LocationDetailResult.ContentResult> contentResults =
+                relatedContentRankings.stream()
+                        .map(
+                                ranking -> {
+                                    ContentResult content =
+                                            contentResultMap.get(ranking.contentId());
+                                    return content == null
+                                            ? null
+                                            : LocationDetailResult.ContentResult.of(
+                                                    content, ranking.totalVerificationCount());
+                                })
+                        .filter(Objects::nonNull)
+                        .toList();
+        List<LocationDetailResult.ArtistResult> artistResults =
+                relatedArtistRankings.stream()
+                        .map(
+                                ranking -> {
+                                    ArtistResult artist = artistResultMap.get(ranking.artistId());
+                                    return artist == null
+                                            ? null
+                                            : LocationDetailResult.ArtistResult.of(
+                                                    artist, ranking.totalVerificationCount());
+                                })
+                        .filter(Objects::nonNull)
+                        .toList();
 
         return LocationDetailResult.of(
-                LocationDetailResult.LocationInfo.from(location), imageResults, contentResults, artistResults);
+                LocationDetailResult.LocationInfo.from(location),
+                imageResults,
+                contentResults,
+                artistResults);
     }
 
     // 관광지 관련 데이터(콘텐츠-아티스트) 조회 -> 배치 조회 (N+1 개선)

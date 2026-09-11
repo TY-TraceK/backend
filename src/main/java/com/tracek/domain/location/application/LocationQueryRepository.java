@@ -88,6 +88,4 @@ public class LocationQueryRepository {
     private BooleanExpression containKeyword(String keyword) {
         return StringUtils.hasText(keyword) ? location.name.contains(keyword) : null;
     }
-
-
 }

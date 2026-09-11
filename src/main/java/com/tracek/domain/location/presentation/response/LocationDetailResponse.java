@@ -17,7 +17,6 @@ public class LocationDetailResponse {
     private List<LocationContentResponse> contents;
     private List<LocationArtistResponse> artists;
 
-
     public static LocationDetailResponse from(LocationDetailResult result) {
         List<LocationImageResponse> imageResponses =
                 result.getImages().stream().map(LocationImageResponse::from).toList();
@@ -93,14 +92,14 @@ public class LocationDetailResponse {
         private String contentPictureUrl;
         private Long relatedVerificationsCount;
 
-        public static LocationContentResponse from(LocationDetailResult.ContentResult contentResult) {
+        public static LocationContentResponse from(
+                LocationDetailResult.ContentResult contentResult) {
             return new LocationContentResponse(
                     contentResult.getContentId(),
                     contentResult.getContentTitle(),
                     contentResult.getContentType(),
                     contentResult.getContentImageUrl(),
-                    contentResult.getRelatedVerificationsCount()
-            );
+                    contentResult.getRelatedVerificationsCount());
         }
     }
 
@@ -119,8 +118,7 @@ public class LocationDetailResponse {
                     artistResult.getArtistName(),
                     artistResult.getArtistPictureUrl(),
                     artistResult.getIsGroup(),
-                    artistResult.getRelatedVerificationsCount()
-                    );
+                    artistResult.getRelatedVerificationsCount());
         }
     }
 }
