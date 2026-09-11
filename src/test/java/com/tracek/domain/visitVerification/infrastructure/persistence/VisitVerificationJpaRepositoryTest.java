@@ -21,6 +21,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 class VisitVerificationJpaRepositoryTest {
 
     private Long visitVerificationOwner;
+    private Long locationId;
     private VisitVerificationTarget visitVerificationTarget;
 
     @Autowired private VisitVerificationJpaRepository visitVerificationJpaRepository;
@@ -30,8 +31,8 @@ class VisitVerificationJpaRepositoryTest {
     @BeforeEach
     void setUp() {
         visitVerificationOwner = 1L;
-        visitVerificationTarget =
-                VisitVerificationTarget.of(100L, 1000L, 10L, 20L, "경복궁 | BTS | Run BTS Ep.100");
+        locationId = 100L;
+        visitVerificationTarget = VisitVerificationTarget.of(1000L, 10L);
     }
 
     @Test
@@ -40,7 +41,7 @@ class VisitVerificationJpaRepositoryTest {
         // given
         VisitVerification visitVerification =
                 VisitVerification.createvisitVerification(
-                        visitVerificationOwner, visitVerificationTarget);
+                        visitVerificationOwner, locationId, visitVerificationTarget);
         VisitVerification savedvisitVerification =
                 visitVerificationJpaRepository.save(visitVerification);
 
@@ -72,29 +73,29 @@ class VisitVerificationJpaRepositoryTest {
     @Test
     @DisplayName("동일 유저가 동일 장소에 VALID 상태로 중복 저장 시 DB 유니크 제약조건 위반 예외가 발생한다.")
     void duplicate_visitVerification_throws_DataIntegrityViolationException() {
-        // given: 1차 투표 정상 저장
+        // given: 1차 방문 인증 정상 저장
         VisitVerification visitVerification1 =
                 VisitVerification.createvisitVerification(
-                        visitVerificationOwner, visitVerificationTarget);
+                        visitVerificationOwner, locationId, visitVerificationTarget);
         visitVerificationJpaRepository.save(visitVerification1);
         entityManager.flush();
 
-        // when & then: 동일한 조건의 2차 투표 저장 시 save() 호출 시점에 예외 발생 검증
+        // when & then: 동일한 조건의 2차 방문 인증 저장 시 save() 호출 시점에 예외 발생 검증
         VisitVerification visitVerification2 =
                 VisitVerification.createvisitVerification(
-                        visitVerificationOwner, visitVerificationTarget);
+                        visitVerificationOwner, locationId, visitVerificationTarget);
 
         assertThatThrownBy(() -> visitVerificationJpaRepository.saveAndFlush(visitVerification2))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
-    @DisplayName("기존 투표를 CANCELED(invalid) 처리하면 동일 유저가 동일 장소에 다시 유효한 투표를 저장할 수 있다.")
+    @DisplayName("기존 방문 인증를 CANCELED(invalid) 처리하면 동일 유저가 동일 장소에 다시 유효한 방문 인증를 저장할 수 있다.")
     void revisitVerification_success_after_cancellation() {
-        // given: 1차 투표 후 취소 처리
+        // given: 1차 방문 인증 후 취소 처리
         VisitVerification visitVerification1 =
                 VisitVerification.createvisitVerification(
-                        visitVerificationOwner, visitVerificationTarget);
+                        visitVerificationOwner, locationId, visitVerificationTarget);
         visitVerificationJpaRepository.save(visitVerification1);
         entityManager.flush();
 
@@ -102,10 +103,10 @@ class VisitVerificationJpaRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        // when: 2차 재투표 저장
+        // when: 2차 재방문 인증 저장
         VisitVerification revisitVerification =
                 VisitVerification.createvisitVerification(
-                        visitVerificationOwner, visitVerificationTarget);
+                        visitVerificationOwner, locationId, visitVerificationTarget);
         VisitVerification savedRevisitVerification =
                 visitVerificationJpaRepository.save(revisitVerification);
         entityManager.flush();

@@ -2,16 +2,15 @@ package com.tracek.domain.visitVerification.infrastructure.persistence;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tracek.domain.location.domain.model.QLocation;
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.domain.model.QVisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,39 +20,29 @@ public class VisitVerificationQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     private final QVisitVerification visitVerification = QVisitVerification.visitVerification;
+    private final QLocation location = QLocation.location;
 
-    public Page<VisitVerification> findHistoriesByCriteria(
-            VisitVerificationHistoryCriteria criteria, Pageable pageable) {
+    public List<VisitVerification> findHistoriesByCriteria(
+            VisitVerificationHistoryCriteria criteria) {
 
-        List<VisitVerification> content =
-                queryFactory
-                        .selectFrom(visitVerification)
-                        .where(
-                                userIdEq(criteria.userId()),
-                                artistIdEq(criteria.artistId()),
-                                contentIdEq(criteria.contentId()),
-                                locationIdEq(criteria.locationId()),
-                                visitVerificationStatusEq(criteria.status()),
-                                dateBetween(criteria.startDate(), criteria.endDate()))
-                        .orderBy(visitVerification.verifiedAt.desc(), visitVerification.id.desc())
-                        .offset(pageable.getOffset())
-                        .limit(pageable.getPageSize())
-                        .fetch();
+        int pageSize = criteria.size() != null ? criteria.size() : 20;
 
-        Long total =
-                queryFactory
-                        .select(visitVerification.count())
-                        .from(visitVerification)
-                        .where(
-                                userIdEq(criteria.userId()),
-                                artistIdEq(criteria.artistId()),
-                                contentIdEq(criteria.contentId()),
-                                locationIdEq(criteria.locationId()),
-                                visitVerificationStatusEq(criteria.status()),
-                                dateBetween(criteria.startDate(), criteria.endDate()))
-                        .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0);
+        return queryFactory
+                .selectFrom(visitVerification)
+                .leftJoin(location)
+                .on(visitVerification.locationId.eq(location.id))
+                .where(
+                        userIdEq(criteria.userId()),
+                        artistIdEq(criteria.artistId()),
+                        contentIdEq(criteria.contentId()),
+                        locationIdEq(criteria.locationId()),
+                        cityEq(criteria.city()),
+                        visitVerificationStatusEq(criteria.status()),
+                        dateBetween(criteria.startDate(), criteria.endDate()),
+                        ltCursorDate(criteria.cursorDate()))
+                .orderBy(visitVerification.verifiedAt.desc(), visitVerification.id.desc())
+                .limit(pageSize + 1)
+                .fetch();
     }
 
     private BooleanExpression userIdEq(Long userId) {
@@ -71,9 +60,11 @@ public class VisitVerificationQueryDslRepository {
     }
 
     private BooleanExpression locationIdEq(Long locationId) {
-        return locationId != null
-                ? visitVerification.verificationTarget.locationId.eq(locationId)
-                : null;
+        return locationId != null ? visitVerification.locationId.eq(locationId) : null;
+    }
+
+    private BooleanExpression cityEq(String city) {
+        return city != null && !city.isBlank() ? location.address.city.eq(city) : null;
     }
 
     private BooleanExpression visitVerificationStatusEq(VisitVerificationStatus status) {
@@ -97,5 +88,9 @@ public class VisitVerificationQueryDslRepository {
                 .verifiedAt
                 .goe(startDate)
                 .and(visitVerification.verifiedAt.lt(endDate));
+    }
+
+    private BooleanExpression ltCursorDate(LocalDate cursorDate) {
+        return cursorDate != null ? visitVerification.validVerifiedAt.lt(cursorDate) : null;
     }
 }

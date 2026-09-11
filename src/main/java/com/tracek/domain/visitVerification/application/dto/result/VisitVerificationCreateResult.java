@@ -6,14 +6,12 @@ import lombok.Builder;
 
 @Builder
 public record VisitVerificationCreateResult(
-        Long visitVerificationId,
-        String visitVerificationStatus,
-        LocalDateTime visitVerificationdAt) {
+        Long visitVerificationId, String visitVerificationStatus, LocalDateTime visitVerifiedAt) {
 
     public static VisitVerificationCreateResult from(VisitVerification visitVerification) {
         return VisitVerificationCreateResult.builder()
                 .visitVerificationId(visitVerification.getId())
-                .visitVerificationdAt(visitVerification.getVerifiedAt())
+                .visitVerifiedAt(visitVerification.getVerifiedAt())
                 .build();
     }
 }

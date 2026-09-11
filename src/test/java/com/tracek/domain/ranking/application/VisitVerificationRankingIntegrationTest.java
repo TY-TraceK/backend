@@ -1,10 +1,11 @@
 package com.tracek.domain.ranking.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
-import com.tracek.domain.location.application.dto.LocationContentArtistResult;
+import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.ranking.domain.model.ArtistLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.ContentLocationVisitRanking;
@@ -57,9 +58,10 @@ class VisitVerificationRankingIntegrationTest {
 
     @MockitoBean private LocationQueryService locationQueryService;
 
+    @MockitoBean private EpisodeQueryService episodeQueryService;
+
     private Long userId;
     private Long locationId;
-    private Long locationContentArtistId;
     private Long artistId;
     private Long contentId;
 
@@ -67,17 +69,15 @@ class VisitVerificationRankingIntegrationTest {
     void setUp() {
         userId = 1L;
         locationId = 100L;
-        locationContentArtistId = 1000L;
         artistId = 10L;
         contentId = 20L;
 
-        LocationContentArtistResult mockResult =
-                org.mockito.Mockito.mock(LocationContentArtistResult.class);
-
-        given(mockResult.getLocationId()).willReturn(locationId);
-        given(mockResult.getArtistId()).willReturn(artistId);
-        given(mockResult.getContentId()).willReturn(contentId);
-        given(locationQueryService.getMappingById(anyLong())).willReturn(mockResult);
+        // 서비스 내부 검증 로직(!isRelatedVerifiedTarget, !isVisitZoneWithIn) 통과 설정
+        given(episodeQueryService.isRelatedContentAndArtist(anyLong(), anyLong(), anyLong()))
+                .willReturn(true);
+        given(episodeQueryService.isRelatedContent(anyLong(), anyLong())).willReturn(true);
+        given(locationQueryService.isWithinDistance(anyDouble(), anyDouble(), anyLong(), anyLong()))
+                .willReturn(true);
 
         initializeRankingRows();
     }
@@ -105,7 +105,8 @@ class VisitVerificationRankingIntegrationTest {
         return VisitVerificationCreateCommand.builder()
                 .userId(userId)
                 .locationId(locationId)
-                .locationContentArtistId(locationContentArtistId)
+                .contentId(contentId)
+                .artistId(artistId)
                 .latitude(LATITUDE)
                 .longitude(LONGITUDE)
                 .build();
@@ -564,9 +565,6 @@ class VisitVerificationRankingIntegrationTest {
 
             /*
              * 10 → 0이 정확히 되어야 한다.
-             *
-             * 현재 dirty checking 방식이라면
-             * 여기서 Lost Update가 발생할 가능성이 있음.
              */
             assertThat(locationRankingCount).isZero();
 

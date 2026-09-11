@@ -18,7 +18,7 @@ public record VisitVerificationCanceledEvent(
                 .visitVerificationId(visitVerification.getId())
                 .visitVerificationOwner(visitVerification.getOwner())
                 .verifiedAt(visitVerification.getVerifiedAt())
-                .locationId(visitVerification.getVerificationTarget().getLocationId())
+                .locationId(visitVerification.getLocationId())
                 .artistId(visitVerification.getVerificationTarget().getArtistId())
                 .contentId(visitVerification.getVerificationTarget().getContentId())
                 .build();

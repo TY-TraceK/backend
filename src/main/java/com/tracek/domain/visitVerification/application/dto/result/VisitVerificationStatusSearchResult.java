@@ -7,12 +7,12 @@ import lombok.Builder;
 
 @Builder
 public record VisitVerificationStatusSearchResult(
-        Boolean isvisitVerificationd, Long visitVerificationId, LocalDate targetDate) {
+        Boolean isVisitVerified, Long visitVerificationId, LocalDate targetDate) {
 
     public static VisitVerificationStatusSearchResult from(
             VisitVerification visitVerification, LocalDate targetDate) {
         return VisitVerificationStatusSearchResult.builder()
-                .isvisitVerificationd(Objects.nonNull(visitVerification))
+                .isVisitVerified(Objects.nonNull(visitVerification))
                 .visitVerificationId(visitVerification != null ? visitVerification.getId() : null)
                 .targetDate(targetDate)
                 .build();

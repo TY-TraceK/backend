@@ -6,5 +6,7 @@ import lombok.Builder;
 public record VisitVerificationCreateCommand(
         Long userId,
         Long locationId,
-        Long locationContentArtistId,
-        String visitVerificationTargetNameSnapShot) {}
+        Long contentId,
+        Long artistId,
+        Double latitude,
+        Double longitude) {}

@@ -4,24 +4,45 @@ import com.tracek.domain.visitVerification.application.dto.condition.VisitVerifi
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import jakarta.validation.constraints.AssertTrue;
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 public record VisitVerificationHistoriesSearchRequest(
         Long artistId,
         Long contentId,
         Long locationId,
+        String city,
         VisitVerificationStatus status,
+        Integer year,
+        Integer month,
         LocalDate startDate,
-        LocalDate endDate) {
+        LocalDate endDate,
+        LocalDate cursorDate,
+        Integer size) {
+
+    public VisitVerificationHistoriesSearchRequest {
+        if (year != null && month != null) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            if (startDate == null) {
+                startDate = yearMonth.atDay(1);
+            }
+            if (endDate == null) {
+                endDate = yearMonth.atEndOfMonth();
+            }
+        }
+    }
 
     public VisitVerificationHistoriesSearchCondition toCondition(Long userId) {
         return VisitVerificationHistoriesSearchCondition.builder()
                 .artistId(artistId)
                 .contentId(contentId)
                 .locationId(locationId)
+                .city(city)
                 .status(status)
                 .startDate(startDate != null ? startDate.atStartOfDay() : null)
                 .endDate(endDate != null ? endDate.plusDays(1).atStartOfDay() : null)
                 .userId(userId)
+                .cursorDate(cursorDate)
+                .size(size == null ? 5 : size)
                 .build();
     }
 
