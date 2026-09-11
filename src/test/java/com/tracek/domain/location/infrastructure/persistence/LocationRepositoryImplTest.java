@@ -127,4 +127,14 @@ class LocationRepositoryImplTest {
         locationRepositoryImpl.deleteByUserIdAndLocationId(1L, 1L);
         verify(locationLikeJpaRepository).deleteByUserIdAndLocationId(1L, 1L);
     }
+
+    @Test
+    @DisplayName("방문 인증 카운트 증가/감소는 LocationJpaRepository에 위임한다")
+    void verificationCount_delegates() {
+        locationRepositoryImpl.increseVerificationCount(1L);
+        verify(locationJpaRepository).increseVerificationCount(1L);
+
+        locationRepositoryImpl.decreseVerificationCount(1L);
+        verify(locationJpaRepository).decreseVerificationCount(1L);
+    }
 }

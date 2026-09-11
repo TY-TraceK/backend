@@ -18,10 +18,17 @@ public class LocationResult {
     private Long locationId;
     private String name;
     private String category;
-    private Long likeCount;
     private Address address;
     private GeoLocation geoLocation;
     private String mainImageUrl;
+    private String tel;
+    private String businessHours;
+    private String overview;
+    private Long externalContentId;
+    private String sourceType;
+    private Long likeCount;
+    private Long archiveCount;
+    private Long totalVerificationCount;
     private List<LocationImageResult> images;
     private List<ContentResult> contents;
     private List<ArtistResult> artists;
@@ -35,10 +42,17 @@ public class LocationResult {
                 location.getId(),
                 location.getName(),
                 location.getCategory() == null ? null : location.getCategory().name(),
-                location.getLikeCount(),
                 location.getAddress(),
                 location.getGeoLocation(),
                 location.getMainImageUrl().getImageUrl(),
+                location.getTel(),
+                location.getBusinessHours(),
+                location.getOverview(),
+                location.getExternalContentId(),
+                location.getSourceType(),
+                location.getLikeCount(),
+                location.getArchiveCount(),
+                location.getTotalVerificationCount(),
                 imageResults == null ? Collections.emptyList() : imageResults,
                 contents == null ? Collections.emptyList() : contents,
                 artists == null ? Collections.emptyList() : artists);

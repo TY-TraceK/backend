@@ -20,11 +20,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 class LocationDetailResponseTest {
 
     @Test
-    @DisplayName("LocationDetailResult를 LocationDetailResponse로 변환하면 이미지/콘텐츠/아티스트가 계층형으로 모두 매핑된다")
+    @DisplayName("LocationDetailResult를 LocationDetailResponse로 변환하면 이미지/콘텐츠/아티스트가 플랫 구조로 모두 매핑된다")
     void from_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult.LocationInfo locationInfo =
-                LocationDetailResult.LocationInfo.of(location);
+                LocationDetailResult.LocationInfo.from(location);
 
         Image image = Image.create("http://image.com/a.jpg");
         ReflectionTestUtils.setField(image, "id", 5L);
@@ -39,20 +39,22 @@ class LocationDetailResponseTest {
                         ImageUrl.from("http://image.com/c.jpg"));
         ReflectionTestUtils.setField(content, "id", 2L);
         ContentResult contentResult = ContentResult.from(content);
+        LocationDetailResult.ContentResult detailContentResult =
+                LocationDetailResult.ContentResult.from(contentResult);
 
         Artist artist =
                 Artist.create("아이유", "IU", ImageUrl.from("http://image.com/ar.jpg"), null, null);
         ReflectionTestUtils.setField(artist, "id", 3L);
         ArtistResult artistResult = ArtistResult.from(artist);
-
-        LocationDetailResult.ContentResult detailContentResult =
-                LocationDetailResult.ContentResult.of(
-                        contentResult,
-                        List.of(LocationDetailResult.ArtistResult.from(artistResult)));
+        LocationDetailResult.ArtistResult detailArtistResult =
+                LocationDetailResult.ArtistResult.from(artistResult);
 
         LocationDetailResult result =
-                LocationDetailResult.from(
-                        locationInfo, List.of(imageResult), List.of(detailContentResult));
+                LocationDetailResult.of(
+                        locationInfo,
+                        List.of(imageResult),
+                        List.of(detailContentResult),
+                        List.of(detailArtistResult));
 
         LocationDetailResponse response = LocationDetailResponse.from(result);
 
@@ -62,22 +64,25 @@ class LocationDetailResponseTest {
         assertThat(response.getImages().get(0).getImageUrl()).isEqualTo("http://image.com/a.jpg");
         assertThat(response.getContents()).hasSize(1);
         assertThat(response.getContents().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
-        assertThat(response.getContents().get(0).getArtists()).hasSize(1);
-        assertThat(response.getContents().get(0).getArtists().get(0).getArtistName())
-                .isEqualTo("아이유");
+        assertThat(response.getArtists()).hasSize(1);
+        assertThat(response.getArtists().get(0).getArtistName()).isEqualTo("아이유");
     }
 
     @Test
-    @DisplayName("연관 이미지/콘텐츠가 없으면 빈 리스트로 변환된다")
+    @DisplayName("연관 이미지/콘텐츠/아티스트가 없으면 빈 리스트로 변환된다")
     void from_withoutRelatedItems() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult result =
-                LocationDetailResult.from(
-                        LocationDetailResult.LocationInfo.of(location), List.of(), List.of());
+                LocationDetailResult.of(
+                        LocationDetailResult.LocationInfo.from(location),
+                        List.of(),
+                        List.of(),
+                        List.of());
 
         LocationDetailResponse response = LocationDetailResponse.from(result);
 
         assertThat(response.getImages()).isEmpty();
         assertThat(response.getContents()).isEmpty();
+        assertThat(response.getArtists()).isEmpty();
     }
 }

@@ -1,6 +1,5 @@
 package com.tracek.domain.location.application.dto;
 
-import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.location.domain.model.Address;
 import com.tracek.domain.location.domain.model.GeoLocation;
@@ -18,12 +17,14 @@ public class LocationDetailResult {
     private LocationInfo locationInfo;
     private List<LocationImageResult> images;
     private List<ContentResult> contents;
+    private List<ArtistResult> artists;
 
-    public static LocationDetailResult from(
+    public static LocationDetailResult of(
             LocationInfo locationInfo,
             List<LocationImageResult> images,
-            List<ContentResult> contents) {
-        return new LocationDetailResult(locationInfo, images, contents);
+            List<ContentResult> contents,
+            List<ArtistResult> artists) {
+        return new LocationDetailResult(locationInfo, images, contents, artists);
     }
 
     @Getter
@@ -45,7 +46,7 @@ public class LocationDetailResult {
         private Long likeCount;
         private Long totalVerificationCount;
 
-        public static LocationInfo of(Location location) {
+        public static LocationInfo from(Location location) {
             return new LocationInfo(
                     location.getId(),
                     location.getName(),
@@ -88,17 +89,27 @@ public class LocationDetailResult {
         private String contentTitle;
         private String contentType;
         private String contentImageUrl;
-        private List<ArtistResult> artists;
+        private Long relatedVerificationsCount;
 
-        public static ContentResult of(
-                com.tracek.domain.content.application.dto.ContentResult contentResult,
-                List<ArtistResult> artists) {
+        public static ContentResult from(
+                com.tracek.domain.content.application.dto.ContentResult contentResult) {
             return new ContentResult(
                     contentResult.getContentId(),
                     contentResult.getTitle(),
                     contentResult.getCategory(),
                     contentResult.getPictureUrl(),
-                    artists);
+                    null);
+        }
+
+        public static ContentResult of(
+                com.tracek.domain.content.application.dto.ContentResult contentResult,
+                Long visitCount) {
+            return new ContentResult(
+                    contentResult.getContentId(),
+                    contentResult.getTitle(),
+                    contentResult.getCategory(),
+                    contentResult.getPictureUrl(),
+                    visitCount);
         }
     }
 
@@ -109,10 +120,27 @@ public class LocationDetailResult {
         private Long artistId;
         private String artistName;
         private String artistPictureUrl;
+        private Boolean isGroup;
+        private Long relatedVerificationsCount;
 
         public static ArtistResult from(
                 com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
+            return new ArtistResult(
+                    artist.getId(),
+                    artist.getName(),
+                    artist.getPictureUrl(),
+                    artist.getIsGroup(),
+                    null);
+        }
+
+        public static ArtistResult of(
+                com.tracek.domain.artist.application.dto.ArtistResult artist, Long visitCount) {
+            return new ArtistResult(
+                    artist.getId(),
+                    artist.getName(),
+                    artist.getPictureUrl(),
+                    artist.getIsGroup(),
+                    visitCount);
         }
     }
 }
