@@ -46,4 +46,8 @@ public interface LocationRepository {
     Optional<LocationContentArtist> findMappingById(Long contentArtistLocationId);
 
     Optional<Location> findByIdForUpdate(Long id);
+
+    void increseVerificationCount(Long id);
+
+    void decreseVerificationCount(Long id);
 }

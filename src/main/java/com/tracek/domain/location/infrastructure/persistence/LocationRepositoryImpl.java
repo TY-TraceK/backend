@@ -101,4 +101,14 @@ public class LocationRepositoryImpl implements LocationRepository {
     public Optional<Location> findByIdForUpdate(Long id) {
         return locationJpaRepository.findByIdForUpdate(id);
     }
+
+    @Override
+    public void increseVerificationCount(Long id) {
+        locationJpaRepository.increseVerificationCount(id);
+    }
+
+    @Override
+    public void decreseVerificationCount(Long id) {
+        locationJpaRepository.decreseVerificationCount(id);
+    }
 }

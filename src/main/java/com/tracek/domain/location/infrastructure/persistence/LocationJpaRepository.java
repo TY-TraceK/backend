@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -32,4 +33,13 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT l FROM Location l WHERE l.id = :id")
     Optional<Location> findByIdForUpdate(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount + 1 WHERE l.id = :id")
+    void increseVerificationCount(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Location l SET l.totalVerificationCount = l.totalVerificationCount - 1 WHERE l.id = :id AND l.totalVerificationCount > 0")
+    void decreseVerificationCount(@Param("id") Long id);
+
 }
