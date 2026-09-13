@@ -22,139 +22,139 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class VisitRankingQueryServiceImpl implements VisitRankingQueryService {
 
-  private final ContentArtistVisitRankingRepository contentArtistRankingRepository;
-  private final ContentLocationVisitRankingRepository contentLocationRankingRepository;
-  private final ArtistLocationVisitRankingRepository artistLocationRankingRepository;
-  private final ContentArtistLocationVisitRankingRepository
-      contentArtistLocationVisitRankingRepository;
+    private final ContentArtistVisitRankingRepository contentArtistRankingRepository;
+    private final ContentLocationVisitRankingRepository contentLocationRankingRepository;
+    private final ArtistLocationVisitRankingRepository artistLocationRankingRepository;
+    private final ContentArtistLocationVisitRankingRepository
+            contentArtistLocationVisitRankingRepository;
 
-  @Override
-  public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
-      Long contentId, RankingCondition condition) {
+    @Override
+    public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
+            Long contentId, RankingCondition condition) {
 
-    return RankingSliceResult.from(
-        contentArtistRankingRepository.findArtistsByContent(
-            contentId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedArtistRankingResult(
-                item.targetId().artistId(), item.totalVerificationCount()),
-        item -> item.targetId().artistId());
-  }
+        return RankingSliceResult.from(
+                contentArtistRankingRepository.findArtistsByContent(
+                        contentId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedArtistRankingResult(
+                                item.targetId().artistId(), item.totalVerificationCount()),
+                item -> item.targetId().artistId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedLocationRankingResult> getLocationsByContent(
-      Long contentId, RankingCondition condition) {
+    @Override
+    public RankingSliceResult<RelatedLocationRankingResult> getLocationsByContent(
+            Long contentId, RankingCondition condition) {
 
-    return RankingSliceResult.from(
-        contentLocationRankingRepository.findLocationsByContent(
-            contentId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedLocationRankingResult(
-                item.targetId().locationId(), item.totalVerificationCount()),
-        item -> item.targetId().locationId());
-  }
+        return RankingSliceResult.from(
+                contentLocationRankingRepository.findLocationsByContent(
+                        contentId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedLocationRankingResult(
+                                item.targetId().locationId(), item.totalVerificationCount()),
+                item -> item.targetId().locationId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByContent(Long contentId) {
+    @Override
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByContent(Long contentId) {
 
-    List<RankingItem> items =
-        contentArtistLocationVisitRankingRepository.findRankingsByContent(contentId, null);
+        List<RankingItem> items =
+                contentArtistLocationVisitRankingRepository.findRankingsByContent(contentId, null);
 
-    return RankingSliceResult.from(
-        items,
-        items.size(),
-        item ->
-            RelatedMultiRankingResult.from(
-                item.targetId(), item.totalVerificationCount()),
-        item -> item.targetId().locationId());
-  }
+        return RankingSliceResult.from(
+                items,
+                items.size(),
+                item ->
+                        RelatedMultiRankingResult.from(
+                                item.targetId(), item.totalVerificationCount()),
+                item -> item.targetId().locationId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByArtist(Long artistId) {
+    @Override
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByArtist(Long artistId) {
 
-    List<RankingItem> items =
-        contentArtistLocationVisitRankingRepository.findRankingsByArtist(artistId, null);
+        List<RankingItem> items =
+                contentArtistLocationVisitRankingRepository.findRankingsByArtist(artistId, null);
 
-    return RankingSliceResult.from(
-        items,
-        items.size(),
-        item ->
-            RelatedMultiRankingResult.from(
-                item.targetId(), item.totalVerificationCount()),
-        item -> item.targetId().locationId());
-  }
+        return RankingSliceResult.from(
+                items,
+                items.size(),
+                item ->
+                        RelatedMultiRankingResult.from(
+                                item.targetId(), item.totalVerificationCount()),
+                item -> item.targetId().locationId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(
-      Long locationId) {
+    @Override
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(
+            Long locationId) {
 
-    List<RankingItem> items =
-        contentArtistLocationVisitRankingRepository.findRankingsByLocation(
-            locationId, null);
+        List<RankingItem> items =
+                contentArtistLocationVisitRankingRepository.findRankingsByLocation(
+                        locationId, null);
 
-    return RankingSliceResult.from(
-        items,
-        items.size(),
-        item ->
-            RelatedMultiRankingResult.from(
-                item.targetId(), item.totalVerificationCount()),
-        item -> item.targetId().locationId());
-  }
+        return RankingSliceResult.from(
+                items,
+                items.size(),
+                item ->
+                        RelatedMultiRankingResult.from(
+                                item.targetId(), item.totalVerificationCount()),
+                item -> item.targetId().locationId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedLocationRankingResult> getLocationsByArtist(
-      Long artistId, RankingCondition condition) {
+    @Override
+    public RankingSliceResult<RelatedLocationRankingResult> getLocationsByArtist(
+            Long artistId, RankingCondition condition) {
 
-    return RankingSliceResult.from(
-        artistLocationRankingRepository.findLocationsByArtist(
-            artistId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedLocationRankingResult(
-                item.targetId().locationId(), item.totalVerificationCount()),
-        item -> item.targetId().locationId());
-  }
+        return RankingSliceResult.from(
+                artistLocationRankingRepository.findLocationsByArtist(
+                        artistId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedLocationRankingResult(
+                                item.targetId().locationId(), item.totalVerificationCount()),
+                item -> item.targetId().locationId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedContentRankingResult> getContentsByArtist(
-      Long artistId, RankingCondition condition) {
+    @Override
+    public RankingSliceResult<RelatedContentRankingResult> getContentsByArtist(
+            Long artistId, RankingCondition condition) {
 
-    return RankingSliceResult.from(
-        contentArtistRankingRepository.findContentsByArtist(
-            artistId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedContentRankingResult(
-                item.targetId().contentId(), item.totalVerificationCount()),
-        item -> item.targetId().contentId());
-  }
+        return RankingSliceResult.from(
+                contentArtistRankingRepository.findContentsByArtist(
+                        artistId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedContentRankingResult(
+                                item.targetId().contentId(), item.totalVerificationCount()),
+                item -> item.targetId().contentId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedArtistRankingResult> getArtistsByLocation(
-      Long locationId, RankingCondition condition) {
+    @Override
+    public RankingSliceResult<RelatedArtistRankingResult> getArtistsByLocation(
+            Long locationId, RankingCondition condition) {
 
-    return RankingSliceResult.from(
-        artistLocationRankingRepository.findArtistsByLocation(
-            locationId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedArtistRankingResult(
-                item.targetId().artistId(), item.totalVerificationCount()),
-        item -> item.targetId().artistId());
-  }
+        return RankingSliceResult.from(
+                artistLocationRankingRepository.findArtistsByLocation(
+                        locationId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedArtistRankingResult(
+                                item.targetId().artistId(), item.totalVerificationCount()),
+                item -> item.targetId().artistId());
+    }
 
-  @Override
-  public RankingSliceResult<RelatedContentRankingResult> getContentsByLocation(
-      Long locationId, RankingCondition condition) {
-    return RankingSliceResult.from(
-        contentLocationRankingRepository.findContentsByLocation(
-            locationId, condition.toCriteria()),
-        condition.size(),
-        item ->
-            new RelatedContentRankingResult(
-                item.targetId().contentId(), item.totalVerificationCount()),
-        item -> item.targetId().contentId());
-  }
+    @Override
+    public RankingSliceResult<RelatedContentRankingResult> getContentsByLocation(
+            Long locationId, RankingCondition condition) {
+        return RankingSliceResult.from(
+                contentLocationRankingRepository.findContentsByLocation(
+                        locationId, condition.toCriteria()),
+                condition.size(),
+                item ->
+                        new RelatedContentRankingResult(
+                                item.targetId().contentId(), item.totalVerificationCount()),
+                item -> item.targetId().contentId());
+    }
 }
