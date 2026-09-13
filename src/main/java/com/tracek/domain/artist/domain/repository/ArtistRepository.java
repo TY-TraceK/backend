@@ -18,4 +18,6 @@ public interface ArtistRepository {
     Artist save(Artist artist);
 
     void deleteById(Long id);
+
+    List<Artist> findByGroupId(Long groupId);
 }

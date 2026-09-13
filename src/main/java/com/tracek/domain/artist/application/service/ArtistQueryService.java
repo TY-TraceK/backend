@@ -37,4 +37,8 @@ public class ArtistQueryService {
     public Page<ArtistSummaryResult> getAllArtists(Pageable pageable) {
         return artistRepository.findAll(pageable).map(ArtistSummaryResult::from);
     }
+
+    public List<Artist> findByGroupId(Long groupId) {
+        return artistRepository.findByGroupId(groupId);
+    }
 }
