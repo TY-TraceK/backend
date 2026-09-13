@@ -22,4 +22,8 @@ public interface ContentRepository {
     Page<Content> findByCategory(ContentCategory category, Pageable pageable);
 
     Page<Content> findAll(Pageable pageable);
+
+    void increseVerificationCount(Long id);
+
+    void decreseVerificationCount(Long id);
 }

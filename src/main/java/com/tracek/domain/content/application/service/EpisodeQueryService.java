@@ -2,6 +2,7 @@ package com.tracek.domain.content.application.service;
 
 import com.tracek.domain.content.application.EpisodeQueryRepository;
 import com.tracek.domain.content.application.dto.ContentArtistPair;
+import com.tracek.domain.content.domain.model.EpisodeLocation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,5 +32,19 @@ public class EpisodeQueryService {
 
     public Boolean isRelatedContentAndArtist(Long locationId, Long contentId, Long artistId) {
         return episodeQueryRepository.isRelatedContentAndArtist(locationId, contentId, artistId);
+    }
+
+    public List<EpisodeLocation> getEpisodesByArtistAndLocationIds(
+            Long artistId, List<Long> locationIds) {
+        return episodeQueryRepository.getEpisodesIdsByArtistAndLocationIds(artistId, locationIds);
+    }
+
+    public List<EpisodeLocation> getEpisodesByArtistAndContentIds(
+            Long artistId, List<Long> contentIds) {
+        return episodeQueryRepository.getEpisodesByArtistAndContentIds(artistId, contentIds);
+    }
+
+    public List<EpisodeLocation> getEpisodesByContentId(Long contentId) {
+        return episodeQueryRepository.getEpisodesByContentId(contentId);
     }
 }

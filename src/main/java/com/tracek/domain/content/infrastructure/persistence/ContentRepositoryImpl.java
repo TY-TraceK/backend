@@ -49,4 +49,14 @@ public class ContentRepositoryImpl implements ContentRepository {
     public Page<Content> findAll(Pageable pageable) {
         return contentJpaRepository.findAll(pageable);
     }
+
+    @Override
+    public void increseVerificationCount(Long id) {
+        contentJpaRepository.increseVerificationCount(id);
+    }
+
+    @Override
+    public void decreseVerificationCount(Long id) {
+        contentJpaRepository.decreseVerificationCount(id);
+    }
 }

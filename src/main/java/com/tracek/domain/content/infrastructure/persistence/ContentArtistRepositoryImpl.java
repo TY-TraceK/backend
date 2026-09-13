@@ -1,5 +1,6 @@
 package com.tracek.domain.content.infrastructure.persistence;
 
+import com.tracek.domain.content.domain.model.ContentArtist;
 import com.tracek.domain.content.domain.repository.ContentArtistRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +19,15 @@ public class ContentArtistRepositoryImpl implements ContentArtistRepository {
     @Override
     public List<Long> findArtistIdsByContentId(Long contentId) {
         return contentArtistJpaRepository.findArtistIdsByContentId(contentId);
+    }
+
+    @Override
+    public List<ContentArtist> findByArtistIdAndContentIds(Long artistId, List<Long> contentIds) {
+        return contentArtistJpaRepository.findByArtistIdAndContentIdIn(artistId, contentIds);
+    }
+
+    @Override
+    public List<ContentArtist> findFixedByContentId(Long contentId) {
+        return contentArtistJpaRepository.findByContentIdAndIsFixedTrue(contentId);
     }
 }
