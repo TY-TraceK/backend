@@ -7,6 +7,7 @@ import static com.tracek.domain.content.domain.model.QEpisodeLocation.episodeLoc
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.content.application.dto.ContentArtistPair;
+import com.tracek.domain.content.domain.model.EpisodeLocation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -82,5 +83,37 @@ public class EpisodeQueryRepository {
                                 episodeArtist.artist.id.eq(artistId))
                         .fetchFirst()
                 != null;
+    }
+
+    public List<EpisodeLocation> getEpisodesIdsByArtistAndLocationIds(
+            Long artistId, List<Long> locationIds) {
+        return queryFactory
+                .selectFrom(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .join(episodeArtist)
+                .on(episode.id.eq(episodeArtist.episode.id))
+                .where(
+                        episodeArtist.artist.id.eq(artistId),
+                        episodeLocation.location.id.in(locationIds))
+                .fetch();
+    }
+
+    public List<EpisodeLocation> getEpisodesByArtistAndContentIds(
+            Long artistId, List<Long> contentIds) {
+        return queryFactory
+                .selectFrom(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .join(episodeArtist)
+                .on(episode.id.eq(episodeArtist.episode.id))
+                .where(episodeArtist.artist.id.eq(artistId), episode.content.id.in(contentIds))
+                .fetch();
+    }
+
+    public List<EpisodeLocation> getEpisodesByContentId(Long contentId) {
+        return queryFactory
+                .selectFrom(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .where(episode.content.id.eq(contentId))
+                .fetch();
     }
 }

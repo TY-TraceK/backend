@@ -4,8 +4,10 @@ import com.tracek.domain.content.application.dto.ContentDetailResult;
 import com.tracek.domain.content.application.dto.ContentSummaryResult;
 import com.tracek.domain.content.application.facade.ContentFacade;
 import com.tracek.domain.content.application.service.ContentQueryService;
+import com.tracek.domain.content.presentation.request.ContentDetailRequest;
 import com.tracek.domain.content.presentation.response.ContentDetailResponse;
 import com.tracek.domain.content.presentation.response.ContentSummaryResponse;
+import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,10 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Content", description = "콘텐츠 조회 API")
 @RestController
@@ -32,11 +31,15 @@ public class ContentQueryController {
 
     @Operation(
             summary = "콘텐츠 단건 상세 조회",
-            description = "콘텐츠 ID로 상세 정보와 연관 관광지를 조회합니다. 관광지별로 출연 아티스트가 중첩된 계층형 구조로 응답합니다.")
+            description =
+                    "콘텐츠 ID로 상세 정보(고정 출연진 포함)와 연관 관광지를 방문 인증 랭킹 순으로 조회합니다. city로 필터링할 수 있습니다.")
     @GetMapping("/{contentId}")
     public ApiResponse<ContentDetailResponse> getContentDetails(
-            @Parameter(description = "콘텐츠 ID") @PathVariable Long contentId) {
-        ContentDetailResult result = contentFacade.getContentDetails(contentId);
+            @Parameter(description = "콘텐츠 ID") @PathVariable Long contentId,
+            @ParameterObject @ModelAttribute ContentDetailRequest request) {
+        RankingCondition condition = request.toCondition();
+        ContentDetailResult result =
+                contentFacade.getContentDetails(contentId, request.getCity(), condition);
         return ApiResponse.success(GeneralSuccessCode.OK, ContentDetailResponse.from(result));
     }
 

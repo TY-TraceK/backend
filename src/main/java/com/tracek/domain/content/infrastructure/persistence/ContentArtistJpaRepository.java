@@ -8,4 +8,8 @@ public interface ContentArtistJpaRepository extends JpaRepository<ContentArtist,
     List<Long> findContentIdsByArtistId(Long artistId);
 
     List<Long> findArtistIdsByContentId(Long contentId);
+
+    List<ContentArtist> findByArtistIdAndContentIdIn(Long artistId, List<Long> contentIds);
+
+    List<ContentArtist> findByContentIdAndIsFixedTrue(Long contentId);
 }

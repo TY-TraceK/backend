@@ -1,6 +1,7 @@
 package com.tracek.domain.content.application.dto;
 
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.location.domain.model.Address;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,11 +14,9 @@ import lombok.NoArgsConstructor;
 public class ContentDetailResult {
     private ContentInfo contentInfo;
     private List<LocationResult> locations;
-    private List<ArtistResult> artists;
 
-    public static ContentDetailResult from(
-            ContentInfo contentInfo, List<LocationResult> locations, List<ArtistResult> artists) {
-        return new ContentDetailResult(contentInfo, locations, artists);
+    public static ContentDetailResult of(ContentInfo contentInfo, List<LocationResult> locations) {
+        return new ContentDetailResult(contentInfo, locations);
     }
 
     @Getter
@@ -28,13 +27,31 @@ public class ContentDetailResult {
         private String title;
         private String category;
         private String pictureUrl;
+        private Long totalVerificationCount;
+        private List<FixedArtistResult> fixedArtists;
 
-        public static ContentInfo of(Content content) {
+        public static ContentInfo of(Content content, List<FixedArtistResult> fixedArtists) {
             return new ContentInfo(
                     content.getId(),
                     content.getTitle(),
                     content.getCategory() == null ? null : content.getCategory().name(),
-                    content.getPictureUrl().getImageUrl());
+                    content.getPictureUrl().getImageUrl(),
+                    content.getTotalVerificationCount(),
+                    fixedArtists);
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class FixedArtistResult {
+        private Long artistId;
+        private String artistName;
+        private String artistPictureUrl;
+
+        public static FixedArtistResult from(
+                com.tracek.domain.artist.application.dto.ArtistResult artist) {
+            return new FixedArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
         }
     }
 
@@ -46,28 +63,41 @@ public class ContentDetailResult {
         private String locationName;
         private String locationCategory;
         private String locationPictureUrl;
+        private Address locationAddress;
+        private Long relatedVisitCount; // 방문 인증: 장소 X 콘텐츠
+        private List<EpisodeResult> episodeInfo;
 
         public static LocationResult of(
-                com.tracek.domain.location.application.dto.LocationResult locationResult) {
+                com.tracek.domain.location.application.dto.LocationResult location,
+                Long relatedVisitCount,
+                List<EpisodeResult> episodeInfo) {
             return new LocationResult(
-                    locationResult.getLocationId(),
-                    locationResult.getName(),
-                    locationResult.getCategory(),
-                    locationResult.getMainImageUrl());
+                    location.getLocationId(),
+                    location.getName(),
+                    location.getCategory(),
+                    location.getMainImageUrl(),
+                    location.getAddress(),
+                    relatedVisitCount,
+                    episodeInfo);
         }
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class ArtistResult {
-        private Long artistId;
-        private String artistName;
-        private String artistPictureUrl;
+    public static class EpisodeResult {
+        private Long episodeId;
+        private String episodeInfo; // 회차
+        private String episodeVisitDate;
+        private String note;
 
-        public static ArtistResult of(
-                com.tracek.domain.artist.application.dto.ArtistResult artist) {
-            return new ArtistResult(artist.getId(), artist.getName(), artist.getPictureUrl());
+        public static EpisodeResult from(
+                com.tracek.domain.content.application.dto.EpisodeResult episode) {
+            return new EpisodeResult(
+                    episode.getId(),
+                    episode.getEpisodeInfo(),
+                    episode.getVisitDate(),
+                    episode.getNote());
         }
     }
 }
