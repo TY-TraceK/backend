@@ -28,132 +28,132 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test")
 public class TestController implements TestControllerDocs {
 
-  private final OAuthService oAuthService;
-  private final VisitRankingQueryService visitRankingQueryService;
-  private final VisitRankingProjectionService visitRankingProjectionService;
+    private final OAuthService oAuthService;
+    private final VisitRankingQueryService visitRankingQueryService;
+    private final VisitRankingProjectionService visitRankingProjectionService;
 
-  @PostMapping("/auth/token/{userId}")
-  public ApiResponse<String> generateDevToken(@PathVariable Long userId) {
-    return ApiResponse.success(
-        GeneralSuccessCode.OK, oAuthService.getUserAndAccessToken(userId));
-  }
+    @PostMapping("/auth/token/{userId}")
+    public ApiResponse<String> generateDevToken(@PathVariable Long userId) {
+        return ApiResponse.success(
+                GeneralSuccessCode.OK, oAuthService.getUserAndAccessToken(userId));
+    }
 
-  @GetMapping("/auth/success")
-  @PreAuthorize("isAuthenticated()")
-  @SecurityRequirement(name = "jwtAuth")
-  public String getTestAuthWithSuccess() {
-    return "인증 성공";
-  }
+    @GetMapping("/auth/success")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "jwtAuth")
+    public String getTestAuthWithSuccess() {
+        return "인증 성공";
+    }
 
-  @PostMapping("/ranking/projection/increase")
-  public ApiResponse<Void> increaseRankingProjection(
-      @RequestParam Long locationId,
-      @RequestParam(required = false) Long contentId,
-      @RequestParam(required = false) Long artistId) {
-    visitRankingProjectionService.increase(locationId, contentId, artistId);
+    @PostMapping("/ranking/projection/increase")
+    public ApiResponse<Void> increaseRankingProjection(
+            @RequestParam Long locationId,
+            @RequestParam(required = false) Long contentId,
+            @RequestParam(required = false) Long artistId) {
+        visitRankingProjectionService.increase(locationId, contentId, artistId);
 
-    return ApiResponse.success(GeneralSuccessCode.OK, null);
-  }
+        return ApiResponse.success(GeneralSuccessCode.OK, null);
+    }
 
-  @PostMapping("/ranking/projection/decrease")
-  public ApiResponse<Void> decreaseRankingProjection(
-      @RequestParam Long locationId,
-      @RequestParam(required = false) Long contentId,
-      @RequestParam(required = false) Long artistId) {
-    visitRankingProjectionService.decrease(locationId, contentId, artistId);
+    @PostMapping("/ranking/projection/decrease")
+    public ApiResponse<Void> decreaseRankingProjection(
+            @RequestParam Long locationId,
+            @RequestParam(required = false) Long contentId,
+            @RequestParam(required = false) Long artistId) {
+        visitRankingProjectionService.decrease(locationId, contentId, artistId);
 
-    return ApiResponse.success(GeneralSuccessCode.OK, null);
-  }
+        return ApiResponse.success(GeneralSuccessCode.OK, null);
+    }
 
-  @GetMapping("/ranking/content/{contentId}/artists")
-  public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
-      @PathVariable Long contentId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/content/{contentId}/artists")
+    public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
+            @PathVariable Long contentId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getArtistsByContent(contentId, condition);
-  }
+        return visitRankingQueryService.getArtistsByContent(contentId, condition);
+    }
 
-  @GetMapping("/ranking/content/{contentId}/locations")
-  public RankingSliceResult<RelatedLocationRankingResult> getLocationsByContent(
-      @PathVariable Long contentId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/content/{contentId}/locations")
+    public RankingSliceResult<RelatedLocationRankingResult> getLocationsByContent(
+            @PathVariable Long contentId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getLocationsByContent(contentId, condition);
-  }
+        return visitRankingQueryService.getLocationsByContent(contentId, condition);
+    }
 
-  @GetMapping("/ranking/content/{contentId}/multi")
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByContent(
-      @PathVariable Long contentId) {
-    return visitRankingQueryService.getMultiRankingByContent(contentId);
-  }
+    @GetMapping("/ranking/content/{contentId}/multi")
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByContent(
+            @PathVariable Long contentId) {
+        return visitRankingQueryService.getMultiRankingByContent(contentId);
+    }
 
-  /*
-   * Artist 기준
-   */
+    /*
+     * Artist 기준
+     */
 
-  @GetMapping("/ranking/artist/{artistId}/locations")
-  public RankingSliceResult<RelatedLocationRankingResult> getLocationsByArtist(
-      @PathVariable Long artistId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/artist/{artistId}/locations")
+    public RankingSliceResult<RelatedLocationRankingResult> getLocationsByArtist(
+            @PathVariable Long artistId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getLocationsByArtist(artistId, condition);
-  }
+        return visitRankingQueryService.getLocationsByArtist(artistId, condition);
+    }
 
-  @GetMapping("/ranking/artist/{artistId}/contents")
-  public RankingSliceResult<RelatedContentRankingResult> getContentsByArtist(
-      @PathVariable Long artistId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/artist/{artistId}/contents")
+    public RankingSliceResult<RelatedContentRankingResult> getContentsByArtist(
+            @PathVariable Long artistId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getContentsByArtist(artistId, condition);
-  }
+        return visitRankingQueryService.getContentsByArtist(artistId, condition);
+    }
 
-  @GetMapping("/ranking/artist/{artistId}/multi")
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByArtist(
-      @PathVariable Long artistId) {
-    return visitRankingQueryService.getMultiRankingByArtist(artistId);
-  }
+    @GetMapping("/ranking/artist/{artistId}/multi")
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByArtist(
+            @PathVariable Long artistId) {
+        return visitRankingQueryService.getMultiRankingByArtist(artistId);
+    }
 
-  /*
-   * Location 기준
-   */
+    /*
+     * Location 기준
+     */
 
-  @GetMapping("/ranking/location/{locationId}/artists")
-  public RankingSliceResult<RelatedArtistRankingResult> getArtistsByLocation(
-      @PathVariable Long locationId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/location/{locationId}/artists")
+    public RankingSliceResult<RelatedArtistRankingResult> getArtistsByLocation(
+            @PathVariable Long locationId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getArtistsByLocation(locationId, condition);
-  }
+        return visitRankingQueryService.getArtistsByLocation(locationId, condition);
+    }
 
-  @GetMapping("/ranking/location/{locationId}/contents")
-  public RankingSliceResult<RelatedContentRankingResult> getContentsByLocation(
-      @PathVariable Long locationId,
-      @RequestParam(required = false) Long lastCount,
-      @RequestParam(required = false) Long lastId,
-      @RequestParam(defaultValue = "10") Integer size) {
-    RankingCondition condition = new RankingCondition(lastCount, lastId, size);
+    @GetMapping("/ranking/location/{locationId}/contents")
+    public RankingSliceResult<RelatedContentRankingResult> getContentsByLocation(
+            @PathVariable Long locationId,
+            @RequestParam(required = false) Long lastCount,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") Integer size) {
+        RankingCondition condition = new RankingCondition(lastCount, lastId, size);
 
-    return visitRankingQueryService.getContentsByLocation(locationId, condition);
-  }
+        return visitRankingQueryService.getContentsByLocation(locationId, condition);
+    }
 
-  @GetMapping("/ranking/location/{locationId}/multi")
-  public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(
-      @PathVariable Long locationId) {
-    return visitRankingQueryService.getMultiRankingByLocation(locationId);
-  }
+    @GetMapping("/ranking/location/{locationId}/multi")
+    public RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(
+            @PathVariable Long locationId) {
+        return visitRankingQueryService.getMultiRankingByLocation(locationId);
+    }
 }
