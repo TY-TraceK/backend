@@ -5,8 +5,9 @@ import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedLocationRankingResult;
+import com.tracek.domain.ranking.application.dto.result.RelatedMultiRankingResult;
 
-public interface VisitRankingQueryService {
+public interface VisitRankingRelatedQueryService {
 
     // 아티스트 -> 연관된 콘텐츠 조회
     RankingSliceResult<RelatedContentRankingResult> getContentsByArtist(
@@ -31,4 +32,13 @@ public interface VisitRankingQueryService {
     // 콘텐츠 -> 연관 장소 조회
     RankingSliceResult<RelatedLocationRankingResult> getLocationsByContent(
             Long contentId, RankingCondition condition);
+
+    // 콘텐츠 -> 전체 연관 랭킹 조회
+    RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByContent(Long contentId);
+
+    // 아티스트 -> 전체 연관 랭킹 조회
+    RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByArtist(Long artistId);
+
+    // 장소 -> 전체 연관 랭킹 조회
+    RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(Long locationId);
 }
