@@ -6,6 +6,7 @@ import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.application.dto.ContentDetailResult;
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.content.domain.model.Episode;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
@@ -70,5 +71,63 @@ class ContentDetailResponseTest {
 
         assertThat(response.getLocations()).isEmpty();
         assertThat(response.getContentInfo().getFixedArtists()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("고정 아티스트/회차 정보가 null이면 응답에서도 null로 유지된다")
+    void from_withNullFixedArtistsAndEpisodeInfo() {
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
+        ReflectionTestUtils.setField(content, "id", 1L);
+
+        ContentDetailResult.ContentInfo contentInfo =
+                ContentDetailResult.ContentInfo.of(content, null);
+
+        Location location = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
+        LocationResult locationResult = LocationResult.from(location);
+        ContentDetailResult.LocationResult detailLocationResult =
+                ContentDetailResult.LocationResult.of(locationResult, 5L, null);
+
+        ContentDetailResult result =
+                ContentDetailResult.of(contentInfo, List.of(detailLocationResult));
+
+        ContentDetailResponse response = ContentDetailResponse.from(result);
+
+        assertThat(response.getContentInfo().getFixedArtists()).isNull();
+        assertThat(response.getLocations().get(0).getEpisodeInfo()).isNull();
+    }
+
+    @Test
+    @DisplayName("회차 정보가 있으면 EpisodeResponse로 변환된다")
+    void from_withEpisodeInfo() {
+        Content content =
+                Content.create(
+                        "데뷔 앨범", "KPOP", "데뷔 앨범 소개", ImageUrl.from("http://image.com/a.jpg"));
+        ReflectionTestUtils.setField(content, "id", 1L);
+        Episode episode = Episode.create(content, "http://source.com", "1화", "2024-01-01", "note");
+        com.tracek.domain.content.application.dto.EpisodeResult episodeResult =
+                com.tracek.domain.content.application.dto.EpisodeResult.from(episode);
+        ContentDetailResult.EpisodeResult detailEpisodeResult =
+                ContentDetailResult.EpisodeResult.from(episodeResult);
+
+        Location location = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
+        LocationResult locationResult = LocationResult.from(location);
+        ContentDetailResult.LocationResult detailLocationResult =
+                ContentDetailResult.LocationResult.of(
+                        locationResult, 5L, List.of(detailEpisodeResult));
+
+        ContentDetailResult result =
+                ContentDetailResult.of(
+                        ContentDetailResult.ContentInfo.of(content, List.of()),
+                        List.of(detailLocationResult));
+
+        ContentDetailResponse response = ContentDetailResponse.from(result);
+
+        assertThat(response.getLocations().get(0).getEpisodeInfo()).hasSize(1);
+        assertThat(response.getLocations().get(0).getEpisodeInfo().get(0).getEpisodeInfo())
+                .isEqualTo("1화");
+        assertThat(response.getLocations().get(0).getEpisodeInfo().get(0).getNote())
+                .isEqualTo("note");
     }
 }
