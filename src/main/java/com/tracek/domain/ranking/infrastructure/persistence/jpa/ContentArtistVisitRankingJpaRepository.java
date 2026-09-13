@@ -1,4 +1,4 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.jpa;
 
 import com.tracek.domain.ranking.domain.model.ContentArtistVisitRanking;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,23 +12,23 @@ public interface ContentArtistVisitRankingJpaRepository
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """
-      UPDATE ContentArtistVisitRanking r
-         SET r.totalVerificationCount = r.totalVerificationCount + 1
-       WHERE r.contentId = :contentId
-         AND r.artistId = :artistId
-      """)
+          UPDATE ContentArtistVisitRanking r
+             SET r.totalVerificationCount = r.totalVerificationCount + 1
+           WHERE r.contentId = :contentId
+             AND r.artistId = :artistId
+          """)
     int increaseVerificationCount(
             @Param("contentId") Long contentId, @Param("artistId") Long artistId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """
-      UPDATE ContentArtistVisitRanking r
-         SET r.totalVerificationCount = r.totalVerificationCount - 1
-       WHERE r.contentId = :contentId
-         AND r.artistId = :artistId
-         AND r.totalVerificationCount > 0
-      """)
+          UPDATE ContentArtistVisitRanking r
+             SET r.totalVerificationCount = r.totalVerificationCount - 1
+           WHERE r.contentId = :contentId
+             AND r.artistId = :artistId
+             AND r.totalVerificationCount > 0
+          """)
     int decreaseVerificationCount(
             @Param("contentId") Long contentId, @Param("artistId") Long artistId);
 }

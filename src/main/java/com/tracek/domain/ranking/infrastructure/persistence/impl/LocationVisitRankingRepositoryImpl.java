@@ -1,7 +1,8 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.impl;
 
 import com.tracek.domain.ranking.domain.model.LocationVisitRanking;
 import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.jpa.LocationVisitRankingJpaRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

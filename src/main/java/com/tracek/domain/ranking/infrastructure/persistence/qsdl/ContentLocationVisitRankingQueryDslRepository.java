@@ -1,4 +1,6 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.qsdl;
+
+import static com.querydsl.core.types.dsl.Expressions.nullExpression;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -6,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.ranking.domain.model.QContentLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
+import com.tracek.domain.ranking.domain.model.TargetId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -25,7 +28,11 @@ public class ContentLocationVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                contentLocationVisitRanking.locationId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        contentLocationVisitRanking.locationId,
+                                        contentLocationVisitRanking.contentId,
+                                        nullExpression(Long.class)),
                                 contentLocationVisitRanking.totalVerificationCount))
                 .from(contentLocationVisitRanking)
                 .where(
@@ -44,7 +51,11 @@ public class ContentLocationVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                contentLocationVisitRanking.contentId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        contentLocationVisitRanking.locationId,
+                                        contentLocationVisitRanking.contentId,
+                                        nullExpression(Long.class)),
                                 contentLocationVisitRanking.totalVerificationCount))
                 .from(contentLocationVisitRanking)
                 .where(

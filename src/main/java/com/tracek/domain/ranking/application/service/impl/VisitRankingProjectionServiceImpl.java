@@ -1,7 +1,9 @@
 package com.tracek.domain.ranking.application.service.impl;
 
 import com.tracek.domain.ranking.application.service.VisitRankingProjectionService;
+import com.tracek.domain.ranking.domain.model.TargetId;
 import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRepository;
+import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
@@ -18,6 +20,8 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
     private final ArtistLocationVisitRankingRepository artistLocationVisitRankingRepository;
     private final ContentLocationVisitRankingRepository contentLocationVisitRankingRepository;
     private final ContentArtistVisitRankingRepository contentArtistVisitRankingRepository;
+    private final ContentArtistLocationVisitRankingRepository
+            contentArtistLocationVisitRankingRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -34,6 +38,8 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
 
         if (artistId != null && contentId != null) {
             contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
         }
     }
 
@@ -51,6 +57,8 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
         }
         if (artistId != null && contentId != null) {
             contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
         }
     }
 }
