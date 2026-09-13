@@ -204,7 +204,8 @@ public class ArtistFacade {
                                         RelatedMultiRankingResult::contentId,
                                         Collectors.toMap(
                                                 RelatedMultiRankingResult::locationId,
-                                                RelatedMultiRankingResult::totalVerificationCount)));
+                                                RelatedMultiRankingResult
+                                                        ::totalVerificationCount)));
 
         // 재정렬 및 합성
         List<ArtistDetailRelatedContentResult.ContentResult> contentResults =
