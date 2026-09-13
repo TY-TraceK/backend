@@ -1,4 +1,4 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.jpa;
 
 import com.tracek.domain.ranking.domain.model.LocationVisitRanking;
 import java.util.Optional;
@@ -15,19 +15,19 @@ public interface LocationVisitRankingJpaRepository
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """
-      UPDATE LocationVisitRanking r
-         SET r.totalVerificationCount = r.totalVerificationCount + 1
-       WHERE r.locationId = :locationId
-      """)
+          UPDATE LocationVisitRanking r
+             SET r.totalVerificationCount = r.totalVerificationCount + 1
+           WHERE r.locationId = :locationId
+          """)
     int increaseVerificationCount(@Param("locationId") Long locationId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """
-      UPDATE LocationVisitRanking r
-         SET r.totalVerificationCount = r.totalVerificationCount - 1
-       WHERE r.locationId = :locationId
-         AND r.totalVerificationCount > 0
-      """)
+          UPDATE LocationVisitRanking r
+             SET r.totalVerificationCount = r.totalVerificationCount - 1
+           WHERE r.locationId = :locationId
+             AND r.totalVerificationCount > 0
+          """)
     int decreaseVerificationCount(@Param("locationId") Long locationId);
 }

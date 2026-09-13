@@ -1,4 +1,6 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.qsdl;
+
+import static com.querydsl.core.types.dsl.Expressions.nullExpression;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -6,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.ranking.domain.model.QContentArtistVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
+import com.tracek.domain.ranking.domain.model.TargetId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -24,7 +27,11 @@ public class ContentArtistVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                contentArtistVisitRanking.artistId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        nullExpression(Long.class),
+                                        contentArtistVisitRanking.contentId,
+                                        contentArtistVisitRanking.artistId),
                                 contentArtistVisitRanking.totalVerificationCount))
                 .from(contentArtistVisitRanking)
                 .where(contentArtistVisitRanking.contentId.eq(contentId), artistCondition(criteria))
@@ -40,7 +47,11 @@ public class ContentArtistVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                contentArtistVisitRanking.contentId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        nullExpression(Long.class),
+                                        contentArtistVisitRanking.contentId,
+                                        contentArtistVisitRanking.artistId),
                                 contentArtistVisitRanking.totalVerificationCount))
                 .from(contentArtistVisitRanking)
                 .where(contentArtistVisitRanking.artistId.eq(artistId), contentCondition(criteria))

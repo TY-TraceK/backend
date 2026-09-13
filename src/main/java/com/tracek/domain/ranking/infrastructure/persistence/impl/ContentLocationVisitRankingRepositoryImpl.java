@@ -1,9 +1,11 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.impl;
 
 import com.tracek.domain.ranking.domain.model.ContentLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentLocationVisitRankingJpaRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.qsdl.ContentLocationVisitRankingQueryDslRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

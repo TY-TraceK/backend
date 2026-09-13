@@ -1,4 +1,6 @@
-package com.tracek.domain.ranking.infrastructure.persistence;
+package com.tracek.domain.ranking.infrastructure.persistence.qsdl;
+
+import static com.querydsl.core.types.dsl.Expressions.nullExpression;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -6,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.ranking.domain.model.QArtistLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
+import com.tracek.domain.ranking.domain.model.TargetId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -24,7 +27,11 @@ public class ArtistLocationVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                artistLocationVisitRanking.locationId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        artistLocationVisitRanking.locationId,
+                                        nullExpression(Long.class),
+                                        artistLocationVisitRanking.artistId),
                                 artistLocationVisitRanking.totalVerificationCount))
                 .from(artistLocationVisitRanking)
                 .where(
@@ -43,7 +50,11 @@ public class ArtistLocationVisitRankingQueryDslRepository {
                 .select(
                         Projections.constructor(
                                 RankingItem.class,
-                                artistLocationVisitRanking.artistId,
+                                Projections.constructor(
+                                        TargetId.class,
+                                        artistLocationVisitRanking.locationId,
+                                        nullExpression(Long.class),
+                                        artistLocationVisitRanking.artistId),
                                 artistLocationVisitRanking.totalVerificationCount))
                 .from(artistLocationVisitRanking)
                 .where(
