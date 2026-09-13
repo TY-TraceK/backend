@@ -1,6 +1,7 @@
 package com.tracek.domain.artist.application.dto;
 
 import com.tracek.domain.artist.domain.model.Artist;
+import com.tracek.domain.location.domain.model.Address;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,14 +11,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ArtistDetailResult {
+public class ArtistDetailRelatedLocationResult {
     private ArtistInfo artistInfo;
     private List<LocationResult> locations;
-    private List<ContentResult> contents;
 
-    public static ArtistDetailResult from(
-            ArtistInfo artistInfo, List<LocationResult> locations, List<ContentResult> contents) {
-        return new ArtistDetailResult(artistInfo, locations, contents);
+    public static ArtistDetailRelatedLocationResult of(
+            ArtistInfo artistInfo, List<LocationResult> locations) {
+        return new ArtistDetailRelatedLocationResult(artistInfo, locations);
     }
 
     @Getter
@@ -32,8 +32,10 @@ public class ArtistDetailResult {
         private Boolean isGroup;
         private Long fanCount;
         private Long totalVerificationCount;
+        private List<ArtistSummaryResult>
+                relatedArtists; // group -> relatedMember, member -> relatedGroup
 
-        public static ArtistInfo of(Artist artist) {
+        public static ArtistInfo of(Artist artist, List<ArtistSummaryResult> relatedArtists) {
             return new ArtistInfo(
                     artist.getId(),
                     artist.getName(),
@@ -42,7 +44,8 @@ public class ArtistDetailResult {
                     artist.getGroup() == null ? null : artist.getGroup().getId(),
                     Boolean.TRUE.equals(artist.getIsGroup()),
                     artist.getFanCount(),
-                    artist.getTotalVerificationCount());
+                    artist.getTotalVerificationCount(),
+                    relatedArtists);
         }
     }
 
@@ -54,33 +57,41 @@ public class ArtistDetailResult {
         private String locationName;
         private String locationCategory;
         private String locationPictureUrl;
+        private Address locationAddress;
+        private Long relatedVisitCount; // 장소 X 아티스트
+        private List<EpisodeResult> episodeInfo;
 
         public static LocationResult of(
-                com.tracek.domain.location.application.dto.LocationResult location) {
+                com.tracek.domain.location.application.dto.LocationResult location,
+                Long relatedVisitCount,
+                List<EpisodeResult> episodeInfo) {
             return new LocationResult(
                     location.getLocationId(),
                     location.getName(),
                     location.getCategory(),
-                    location.getMainImageUrl());
+                    location.getMainImageUrl(),
+                    location.getAddress(),
+                    relatedVisitCount,
+                    episodeInfo);
         }
     }
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class ContentResult {
-        private Long contentId;
+    public static class EpisodeResult {
+        private Long episodeId;
+        private String episodeInfo;
+        private String episodeVisitDate;
         private String contentTitle;
-        private String contentCategory;
-        private String contentPictureUrl;
 
-        public static ContentResult of(
-                com.tracek.domain.content.application.dto.ContentResult contentResult) {
-            return new ContentResult(
-                    contentResult.getContentId(),
-                    contentResult.getTitle(),
-                    contentResult.getCategory(),
-                    contentResult.getPictureUrl());
+        public static EpisodeResult from(
+                com.tracek.domain.content.application.dto.EpisodeResult episode) {
+            return new EpisodeResult(
+                    episode.getId(),
+                    episode.getEpisodeInfo(),
+                    episode.getVisitDate(),
+                    episode.getContent().getTitle());
         }
     }
 }

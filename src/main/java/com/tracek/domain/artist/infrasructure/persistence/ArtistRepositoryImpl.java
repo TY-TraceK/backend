@@ -43,4 +43,9 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     public void deleteById(Long id) {
         artistJpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Artist> findByGroupId(Long groupId) {
+        return artistJpaRepository.findByGroupId(groupId);
+    }
 }

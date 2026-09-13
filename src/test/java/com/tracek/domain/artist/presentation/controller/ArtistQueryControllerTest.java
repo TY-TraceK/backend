@@ -3,13 +3,20 @@ package com.tracek.domain.artist.presentation.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.tracek.domain.artist.application.dto.ArtistDetailRelatedContentResult;
+import com.tracek.domain.artist.application.dto.ArtistDetailRelatedLocationResult;
 import com.tracek.domain.artist.application.dto.ArtistDetailResult;
 import com.tracek.domain.artist.application.dto.ArtistSummaryResult;
 import com.tracek.domain.artist.application.facade.ArtistFacade;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.artist.domain.model.Artist;
+import com.tracek.domain.artist.presentation.request.ArtistDetailRelatedContentRequest;
+import com.tracek.domain.artist.presentation.request.ArtistDetailRelatedLocationRequest;
+import com.tracek.domain.artist.presentation.response.ArtistDetailRelatedContentResponse;
+import com.tracek.domain.artist.presentation.response.ArtistDetailRelatedLocationResponse;
 import com.tracek.domain.artist.presentation.response.ArtistDetailResponse;
 import com.tracek.domain.artist.presentation.response.ArtistSummaryResponse;
+import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.common.vo.ImageUrl;
 import com.tracek.global.response.ApiResponse;
 import java.util.List;
@@ -71,5 +78,49 @@ class ArtistQueryControllerTest {
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getContent()).hasSize(1);
         assertThat(response.getData().getContent().get(0).getName()).isEqualTo("아이유");
+    }
+
+    @Test
+    @DisplayName("아티스트 관광지 탭 조회 성공 시 성공 응답으로 감싸서 반환한다")
+    void getArtistDetailRelatedLocations_success() {
+        Artist artist =
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
+        ReflectionTestUtils.setField(artist, "id", 1L);
+        RankingCondition condition = new RankingCondition(null, null, 20);
+        ArtistDetailRelatedLocationRequest request =
+                new ArtistDetailRelatedLocationRequest(null, null, null, 20);
+        ArtistDetailRelatedLocationResult result =
+                ArtistDetailRelatedLocationResult.of(
+                        ArtistDetailRelatedLocationResult.ArtistInfo.of(artist, List.of()),
+                        List.of());
+        given(artistFacade.getArtistDetailsRelatedLocation(1L, null, condition)).willReturn(result);
+
+        ApiResponse<ArtistDetailRelatedLocationResponse> response =
+                controller.getArtistDetailRelatedLocations(1L, request);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getArtistInfo().getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("아티스트 콘텐츠 탭 조회 성공 시 성공 응답으로 감싸서 반환한다")
+    void getArtistDetailRelatedContents_success() {
+        Artist artist =
+                Artist.create("아이유", "IU", ImageUrl.from("http://image.com/iu.jpg"), null, false);
+        ReflectionTestUtils.setField(artist, "id", 1L);
+        RankingCondition condition = new RankingCondition(null, null, 20);
+        ArtistDetailRelatedContentRequest request =
+                new ArtistDetailRelatedContentRequest(null, null, 20);
+        ArtistDetailRelatedContentResult result =
+                ArtistDetailRelatedContentResult.of(
+                        ArtistDetailRelatedContentResult.ArtistInfo.of(artist, List.of()),
+                        List.of());
+        given(artistFacade.getArtistDetailsRelatedContent(1L, condition)).willReturn(result);
+
+        ApiResponse<ArtistDetailRelatedContentResponse> response =
+                controller.getArtistDetailRelatedContents(1L, request);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getArtistInfo().getId()).isEqualTo(1L);
     }
 }
