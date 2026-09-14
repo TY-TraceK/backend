@@ -3,7 +3,6 @@ package com.tracek.domain.location.application.service;
 import com.tracek.domain.location.application.LocationQueryRepository;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
-import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +22,24 @@ public class LocationSearchQueryService {
             return LocationSearchResult.of(Collections.emptyList(), 0);
         }
 
-        LocationCategory category = LocationCategory.from(query.getCategory());
-
         // hasNext를 위해 N+1 조회
         int fetchSize = query.getSize() + 1;
         List<LocationSearchResult.LocationInfo> locations =
-                locationQueryRepository.searchLocations(query, category, fetchSize);
+                locationQueryRepository.searchLocations(query, fetchSize);
+
+        return LocationSearchResult.of(locations, query.getSize());
+    }
+
+    // 통합검색용 - 이름만 매칭, 커서 기반 페이징 (hasNext/lastId)
+    public LocationSearchResult searchLocationsByName(LocationSearchQuery query) {
+
+        if (!StringUtils.hasText(query.getKeyword())) {
+            return LocationSearchResult.of(Collections.emptyList(), 0);
+        }
+
+        int fetchSize = query.getSize() + 1;
+        List<LocationSearchResult.LocationInfo> locations =
+                locationQueryRepository.searchLocationsByName(query, fetchSize);
 
         return LocationSearchResult.of(locations, query.getSize());
     }

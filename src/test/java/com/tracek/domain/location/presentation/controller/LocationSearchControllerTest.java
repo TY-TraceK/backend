@@ -33,7 +33,7 @@ class LocationSearchControllerTest {
     @Test
     @DisplayName("검색 결과를 성공 응답으로 감싸서 반환한다")
     void searchLocations_success() {
-        LocationSearchRequest request = new LocationSearchRequest("경복궁", null, null, 20);
+        LocationSearchRequest request = new LocationSearchRequest("경복궁", null, 20);
         LocationSearchResult.LocationInfo info =
                 new LocationSearchResult.LocationInfo(
                         1L, "경복궁", "ATTRACTION", "서울 종로구 사직로 161", "http://image.com/a.jpg");
@@ -42,6 +42,24 @@ class LocationSearchControllerTest {
                 .willReturn(result);
 
         ApiResponse<LocationSearchResponse> response = controller.searchLocations(request);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData().getLocations()).hasSize(1);
+        assertThat(response.getData().getLocations().get(0).getName()).isEqualTo("경복궁");
+    }
+
+    @Test
+    @DisplayName("이름 검색 결과를 성공 응답으로 감싸서 반환한다")
+    void searchLocationsByName_success() {
+        LocationSearchRequest request = new LocationSearchRequest("경복궁", null, 20);
+        LocationSearchResult.LocationInfo info =
+                new LocationSearchResult.LocationInfo(
+                        1L, "경복궁", "ATTRACTION", "서울 종로구 사직로 161", "http://image.com/a.jpg");
+        LocationSearchResult result = LocationSearchResult.of(List.of(info), 20);
+        given(locationSearchQueryService.searchLocationsByName(any(LocationSearchQuery.class)))
+                .willReturn(result);
+
+        ApiResponse<LocationSearchResponse> response = controller.searchLocationsByName(request);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getLocations()).hasSize(1);

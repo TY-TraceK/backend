@@ -8,7 +8,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
-import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ public class LocationQueryRepository {
 
     // hasNext 판단을 위한 N+1 조회
     public List<LocationSearchResult.LocationInfo> searchLocations(
-            LocationSearchQuery query, LocationCategory category, int fetchSize) {
+            LocationSearchQuery query, int fetchSize) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -36,11 +35,47 @@ public class LocationQueryRepository {
                 .from(location)
                 .where(
                         matchKeyword(query.getKeyword()),
-                        eqCategory(category),
                         ltLastLocationId(query.getLastLocationId()))
                 .orderBy(location.id.desc())
                 .limit(fetchSize)
                 .fetch();
+    }
+
+    // 통합검색용 - 이름만 매칭 (city/district 미포함), hasNext 판단을 위한 N+1 조회
+    public List<LocationSearchResult.LocationInfo> searchLocationsByName(
+            LocationSearchQuery query, int fetchSize) {
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                LocationSearchResult.LocationInfo.class,
+                                location.id,
+                                location.name,
+                                location.category.stringValue(),
+                                location.address.address,
+                                location.mainImageUrl.imageUrl))
+                .from(location)
+                .where(
+                        matchKeywordNameOnly(query.getKeyword()),
+                        ltLastLocationId(query.getLastLocationId()))
+                .orderBy(location.id.desc())
+                .limit(fetchSize)
+                .fetch();
+    }
+
+    private BooleanExpression matchKeywordNameOnly(String keyword) {
+        String booleanKeyword = sanitizeBooleanKeyword(keyword);
+        if (!StringUtils.hasText(booleanKeyword)) {
+            return null;
+        }
+
+        booleanKeyword =
+                Arrays.stream(booleanKeyword.split("\\s+"))
+                        .map(w -> "+" + w)
+                        .collect(Collectors.joining(" "));
+
+        // Hibernate에 등록한 match_against1 함수 호출 -> name 단독 FULLTEXT(ngram) 인덱스를 탐
+        return Expressions.booleanTemplate(
+                "match_against1({0}, {1})", location.name, booleanKeyword);
     }
 
     private BooleanExpression matchKeyword(String keyword) {
@@ -76,16 +111,7 @@ public class LocationQueryRepository {
         return sanitized;
     }
 
-    private BooleanExpression eqCategory(LocationCategory category) {
-        return category != null ? location.category.eq(category) : null;
-    }
-
     private BooleanExpression ltLastLocationId(Long lastLocationId) {
         return lastLocationId != null ? location.id.lt(lastLocationId) : null;
-    }
-
-    // 단순 Like에서 full-text index로 전환
-    private BooleanExpression containKeyword(String keyword) {
-        return StringUtils.hasText(keyword) ? location.name.contains(keyword) : null;
     }
 }

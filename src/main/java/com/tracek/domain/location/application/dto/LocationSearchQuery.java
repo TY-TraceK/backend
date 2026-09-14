@@ -7,12 +7,10 @@ import lombok.Getter;
 @AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class LocationSearchQuery {
     private String keyword;
-    private String category;
     private Long lastLocationId;
     private int size;
 
-    public static LocationSearchQuery of(
-            String keyword, String category, Long lastLocationId, int size) {
-        return new LocationSearchQuery(keyword, category, lastLocationId, size);
+    public static LocationSearchQuery of(String keyword, Long lastLocationId, int size) {
+        return new LocationSearchQuery(keyword, lastLocationId, size);
     }
 }
