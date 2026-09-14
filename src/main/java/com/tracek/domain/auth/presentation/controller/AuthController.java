@@ -2,6 +2,7 @@ package com.tracek.domain.auth.presentation.controller;
 
 import com.tracek.domain.auth.application.service.OAuthService;
 import com.tracek.domain.auth.presentation.controller.docs.AuthControllerDocs;
+import com.tracek.domain.auth.presentation.dto.request.OAuthLoginRequest;
 import com.tracek.domain.auth.presentation.dto.response.OAuthLoginResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
@@ -19,9 +20,11 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @PostMapping("/{provider}")
-    public ApiResponse<OAuthLoginResponse> createOauthLogin(String code, String provider) {
+    public ApiResponse<OAuthLoginResponse> createOauthLogin(
+            OAuthLoginRequest oAuthLoginRequest, String provider) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
-                OAuthLoginResponse.from(oAuthService.createOauthLogin(code, provider)));
+                OAuthLoginResponse.from(
+                        oAuthService.createOauthLogin(oAuthLoginRequest.toCommand(provider))));
     }
 }
