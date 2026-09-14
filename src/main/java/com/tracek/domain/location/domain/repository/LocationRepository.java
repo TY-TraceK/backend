@@ -35,11 +35,11 @@ public interface LocationRepository {
     Page<Location> findAll(Pageable pageable);
 
     // 좋아요 존재 여부 확인
-    boolean existsByUserIdAndLocationId(Long userId, Long locationId);
+    boolean existsLikeByUserIdAndLocationId(Long userId, Long locationId);
 
-    Optional<LocationLike> findByUserIdAndLocationId(Long userId, Long locationId);
+    Optional<LocationLike> findLikeByUserIdAndLocationId(Long userId, Long locationId);
 
-    void deleteByUserIdAndLocationId(Long userId, Long locationId);
+    void deleteLike(Long userId, Long locationId);
 
     void saveLike(LocationLike locationLike);
 
@@ -50,4 +50,13 @@ public interface LocationRepository {
     void increseVerificationCount(Long id);
 
     void decreseVerificationCount(Long id);
+
+    // 아카이브
+    boolean existsArchiveByUserIdAndLocationId(Long userId, Long locationId);
+
+    Optional<LocationArchive> findArchiveByUserIdAndLocationId(Long userId, Long locationId);
+
+    void saveArchive(LocationArchive locationArchive);
+
+    void deleteArchive(Long userId, Long archiveId);
 }
