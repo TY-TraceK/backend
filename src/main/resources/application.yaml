@@ -29,3 +29,16 @@ app:
       client-secret: ${KAKAO_CLIENT_SECRET:}
       api-base-url: https://kapi.kakao.com
       authorization-base-url: https://kauth.kakao.com
+  cors:
+    allowed-origin-urls:
+      - "http://localhost:5173"
+      - "https://frontend-*.vercel.app"
+  security:
+    permit-all-urls:
+      - "/docs/**"
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+      - "/actuator/**"
+      - "/api/public/**"
+      - "/api/test/**"
+      - "/api/auth/**"
