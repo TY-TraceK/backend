@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.tracek.domain.location.application.LocationQueryRepository;
+import com.tracek.domain.location.application.dto.LocationBoundsQuery;
+import com.tracek.domain.location.application.dto.LocationBoundsResult;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
 import java.util.List;
@@ -32,7 +34,13 @@ class LocationSearchQueryServiceTest {
 
     private LocationSearchResult.LocationInfo info(long id) {
         return new LocationSearchResult.LocationInfo(
-                id, "경복궁", "ATTRACTION", "서울 종로구 사직로 161", "http://image.com/a.jpg");
+                id,
+                "경복궁",
+                "ATTRACTION",
+                "서울 종로구 사직로 161",
+                "http://image.com/a.jpg",
+                35.1796,
+                129.0756);
     }
 
     @Test
@@ -83,5 +91,17 @@ class LocationSearchQueryServiceTest {
         assertThat(result.getLocations()).hasSize(1);
         assertThat(result.isHasNext()).isTrue();
         assertThat(result.getLastId()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("bounds 조회 결과를 페이징 없이 그대로 반환한다")
+    void findLocationsWithinBounds_success() {
+        LocationBoundsQuery query = LocationBoundsQuery.of(35.0, 128.9, 35.2, 129.1, null);
+        given(locationQueryRepository.findLocationsWithinBounds(query))
+                .willReturn(List.of(info(1L), info(2L)));
+
+        LocationBoundsResult result = service.findLocationsWithinBounds(query);
+
+        assertThat(result.getLocations()).hasSize(2);
     }
 }

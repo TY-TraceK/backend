@@ -19,6 +19,8 @@ public class LocationSearchResult {
         private String category;
         private String address;
         private String mainImageUrl;
+        private double latitude;
+        private double longitude;
     }
 
     public static LocationSearchResult of(List<LocationInfo> locations, int requestedSize) {

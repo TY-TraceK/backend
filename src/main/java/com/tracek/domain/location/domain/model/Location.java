@@ -16,7 +16,10 @@ import lombok.NoArgsConstructor;
         indexes = {
             @Index(
                     name = "idx_location_category",
-                    columnList = "category, id DESC") // category 조건 필터링 + id 내림차순 정렬/커서 최적화
+                    columnList = "category, id DESC"), // category 조건 필터링 + id 내림차순 정렬/커서 최적화
+            @Index(
+                    name = "idx_location_geo",
+                    columnList = "latitude, longitude") // 지도 bounds 범위 조회 최적화
         })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

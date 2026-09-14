@@ -51,7 +51,13 @@ class SearchFacadeTest {
                         2L, "궁궐 브이로그", "ENTERTAINMENT", "http://image.com/c.jpg");
         LocationSearchResult.LocationInfo locationInfo =
                 new LocationSearchResult.LocationInfo(
-                        3L, "경복궁", "ATTRACTION", "서울 종로구 사직로 161", "http://image.com/a.jpg");
+                        3L,
+                        "경복궁",
+                        "ATTRACTION",
+                        "서울 종로구 사직로 161",
+                        "http://image.com/a.jpg",
+                        35.1796,
+                        129.0756);
 
         given(artistSearchQueryService.searchArtists(any(ArtistSearchQuery.class)))
                 .willReturn(ArtistSearchResult.of(List.of(artistInfo), 20));

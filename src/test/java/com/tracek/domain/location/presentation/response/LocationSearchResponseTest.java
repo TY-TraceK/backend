@@ -14,7 +14,13 @@ class LocationSearchResponseTest {
     void from_success() {
         LocationSearchResult.LocationInfo info =
                 new LocationSearchResult.LocationInfo(
-                        1L, "경복궁", "ATTRACTION", "서울 종로구 사직로 161", "http://image.com/a.jpg");
+                        1L,
+                        "경복궁",
+                        "ATTRACTION",
+                        "서울 종로구 사직로 161",
+                        "http://image.com/a.jpg",
+                        35.1796,
+                        129.0756);
         LocationSearchResult result = LocationSearchResult.of(List.of(info), 1);
 
         LocationSearchResponse response = LocationSearchResponse.from(result);

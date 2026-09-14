@@ -1,9 +1,6 @@
 package com.tracek.domain.location.application.service;
 
-import com.tracek.domain.location.application.dto.LocationContentArtistResult;
-import com.tracek.domain.location.application.dto.LocationNearbyResult;
-import com.tracek.domain.location.application.dto.LocationResult;
-import com.tracek.domain.location.application.dto.LocationSummaryResult;
+import com.tracek.domain.location.application.dto.*;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
