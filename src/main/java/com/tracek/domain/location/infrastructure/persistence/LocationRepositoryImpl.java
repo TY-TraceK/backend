@@ -16,6 +16,7 @@ public class LocationRepositoryImpl implements LocationRepository {
     private final LocationJpaRepository locationJpaRepository;
     private final LocationContentArtistJpaRepository locationContentArtistJpaRepository;
     private final LocationLikeJpaRepository locationLikeJpaRepository;
+    private final LocationArchiveJpaRepository locationArchiveJpaRepository;
 
     @Override
     public Location save(Location location) {
@@ -73,17 +74,17 @@ public class LocationRepositoryImpl implements LocationRepository {
     }
 
     @Override
-    public boolean existsByUserIdAndLocationId(Long userId, Long locationId) {
+    public boolean existsLikeByUserIdAndLocationId(Long userId, Long locationId) {
         return locationLikeJpaRepository.existsByUserIdAndLocationId(userId, locationId);
     }
 
     @Override
-    public Optional<LocationLike> findByUserIdAndLocationId(Long userId, Long locationId) {
+    public Optional<LocationLike> findLikeByUserIdAndLocationId(Long userId, Long locationId) {
         return locationLikeJpaRepository.findByUserIdAndLocationId(userId, locationId);
     }
 
     @Override
-    public void deleteByUserIdAndLocationId(Long userId, Long locationId) {
+    public void deleteLike(Long userId, Long locationId) {
         locationLikeJpaRepository.deleteByUserIdAndLocationId(userId, locationId);
     }
 
@@ -110,5 +111,26 @@ public class LocationRepositoryImpl implements LocationRepository {
     @Override
     public void decreseVerificationCount(Long id) {
         locationJpaRepository.decreseVerificationCount(id);
+    }
+
+    @Override
+    public boolean existsArchiveByUserIdAndLocationId(Long userId, Long locationId) {
+        return locationArchiveJpaRepository.existsByUserIdAndLocationId(userId, locationId);
+    }
+
+    @Override
+    public Optional<LocationArchive> findArchiveByUserIdAndLocationId(
+            Long userId, Long locationId) {
+        return locationArchiveJpaRepository.findByUserIdAndLocationId(userId, locationId);
+    }
+
+    @Override
+    public void saveArchive(LocationArchive locationArchive) {
+        locationArchiveJpaRepository.save(locationArchive);
+    }
+
+    @Override
+    public void deleteArchive(Long userId, Long locationId) {
+        locationArchiveJpaRepository.deleteByUserIdAndLocationId(userId, locationId);
     }
 }

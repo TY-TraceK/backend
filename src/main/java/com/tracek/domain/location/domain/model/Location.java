@@ -69,4 +69,13 @@ public class Location extends BaseEntity {
         long current = this.likeCount == null ? 0L : this.likeCount;
         this.likeCount = current > 0 ? current - 1 : 0L;
     }
+
+    public void increaseArchiveCount() {
+        this.archiveCount = (this.archiveCount == null ? 0L : this.archiveCount) + 1;
+    }
+
+    public void decreaseArchiveCount() {
+        long current = this.archiveCount == null ? 0L : this.archiveCount;
+        this.archiveCount = current > 0 ? current - 1 : 0L;
+    }
 }

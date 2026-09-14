@@ -8,6 +8,7 @@ import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationArchive;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
 import com.tracek.domain.location.domain.model.LocationLike;
@@ -35,6 +36,8 @@ class LocationRepositoryImplTest {
 
     @Mock private LocationLikeJpaRepository locationLikeJpaRepository;
 
+    @Mock private LocationArchiveJpaRepository locationArchiveJpaRepository;
+
     private LocationRepositoryImpl locationRepositoryImpl;
 
     @BeforeEach
@@ -43,7 +46,8 @@ class LocationRepositoryImplTest {
                 new LocationRepositoryImpl(
                         locationJpaRepository,
                         locationContentArtistJpaRepository,
-                        locationLikeJpaRepository);
+                        locationLikeJpaRepository,
+                        locationArchiveJpaRepository);
     }
 
     @Test
@@ -118,14 +122,33 @@ class LocationRepositoryImplTest {
         given(locationLikeJpaRepository.findByUserIdAndLocationId(1L, 1L))
                 .willReturn(Optional.of(like));
 
-        assertThat(locationRepositoryImpl.existsByUserIdAndLocationId(1L, 1L)).isTrue();
-        assertThat(locationRepositoryImpl.findByUserIdAndLocationId(1L, 1L)).contains(like);
+        assertThat(locationRepositoryImpl.existsLikeByUserIdAndLocationId(1L, 1L)).isTrue();
+        assertThat(locationRepositoryImpl.findLikeByUserIdAndLocationId(1L, 1L)).contains(like);
 
         locationRepositoryImpl.saveLike(like);
         verify(locationLikeJpaRepository).save(like);
 
-        locationRepositoryImpl.deleteByUserIdAndLocationId(1L, 1L);
+        locationRepositoryImpl.deleteLike(1L, 1L);
         verify(locationLikeJpaRepository).deleteByUserIdAndLocationId(1L, 1L);
+    }
+
+    @Test
+    @DisplayName("아카이브 관련 조회/저장/삭제는 LocationArchiveJpaRepository에 위임한다")
+    void archive_delegates() {
+        LocationArchive archive = LocationArchive.of(1L, 1L);
+        given(locationArchiveJpaRepository.existsByUserIdAndLocationId(1L, 1L)).willReturn(true);
+        given(locationArchiveJpaRepository.findByUserIdAndLocationId(1L, 1L))
+                .willReturn(Optional.of(archive));
+
+        assertThat(locationRepositoryImpl.existsArchiveByUserIdAndLocationId(1L, 1L)).isTrue();
+        assertThat(locationRepositoryImpl.findArchiveByUserIdAndLocationId(1L, 1L))
+                .contains(archive);
+
+        locationRepositoryImpl.saveArchive(archive);
+        verify(locationArchiveJpaRepository).save(archive);
+
+        locationRepositoryImpl.deleteArchive(1L, 1L);
+        verify(locationArchiveJpaRepository).deleteByUserIdAndLocationId(1L, 1L);
     }
 
     @Test
