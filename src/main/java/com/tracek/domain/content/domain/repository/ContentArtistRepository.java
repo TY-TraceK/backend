@@ -11,4 +11,6 @@ public interface ContentArtistRepository {
     List<ContentArtist> findByArtistIdAndContentIds(Long artistId, List<Long> contentIds);
 
     List<ContentArtist> findFixedByContentId(Long contentId);
+
+    List<ContentArtist> findByContentIds(List<Long> contentIds);
 }

@@ -8,6 +8,7 @@ import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.application.dto.ContentArtistPair;
 import com.tracek.domain.content.application.dto.ContentResult;
+import com.tracek.domain.content.application.service.ContentArtistQueryService;
 import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
@@ -27,6 +28,7 @@ import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingRes
 import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
 import com.tracek.global.common.vo.ImageUrl;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,7 @@ class LocationFacadeTest {
     @Mock private ImageQueryService imageQueryService;
     @Mock private EpisodeQueryService episodeQueryService;
     @Mock private VisitRankingQueryService visitRankingQueryService;
+    @Mock private ContentArtistQueryService contentArtistQueryService;
 
     private LocationFacade locationFacade;
 
@@ -56,7 +59,8 @@ class LocationFacadeTest {
                         artistQueryService,
                         imageQueryService,
                         episodeQueryService,
-                        visitRankingQueryService);
+                        visitRankingQueryService,
+                        contentArtistQueryService);
     }
 
     @Test
@@ -161,6 +165,8 @@ class LocationFacadeTest {
                 .willReturn(List.of(ContentResult.from(content)));
         given(artistQueryService.getArtistsByIds(List.of(3L)))
                 .willReturn(List.of(ArtistResult.from(artist)));
+        given(contentArtistQueryService.findIsFixedByContentIds(List.of(2L)))
+                .willReturn(Map.of(2L, Map.of(3L, true)));
 
         LocationRelatedInfoResult result = locationFacade.getRelatedContentAndArtists(1L);
 
@@ -175,5 +181,7 @@ class LocationFacadeTest {
                                 .get(0)
                                 .getArtistName())
                 .isEqualTo("아이유");
+        assertThat(result.getRelatedContentGroups().get(0).getRelatedArtists().get(0).getIsFixed())
+                .isTrue();
     }
 }
