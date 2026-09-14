@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public interface OAuthClient {
 
-    String exchangeAuthorizationCode(String authorizationCode);
+    String exchangeAuthorizationCode(String authorizationCode, String redirectUrl);
 
     OAuthUserDataResult getOAuthUserData(String kakaoAccessToken);
 

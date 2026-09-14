@@ -36,13 +36,13 @@ public class KakaoOAuthClient implements OAuthClient {
     }
 
     @Override
-    public String exchangeAuthorizationCode(String authorizationCode) {
+    public String exchangeAuthorizationCode(String authorizationCode, String redirectUrl) {
         try {
             MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
             form.add("grant_type", "authorization_code");
             form.add("client_id", properties.clientId());
             form.add("client_secret", properties.clientSecret());
-            form.add("redirect_uri", properties.redirectUri());
+            form.add("redirect_uri", redirectUrl);
             form.add("code", authorizationCode);
 
             KakaoTokenResponse response =
