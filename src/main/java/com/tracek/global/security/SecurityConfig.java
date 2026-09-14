@@ -51,7 +51,8 @@ public class SecurityConfig {
                                                 HttpMethod.GET,
                                                 "/api/artists/**",
                                                 "/api/locations/**",
-                                                "/api/contents/**")
+                                                "/api/contents/**",
+                                                "/api/search/**")
                                         .permitAll()
 
                                         // 인증 필요한 요청들
