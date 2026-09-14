@@ -6,8 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tracek.domain.auth.application.dto.command.OAuthLoginCommand;
 import com.tracek.domain.auth.application.dto.result.OAuthLoginResult;
-import com.tracek.domain.auth.application.service.OAuthServiceImpl;
+import com.tracek.domain.auth.application.service.OAuthService;
+import com.tracek.domain.auth.presentation.dto.request.OAuthLoginRequest;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,9 +35,10 @@ class AuthControllerTest {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockitoBean private OAuthServiceImpl oAuthService;
+    @Autowired private ObjectMapper objectMapper;
 
-    // Security 관련 빈 주입 실패 방지를 위한 MockBean 선언
+    @MockitoBean private OAuthService oAuthService;
+
     @MockitoBean private JwtTokenProvider jwtTokenProvider;
 
     @Test
@@ -43,6 +47,16 @@ class AuthControllerTest {
         // given
         String provider = "kakao";
         String code = "sample_authorization_code";
+        String redirectUri = "http://localhost:5173/oauth/callback";
+
+        OAuthLoginRequest request = new OAuthLoginRequest(code, redirectUri);
+
+        OAuthLoginCommand command =
+                OAuthLoginCommand.builder()
+                        .code(code)
+                        .redirectUri(redirectUri)
+                        .provider(provider)
+                        .build();
 
         OAuthLoginResult loginResult =
                 OAuthLoginResult.of(
@@ -53,21 +67,24 @@ class AuthControllerTest {
                         "송유진",
                         "https://example.com/profile.jpg");
 
-        given(oAuthService.createOauthLogin(code, provider)).willReturn(loginResult);
+        given(oAuthService.createOauthLogin(command)).willReturn(loginResult);
 
         // when & then
         mockMvc.perform(
                         post("/api/auth/{provider}", provider)
-                                .param("code", code)
-                                .contentType(MediaType.APPLICATION_JSON))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
-                .andExpect(jsonPath("$.code").value("COMMON_001")) // "OK" -> "COMMON_001"로 수정
+                .andExpect(jsonPath("$.code").value("COMMON_001"))
                 .andExpect(jsonPath("$.data.userId").value(1L))
                 .andExpect(jsonPath("$.data.accessToken").value("access_token_example"))
                 .andExpect(jsonPath("$.data.refreshToken").value("refresh_token_example"))
-                .andExpect(jsonPath("$.data.isNewUser").value(true)) // JSON 필드명이 isNewUser임
-                .andExpect(jsonPath("$.data.nickName").value("송유진"));
+                .andExpect(jsonPath("$.data.isNewUser").value(true))
+                .andExpect(jsonPath("$.data.nickName").value("송유진"))
+                .andExpect(
+                        jsonPath("$.data.profileImageUrl")
+                                .value("https://example.com/profile.jpg"));
     }
 }

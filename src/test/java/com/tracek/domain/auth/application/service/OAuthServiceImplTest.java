@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.tracek.domain.auth.application.client.OAuthClient;
+import com.tracek.domain.auth.application.dto.command.OAuthLoginCommand;
 import com.tracek.domain.auth.application.dto.result.OAuthLoginResult;
 import com.tracek.domain.auth.application.dto.result.OAuthUserDataResult;
 import com.tracek.domain.auth.application.provider.OAuthClientProvider;
@@ -29,14 +30,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class OAuthServiceImplTest {
 
+    private final String redirectUrl = "http://localhost:8080/redirect";
     @InjectMocks private OAuthServiceImpl oAuthService;
-
     @Mock private OAuthClientProvider oAuthClientProvider;
-
     @Mock private UserCommandService userCommandService;
-
     @Mock private JwtTokenProvider jwtTokenProvider;
-
     @Mock private OAuthClient oAuthClient;
 
     @Nested
@@ -62,7 +60,8 @@ class OAuthServiceImplTest {
             SyncUserResult syncUserResult = new SyncUserResult(1L, true, "송유진", "ROLE_USER");
 
             given(oAuthClientProvider.getClient(OAuthProvider.KAKAO)).willReturn(oAuthClient);
-            given(oAuthClient.exchangeAuthorizationCode(code)).willReturn(oAuthAccessToken);
+            given(oAuthClient.exchangeAuthorizationCode(code, redirectUrl))
+                    .willReturn(oAuthAccessToken);
             given(oAuthClient.getOAuthUserData(oAuthAccessToken)).willReturn(userDataResult);
             given(userCommandService.registerOrUpdateUser(any(SyncUserCommand.class)))
                     .willReturn(syncUserResult);
@@ -71,7 +70,9 @@ class OAuthServiceImplTest {
             given(jwtTokenProvider.createRefreshToken(1L)).willReturn("jwt_refresh_token");
 
             // when
-            OAuthLoginResult result = oAuthService.createOauthLogin(code, provider);
+            OAuthLoginResult result =
+                    oAuthService.createOauthLogin(
+                            new OAuthLoginCommand(code, provider, redirectUrl));
 
             // then
             assertThat(result).isNotNull();
@@ -101,7 +102,10 @@ class OAuthServiceImplTest {
             given(oAuthClientProvider.getClient(OAuthProvider.KAKAO)).willReturn(null);
 
             // when & then
-            assertThatThrownBy(() -> oAuthService.createOauthLogin(code, provider))
+            assertThatThrownBy(
+                            () ->
+                                    oAuthService.createOauthLogin(
+                                            new OAuthLoginCommand(code, provider, redirectUrl)))
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(AuthErrorCode.PROVIDER_NOT_FOUND);
