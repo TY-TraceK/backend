@@ -24,12 +24,26 @@ public class LocationSearchController {
     private final LocationSearchQueryService locationSearchQueryService;
 
     @Operation(
-            summary = "관광지 검색 (커서 기반)",
+            summary = "관광지 이름 검색 (통합검색용, 커서 기반)",
             description =
-                    "이름·시/도·구군을 대상으로 전문 검색(FULLTEXT, ngram)을 수행합니다. "
-                            + "keyword가 없으면 빈 목록을 반환합니다. category를 지정하면 해당 카테고리로 추가 필터링합니다. "
+                    "관광지 이름만 대상으로 전문 검색(FULLTEXT, ngram)을 수행합니다. "
+                            + "keyword가 없으면 빈 목록을 반환합니다. "
                             + "lastLocationId를 응답의 lastId로 채워 다음 페이지를 커서 기반으로 조회합니다.")
     @GetMapping("/search")
+    public ApiResponse<LocationSearchResponse> searchLocationsByName(
+            @ParameterObject @ModelAttribute LocationSearchRequest request) {
+        LocationSearchQuery query = request.toQuery();
+        LocationSearchResult result = locationSearchQueryService.searchLocationsByName(query);
+        return ApiResponse.success(GeneralSuccessCode.OK, LocationSearchResponse.from(result));
+    }
+
+    @Operation(
+            summary = "관광지 검색 - 지역명 포함 (커서 기반)",
+            description =
+                    "이름·시/도·구군을 대상으로 전문 검색(FULLTEXT, ngram)을 수행합니다. "
+                            + "keyword가 없으면 빈 목록을 반환합니다. "
+                            + "lastLocationId를 응답의 lastId로 채워 다음 페이지를 커서 기반으로 조회합니다.")
+    @GetMapping("/search-region")
     public ApiResponse<LocationSearchResponse> searchLocations(
             @ParameterObject @ModelAttribute LocationSearchRequest request) {
         LocationSearchQuery query = request.toQuery();

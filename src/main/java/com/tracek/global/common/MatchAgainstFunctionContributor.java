@@ -32,5 +32,16 @@ public class MatchAgainstFunctionContributor implements FunctionContributor {
                                 .getTypeConfiguration()
                                 .getBasicTypeRegistry()
                                 .resolve(StandardBasicTypes.BOOLEAN));
+
+        // 컬럼 1개짜리(name/title 단독) FULLTEXT 인덱스용 - 통합검색(이름/제목만 매칭)에서 재사용.
+        functionContributions
+                .getFunctionRegistry()
+                .registerPattern(
+                        "match_against1",
+                        "MATCH (?1) AGAINST (?2 IN BOOLEAN MODE)",
+                        functionContributions
+                                .getTypeConfiguration()
+                                .getBasicTypeRegistry()
+                                .resolve(StandardBasicTypes.BOOLEAN));
     }
 }
