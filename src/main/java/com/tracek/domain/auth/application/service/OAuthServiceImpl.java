@@ -1,6 +1,7 @@
 package com.tracek.domain.auth.application.service;
 
 import com.tracek.domain.auth.application.client.OAuthClient;
+import com.tracek.domain.auth.application.dto.command.OAuthLoginCommand;
 import com.tracek.domain.auth.application.dto.result.OAuthLoginResult;
 import com.tracek.domain.auth.application.dto.result.OAuthUserDataResult;
 import com.tracek.domain.auth.application.provider.OAuthClientProvider;
@@ -27,9 +28,10 @@ public class OAuthServiceImpl implements OAuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public OAuthLoginResult createOauthLogin(String code, String providerName) {
+    public OAuthLoginResult createOauthLogin(OAuthLoginCommand request) {
 
-        OAuthUserDataResult dataResult = connectAndGetOauthUser(code, providerName);
+        OAuthUserDataResult dataResult =
+                connectAndGetOauthUser(request.code(), request.provider(), request.redirectUri());
         SyncUserResult userResult =
                 userCommandService.registerOrUpdateUser(
                         SyncUserCommand.builder()
@@ -52,7 +54,8 @@ public class OAuthServiceImpl implements OAuthService {
                 dataResult.profileImageUrl());
     }
 
-    private OAuthUserDataResult connectAndGetOauthUser(String code, String providerName) {
+    private OAuthUserDataResult connectAndGetOauthUser(
+            String code, String providerName, String redirectUrl) {
         OAuthProvider provider =
                 OAuthProvider.from(providerName)
                         .orElseThrow(() -> new CustomException(AuthErrorCode.PROVIDER_NOT_FOUND));
@@ -60,7 +63,7 @@ public class OAuthServiceImpl implements OAuthService {
         if (client == null) {
             throw new CustomException(AuthErrorCode.PROVIDER_NOT_FOUND);
         }
-        String oAuthAccessToken = client.exchangeAuthorizationCode(code);
+        String oAuthAccessToken = client.exchangeAuthorizationCode(code, redirectUrl);
         return client.getOAuthUserData(oAuthAccessToken);
     }
 
