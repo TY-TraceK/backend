@@ -37,4 +37,15 @@ public class ContentArtistQueryService {
                 .map(contentArtist -> contentArtist.getArtist().getId())
                 .toList();
     }
+
+    // contentId -> (artistId -> isFixed) 배치 조회
+    public Map<Long, Map<Long, Boolean>> findIsFixedByContentIds(List<Long> contentIds) {
+        return contentArtistRepository.findByContentIds(contentIds).stream()
+                .collect(
+                        Collectors.groupingBy(
+                                contentArtist -> contentArtist.getContent().getId(),
+                                Collectors.toMap(
+                                        contentArtist -> contentArtist.getArtist().getId(),
+                                        ContentArtist::getIsFixed)));
+    }
 }

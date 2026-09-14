@@ -4,6 +4,7 @@ import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
 import com.tracek.domain.content.application.dto.ContentArtistPair;
 import com.tracek.domain.content.application.dto.ContentResult;
+import com.tracek.domain.content.application.service.ContentArtistQueryService;
 import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.image.application.dto.ImageResult;
@@ -35,6 +36,7 @@ public class LocationFacade {
     private final ImageQueryService imageQueryService;
     private final EpisodeQueryService episodeQueryService;
     private final VisitRankingQueryService visitRankingQueryService;
+    private final ContentArtistQueryService contentArtistQueryService;
 
     // 메인 관광지 상세 정보 조회 (플랫 구조 - 연관 콘텐츠, 아티스트)
     public LocationDetailResult getLocationDetails(Long locationId, RankingCondition condition) {
@@ -165,11 +167,19 @@ public class LocationFacade {
                                         ArtistResult::getId,
                                         a -> a)); // Map 변환(ArtistResult의 id : ArtistResult)
 
+        // contentId -> (artistId -> isFixed) 배치 조회
+        Map<Long, Map<Long, Boolean>> isFixedByContentThenArtist =
+                contentArtistQueryService.findIsFixedByContentIds(contentIds);
+
         // 3. 리스트 변환
         List<LocationRelatedInfoResult.RelatedContentGroup> groups =
                 contents.stream()
                         .map(
                                 content -> {
+                                    Map<Long, Boolean> isFixedByArtistId =
+                                            isFixedByContentThenArtist.getOrDefault(
+                                                    content.getContentId(), Map.of());
+
                                     List<LocationRelatedInfoResult.RelatedArtistResult> artists =
                                             artistIdsByContentId
                                                     .getOrDefault(
@@ -186,7 +196,9 @@ public class LocationFacade {
                                                                             a.getId(),
                                                                             a.getName(),
                                                                             a.getPictureUrl(),
-                                                                            a.getIsGroup()))
+                                                                            a.getIsGroup(),
+                                                                            isFixedByArtistId.get(
+                                                                                    a.getId())))
                                                     .toList();
 
                                     return LocationRelatedInfoResult.RelatedContentGroup.of(

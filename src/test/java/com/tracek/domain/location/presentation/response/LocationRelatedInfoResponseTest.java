@@ -14,7 +14,7 @@ class LocationRelatedInfoResponseTest {
     void from_success() {
         LocationRelatedInfoResult.RelatedArtistResult artist =
                 LocationRelatedInfoResult.RelatedArtistResult.of(
-                        3L, "아이유", "http://image.com/ar.jpg", false);
+                        3L, "아이유", "http://image.com/ar.jpg", false, true);
         LocationRelatedInfoResult.RelatedContentGroup group =
                 LocationRelatedInfoResult.RelatedContentGroup.of(
                         2L, "궁궐 브이로그", "VARIETY", "http://image.com/c.jpg", List.of(artist));
@@ -32,5 +32,7 @@ class LocationRelatedInfoResponseTest {
         assertThat(response.getRelatedContentGroups().get(0).getArtists()).hasSize(1);
         assertThat(response.getRelatedContentGroups().get(0).getArtists().get(0).getArtistName())
                 .isEqualTo("아이유");
+        assertThat(response.getRelatedContentGroups().get(0).getArtists().get(0).getIsFixed())
+                .isTrue();
     }
 }

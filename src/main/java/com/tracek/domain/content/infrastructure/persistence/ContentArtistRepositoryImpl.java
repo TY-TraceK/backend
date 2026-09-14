@@ -30,4 +30,9 @@ public class ContentArtistRepositoryImpl implements ContentArtistRepository {
     public List<ContentArtist> findFixedByContentId(Long contentId) {
         return contentArtistJpaRepository.findByContentIdAndIsFixedTrue(contentId);
     }
+
+    @Override
+    public List<ContentArtist> findByContentIds(List<Long> contentIds) {
+        return contentArtistJpaRepository.findByContentIdIn(contentIds);
+    }
 }

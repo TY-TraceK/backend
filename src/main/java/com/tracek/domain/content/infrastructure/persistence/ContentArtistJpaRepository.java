@@ -12,4 +12,6 @@ public interface ContentArtistJpaRepository extends JpaRepository<ContentArtist,
     List<ContentArtist> findByArtistIdAndContentIdIn(Long artistId, List<Long> contentIds);
 
     List<ContentArtist> findByContentIdAndIsFixedTrue(Long contentId);
+
+    List<ContentArtist> findByContentIdIn(List<Long> contentIds);
 }

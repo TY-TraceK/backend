@@ -55,6 +55,7 @@ public class LocationRelatedInfoResponse {
         private String artistName;
         private String artistPictureUrl;
         private Boolean isGroup;
+        private Boolean isFixed; // 해당 콘텐츠의 고정 출연 여부
 
         public static RelatedArtistResponse from(
                 LocationRelatedInfoResult.RelatedArtistResult result) {
@@ -62,7 +63,8 @@ public class LocationRelatedInfoResponse {
                     result.getArtistId(),
                     result.getArtistName(),
                     result.getArtistPictureUrl(),
-                    result.getIsGroup());
+                    result.getIsGroup(),
+                    result.getIsFixed());
         }
     }
 }

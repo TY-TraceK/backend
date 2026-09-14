@@ -49,10 +49,16 @@ public class LocationRelatedInfoResult {
         private String artistName;
         private String artistPictureUrl;
         private Boolean isGroup;
+        private Boolean isFixed; // 해당 콘텐츠의 고정 출연 여부
 
         public static RelatedArtistResult of(
-                Long artistId, String artistName, String artistPictureUrl, Boolean isGroup) {
-            return new RelatedArtistResult(artistId, artistName, artistPictureUrl, isGroup);
+                Long artistId,
+                String artistName,
+                String artistPictureUrl,
+                Boolean isGroup,
+                Boolean isFixed) {
+            return new RelatedArtistResult(
+                    artistId, artistName, artistPictureUrl, isGroup, isFixed);
         }
     }
 }
