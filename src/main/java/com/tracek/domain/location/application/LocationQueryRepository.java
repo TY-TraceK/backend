@@ -6,8 +6,10 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tracek.domain.location.application.dto.LocationBoundsQuery;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
+import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +33,9 @@ public class LocationQueryRepository {
                                 location.name,
                                 location.category.stringValue(),
                                 location.address.address,
-                                location.mainImageUrl.imageUrl))
+                                location.mainImageUrl.imageUrl,
+                                location.geoLocation.latitude,
+                                location.geoLocation.longitude))
                 .from(location)
                 .where(
                         matchKeyword(query.getKeyword()),
@@ -52,7 +56,9 @@ public class LocationQueryRepository {
                                 location.name,
                                 location.category.stringValue(),
                                 location.address.address,
-                                location.mainImageUrl.imageUrl))
+                                location.mainImageUrl.imageUrl,
+                                location.geoLocation.latitude,
+                                location.geoLocation.longitude))
                 .from(location)
                 .where(
                         matchKeywordNameOnly(query.getKeyword()),
@@ -113,5 +119,34 @@ public class LocationQueryRepository {
 
     private BooleanExpression ltLastLocationId(Long lastLocationId) {
         return lastLocationId != null ? location.id.lt(lastLocationId) : null;
+    }
+
+    // 지도 bounds 범위 조회 - 페이징 없이 안전장치용 limit만 적용
+    private static final int BOUNDS_RESULT_LIMIT = 500;
+
+    public List<LocationSearchResult.LocationInfo> findLocationsWithinBounds(
+            LocationBoundsQuery query) {
+        return queryFactory
+                .select(
+                        Projections.constructor(
+                                LocationSearchResult.LocationInfo.class,
+                                location.id,
+                                location.name,
+                                location.category.stringValue(),
+                                location.address.address,
+                                location.mainImageUrl.imageUrl,
+                                location.geoLocation.latitude,
+                                location.geoLocation.longitude))
+                .from(location)
+                .where(
+                        location.geoLocation.latitude.between(query.getSwLat(), query.getNeLat()),
+                        location.geoLocation.longitude.between(query.getSwLng(), query.getNeLng()),
+                        eqCategory(query.getCategory()))
+                .limit(BOUNDS_RESULT_LIMIT)
+                .fetch();
+    }
+
+    private BooleanExpression eqCategory(LocationCategory category) {
+        return category != null ? location.category.eq(category) : null;
     }
 }

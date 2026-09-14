@@ -1,9 +1,13 @@
 package com.tracek.domain.location.presentation.controller;
 
+import com.tracek.domain.location.application.dto.LocationBoundsQuery;
+import com.tracek.domain.location.application.dto.LocationBoundsResult;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
 import com.tracek.domain.location.application.service.LocationSearchQueryService;
+import com.tracek.domain.location.presentation.request.LocationBoundsRequest;
 import com.tracek.domain.location.presentation.request.LocationSearchRequest;
+import com.tracek.domain.location.presentation.response.LocationBoundsResponse;
 import com.tracek.domain.location.presentation.response.LocationSearchResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
@@ -49,5 +53,20 @@ public class LocationSearchController {
         LocationSearchQuery query = request.toQuery();
         LocationSearchResult result = locationSearchQueryService.searchLocations(query);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationSearchResponse.from(result));
+    }
+
+    @Operation(
+            summary = "지도 bounds 범위 내 관광지 조회 (카테고리 필터 가능)",
+            description =
+                    "지도 화면에 보이는 사각형 범위(남서/북동 좌표) 안의 관광지를 페이징 없이 조회합니다. "
+                            + "4개 좌표를 모두 입력하지 않으면 부산광역시청 기준 기본 범위로 조회합니다. "
+                            + "위경도 차이가 0.3도를 넘으면 범위가 너무 넓다는 에러를 반환하니 화면을 확대한 뒤 다시 요청해주세요. "
+                            + "category를 지정하면 해당 카테고리로 추가 필터링합니다(선택, 예: ATTRACTION, CAFE).")
+    @GetMapping("/bounds")
+    public ApiResponse<LocationBoundsResponse> findLocationsWithinBounds(
+            @ParameterObject @ModelAttribute LocationBoundsRequest request) {
+        LocationBoundsQuery query = request.toQuery();
+        LocationBoundsResult result = locationSearchQueryService.findLocationsWithinBounds(query);
+        return ApiResponse.success(GeneralSuccessCode.OK, LocationBoundsResponse.from(result));
     }
 }

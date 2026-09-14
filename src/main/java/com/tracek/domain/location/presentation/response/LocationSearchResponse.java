@@ -21,6 +21,8 @@ public class LocationSearchResponse {
         private String category;
         private String address;
         private String mainImageUrl;
+        private double latitude;
+        private double longitude;
 
         public static LocationSearchElement from(LocationSearchResult.LocationInfo result) {
             return new LocationSearchElement(
@@ -28,7 +30,9 @@ public class LocationSearchResponse {
                     result.getName(),
                     result.getCategory(),
                     result.getAddress(),
-                    result.getMainImageUrl());
+                    result.getMainImageUrl(),
+                    result.getLatitude(),
+                    result.getLongitude());
         }
     }
 

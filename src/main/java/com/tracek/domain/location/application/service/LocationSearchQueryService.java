@@ -1,6 +1,8 @@
 package com.tracek.domain.location.application.service;
 
 import com.tracek.domain.location.application.LocationQueryRepository;
+import com.tracek.domain.location.application.dto.LocationBoundsQuery;
+import com.tracek.domain.location.application.dto.LocationBoundsResult;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
 import java.util.Collections;
@@ -42,5 +44,13 @@ public class LocationSearchQueryService {
                 locationQueryRepository.searchLocationsByName(query, fetchSize);
 
         return LocationSearchResult.of(locations, query.getSize());
+    }
+
+    // 지도 bounds 범위 조회 - 페이징 없이 안전장치용 limit만 적용
+    public LocationBoundsResult findLocationsWithinBounds(LocationBoundsQuery query) {
+        List<LocationSearchResult.LocationInfo> locations =
+                locationQueryRepository.findLocationsWithinBounds(query);
+
+        return LocationBoundsResult.of(locations);
     }
 }
