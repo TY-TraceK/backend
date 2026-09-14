@@ -11,7 +11,7 @@ public record RelatedMultiRankingResult(
         return RelatedMultiRankingResult.builder()
                 .artistId(targetId.artistId())
                 .contentId(targetId.contentId())
-                .locationId(targetId.contentId())
+                .locationId(targetId.locationId())
                 .build();
     }
 }
