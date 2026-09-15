@@ -4,10 +4,13 @@ import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCancelCommand;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCreateCommand;
+import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationUpdateCommand;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationCancelResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationCreateResult;
+import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationUpdateResult;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCanceledEvent;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCreatedEvent;
+import com.tracek.domain.visitVerification.application.event.VisitVerificationUpdatedEvent;
 import com.tracek.domain.visitVerification.application.service.VisitVerificationCommandService;
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.domain.exception.VisitVerificationErrorCode;
@@ -42,11 +45,7 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
     }
 
     private boolean isRelatedVerifiedTarget(Long locationId, Long contentId, Long artistId) {
-        if (artistId == null) {
-            return episodeQueryService.isRelatedContent(locationId, contentId);
-        } else {
-            return episodeQueryService.isRelatedContentAndArtist(locationId, contentId, artistId);
-        }
+        return episodeQueryService.isRelatedContentAndArtist(locationId, contentId, artistId);
     }
 
     private boolean isVisitZoneWithIn(Double latitude, Double longitude, Long locationId) {
@@ -116,5 +115,49 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
                     VisitVerificationCanceledEvent.from(visitVerification));
         }
         return VisitVerificationCancelResult.from(visitVerification);
+    }
+
+    @Transactional
+    @Override
+    public VisitVerificationUpdateResult updateVisitVerification(
+            VisitVerificationUpdateCommand command) {
+
+        VisitVerification visitVerification =
+                visitVerificationRepository
+                        .findById(command.visitVerificationId())
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                VisitVerificationErrorCode
+                                                        .VISIT_VERIFICATION_NOT_FOUND));
+        // 자신의 것만 수정 가능
+        if (!Objects.equals(visitVerification.getOwner(), command.userId())) {
+            throw new CustomException(VisitVerificationErrorCode.ACCESS_DINED);
+        }
+        // 이미 취소된 경우에는 수정 불가
+        if (visitVerification.getStatus() == VisitVerificationStatus.CANCELED) {
+            throw new CustomException(VisitVerificationErrorCode.ALREADY_CANCELLED);
+        }
+        // 24시간 이내에만 수정 가능
+        if (Duration.between(visitVerification.getVerifiedAt(), LocalDateTime.now()).toHours()
+                >= 24) {
+            throw new CustomException(VisitVerificationErrorCode.CANNOT_BE_CANCELLED);
+        }
+        // 연관관계가 있는 경우만 수정 가능
+        if (!isRelatedVerifiedTarget(
+                visitVerification.getLocationId(), command.contentId(), command.artistId())) {
+            throw new CustomException(VisitVerificationErrorCode.VERIFICATION_TARGET_NOT_FOUND);
+        }
+        VisitVerificationTarget previousTarget = visitVerification.getVerificationTarget();
+
+        VisitVerificationTarget updatedTarget =
+                VisitVerificationTarget.of(command.artistId(), command.contentId());
+
+        visitVerification.updateVerificationTarget(updatedTarget);
+
+        applicationEventPublisher.publishEvent(
+                VisitVerificationUpdatedEvent.of(
+                        visitVerification.getLocationId(), previousTarget, updatedTarget));
+        return VisitVerificationUpdateResult.from(visitVerification);
     }
 }

@@ -8,13 +8,16 @@ import com.tracek.domain.visitVerification.presentation.dto.VisitVerificationCan
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationCreateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationHistoriesSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationStatusSearchRequest;
+import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationUpdateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationCreateResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationHistoriesResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationStatusSearchResponse;
+import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationUpdateResponse;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +44,7 @@ public class VisitVerificationController implements VisitVerificationControllerD
     }
 
     @Override
-    @PatchMapping("/visit-verifications/{visitVerificationId}")
+    @DeleteMapping("/visit-verifications/{visitVerificationId}")
     public ApiResponse<VisitVerificationCancelResponse> cancelVisitVerification(
             AuthenticationPrincipal principal, Long visitVerificationId) {
         return ApiResponse.success(
@@ -50,6 +53,19 @@ public class VisitVerificationController implements VisitVerificationControllerD
                         visitVerificationCommandService.cancelVisitVerification(
                                 VisitVerificationCancelCommand.of(
                                         visitVerificationId, principal.userId()))));
+    }
+
+    @Override
+    @PatchMapping("/visit-verifications/{visitVerificationId}")
+    public ApiResponse<VisitVerificationUpdateResponse> updateVisitVerification(
+            AuthenticationPrincipal principal,
+            Long visitVerificationId,
+            VisitVerificationUpdateRequest request) {
+        return ApiResponse.success(
+                GeneralSuccessCode.OK,
+                VisitVerificationUpdateResponse.from(
+                        visitVerificationCommandService.updateVisitVerification(
+                                request.toCommand(visitVerificationId, principal.userId()))));
     }
 
     @Override

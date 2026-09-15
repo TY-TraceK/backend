@@ -41,14 +41,12 @@ class VisitVerificationQueryServiceImplTest {
     private VisitVerificationStatusSearchCondition condition;
     private Long contentId;
     private Long artistId;
-    private Long locationContentArtistId;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
         locationId = 100L;
         targetDate = LocalDate.of(2026, 8, 19);
-        locationContentArtistId = 1000L;
         contentId = 10L;
         artistId = 5L;
         condition = new VisitVerificationStatusSearchCondition(userId, locationId, targetDate);

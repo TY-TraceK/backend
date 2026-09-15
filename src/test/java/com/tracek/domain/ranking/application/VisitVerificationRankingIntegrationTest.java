@@ -8,19 +8,25 @@ import static org.mockito.BDDMockito.given;
 import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.ranking.domain.model.ArtistLocationVisitRanking;
+import com.tracek.domain.ranking.domain.model.ContentArtistLocationVisitRanking;
+import com.tracek.domain.ranking.domain.model.ContentArtistVisitRanking;
 import com.tracek.domain.ranking.domain.model.ContentLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.LocationVisitRanking;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ArtistLocationVisitRankingJpaRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentArtistLocationVisitRankingJpaRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentArtistVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentLocationVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.LocationVisitRankingJpaRepository;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCancelCommand;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCreateCommand;
+import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationUpdateCommand;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationCreateResult;
 import com.tracek.domain.visitVerification.application.service.VisitVerificationCommandService;
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.infrastructure.persistence.VisitVerificationJpaRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -56,6 +62,12 @@ class VisitVerificationRankingIntegrationTest {
     @Autowired
     private ContentLocationVisitRankingJpaRepository contentLocationVisitRankingRepository;
 
+    @Autowired private ContentArtistVisitRankingJpaRepository contentArtistVisitRankingRepository;
+
+    @Autowired
+    private ContentArtistLocationVisitRankingJpaRepository
+            contentArtistLocationVisitRankingRepository;
+
     @MockitoBean private LocationQueryService locationQueryService;
 
     @MockitoBean private EpisodeQueryService episodeQueryService;
@@ -72,7 +84,6 @@ class VisitVerificationRankingIntegrationTest {
         artistId = 10L;
         contentId = 20L;
 
-        // 서비스 내부 검증 로직(!isRelatedVerifiedTarget, !isVisitZoneWithIn) 통과 설정
         given(episodeQueryService.isRelatedContentAndArtist(anyLong(), anyLong(), anyLong()))
                 .willReturn(true);
         given(episodeQueryService.isRelatedContent(anyLong(), anyLong())).willReturn(true);
@@ -95,6 +106,8 @@ class VisitVerificationRankingIntegrationTest {
 
     @AfterEach
     void tearDown() {
+        contentArtistLocationVisitRankingRepository.deleteAllInBatch();
+        contentArtistVisitRankingRepository.deleteAllInBatch();
         contentLocationVisitRankingRepository.deleteAllInBatch();
         artistLocationVisitRankingRepository.deleteAllInBatch();
         locationVisitRankingRepository.deleteAllInBatch();
@@ -130,6 +143,45 @@ class VisitVerificationRankingIntegrationTest {
         return contentLocationVisitRankingRepository
                 .findByLocationIdAndContentId(locationId, contentId)
                 .map(ContentLocationVisitRanking::getTotalVerificationCount)
+                .orElseThrow();
+    }
+
+    private long getArtistRankingCount(Long targetArtistId) {
+        return artistLocationVisitRankingRepository
+                .findByLocationIdAndArtistId(locationId, targetArtistId)
+                .map(ArtistLocationVisitRanking::getTotalVerificationCount)
+                .orElseThrow();
+    }
+
+    private long getContentRankingCount(Long targetContentId) {
+        return contentLocationVisitRankingRepository
+                .findByLocationIdAndContentId(locationId, targetContentId)
+                .map(ContentLocationVisitRanking::getTotalVerificationCount)
+                .orElseThrow();
+    }
+
+    private long getContentArtistRankingCount(Long targetContentId, Long targetArtistId) {
+
+        return contentArtistVisitRankingRepository.findAll().stream()
+                .filter(
+                        ranking ->
+                                Objects.equals(ranking.getContentId(), targetContentId)
+                                        && Objects.equals(ranking.getArtistId(), targetArtistId))
+                .findFirst()
+                .map(ContentArtistVisitRanking::getTotalVerificationCount)
+                .orElseThrow();
+    }
+
+    private long getContentArtistLocationRankingCount(Long targetContentId, Long targetArtistId) {
+
+        return contentArtistLocationVisitRankingRepository.findAll().stream()
+                .filter(
+                        ranking ->
+                                Objects.equals(ranking.getLocationId(), locationId)
+                                        && Objects.equals(ranking.getContentId(), targetContentId)
+                                        && Objects.equals(ranking.getArtistId(), targetArtistId))
+                .findFirst()
+                .map(ContentArtistLocationVisitRanking::getTotalVerificationCount)
                 .orElseThrow();
     }
 
@@ -576,6 +628,202 @@ class VisitVerificationRankingIntegrationTest {
              * count가 0이 되어도 랭킹 후보 row 자체는 유지한다.
              */
             assertRankingRowCountIsOne();
+        }
+    }
+
+    @Nested
+    @DisplayName("방문 인증 수정 → 랭킹 변경")
+    class UpdateVisitVerificationRankingTest {
+
+        private Long updatedArtistId;
+        private Long updatedContentId;
+
+        @BeforeEach
+        void setUpUpdateRankingRows() {
+            updatedArtistId = 11L;
+            updatedContentId = 21L;
+
+            /*
+             * 수정 후 이동할 랭킹 후보 row를 미리 생성한다.
+             */
+            artistLocationVisitRankingRepository.save(
+                    ArtistLocationVisitRanking.create(locationId, updatedArtistId));
+
+            contentLocationVisitRankingRepository.save(
+                    ContentLocationVisitRanking.create(locationId, updatedContentId));
+        }
+
+        private VisitVerificationUpdateCommand updateCommand(
+                Long visitVerificationId, Long targetContentId, Long targetArtistId) {
+
+            return VisitVerificationUpdateCommand.builder()
+                    .visitVerificationId(visitVerificationId)
+                    .userId(userId)
+                    .contentId(targetContentId)
+                    .artistId(targetArtistId)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("콘텐츠와 아티스트를 모두 수정하면 기존 랭킹은 감소하고 새로운 랭킹은 증가한다")
+        void updateContentAndArtistReflectsRanking() {
+
+            // given
+            VisitVerificationCreateResult result =
+                    visitVerificationCommandService.createVisitVerification(createCommand(userId));
+
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
+
+            assertThat(getArtistRankingCount(updatedArtistId)).isZero();
+            assertThat(getContentRankingCount(updatedContentId)).isZero();
+
+            VisitVerificationUpdateCommand command =
+                    updateCommand(result.visitVerificationId(), updatedContentId, updatedArtistId);
+
+            // when
+            long startTime = System.currentTimeMillis();
+
+            visitVerificationCommandService.updateVisitVerification(command);
+
+            long endTime = System.currentTimeMillis();
+
+            // then
+            System.out.println("단건 수정 실행 시간: " + (endTime - startTime) + "ms");
+
+            printAllTablesStatus();
+
+            /*
+             * location은 수정되지 않으므로 그대로 유지
+             */
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+
+            /*
+             * artist ranking
+             *
+             * 기존 artist
+             * 1 → 0
+             *
+             * 변경 artist
+             * 0 → 1
+             */
+            assertThat(getArtistRankingCount(artistId)).isZero();
+            assertThat(getArtistRankingCount(updatedArtistId)).isEqualTo(1L);
+
+            /*
+             * content ranking
+             *
+             * 기존 content
+             * 1 → 0
+             *
+             * 변경 content
+             * 0 → 1
+             */
+            assertThat(getContentRankingCount(contentId)).isZero();
+            assertThat(getContentRankingCount(updatedContentId)).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("콘텐츠만 수정하면 콘텐츠 랭킹만 이동하고 관광지/아티스트 랭킹은 유지된다")
+        void updateOnlyContentReflectsRanking() {
+
+            // given
+            VisitVerificationCreateResult result =
+                    visitVerificationCommandService.createVisitVerification(createCommand(userId));
+
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(updatedContentId)).isZero();
+
+            VisitVerificationUpdateCommand command =
+                    updateCommand(result.visitVerificationId(), updatedContentId, artistId);
+
+            // when
+            visitVerificationCommandService.updateVisitVerification(command);
+
+            // then
+
+            /*
+             * location 변경 없음
+             */
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+
+            /*
+             * artist 변경 없음
+             */
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getArtistRankingCount(updatedArtistId)).isZero();
+
+            /*
+             * content만 이동
+             */
+            assertThat(getContentRankingCount(contentId)).isZero();
+            assertThat(getContentRankingCount(updatedContentId)).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("아티스트만 수정하면 아티스트 랭킹만 이동하고 관광지/콘텐츠 랭킹은 유지된다")
+        void updateOnlyArtistReflectsRanking() {
+
+            // given
+            VisitVerificationCreateResult result =
+                    visitVerificationCommandService.createVisitVerification(createCommand(userId));
+
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getArtistRankingCount(updatedArtistId)).isZero();
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
+
+            VisitVerificationUpdateCommand command =
+                    updateCommand(result.visitVerificationId(), contentId, updatedArtistId);
+
+            // when
+            visitVerificationCommandService.updateVisitVerification(command);
+
+            // then
+
+            /*
+             * location 변경 없음
+             */
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+
+            /*
+             * content 변경 없음
+             */
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(updatedContentId)).isZero();
+
+            /*
+             * artist만 이동
+             */
+            assertThat(getArtistRankingCount(artistId)).isZero();
+            assertThat(getArtistRankingCount(updatedArtistId)).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("콘텐츠와 아티스트가 동일하면 기존 랭킹은 변경되지 않는다")
+        void updateSameTargetDoesNotChangeRanking() {
+
+            // given
+            VisitVerificationCreateResult result =
+                    visitVerificationCommandService.createVisitVerification(createCommand(userId));
+
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
+
+            VisitVerificationUpdateCommand command =
+                    updateCommand(result.visitVerificationId(), contentId, artistId);
+
+            // when
+            visitVerificationCommandService.updateVisitVerification(command);
+
+            // then
+            assertThat(getLocationRankingCount()).isEqualTo(1L);
+            assertThat(getArtistRankingCount(artistId)).isEqualTo(1L);
+            assertThat(getContentRankingCount(contentId)).isEqualTo(1L);
         }
     }
 }

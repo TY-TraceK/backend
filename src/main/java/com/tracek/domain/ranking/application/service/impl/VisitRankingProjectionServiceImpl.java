@@ -7,6 +7,7 @@ import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRan
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,39 +27,110 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void increase(Long locationId, Long contentId, Long artistId) {
+
         locationVisitRankingRepository.increaseVerificationCount(locationId);
 
-        if (artistId != null) {
-            artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
-        }
+        artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
 
-        if (contentId != null) {
-            contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
-        }
+        contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
 
-        if (artistId != null && contentId != null) {
-            contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
-            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
-                    new TargetId(locationId, contentId, artistId));
-        }
+        contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+
+        contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                new TargetId(locationId, contentId, artistId));
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void decrease(Long locationId, Long contentId, Long artistId) {
+
         locationVisitRankingRepository.decreaseVerificationCount(locationId);
 
-        if (artistId != null) {
-            artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
+        artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
+
+        contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
+
+        contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+
+        contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                new TargetId(locationId, contentId, artistId));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void update(
+            Long locationId,
+            Long previousContentId,
+            Long previousArtistId,
+            Long updatedContentId,
+            Long updatedArtistId) {
+
+        boolean contentChanged = !Objects.equals(previousContentId, updatedContentId);
+
+        boolean artistChanged = !Objects.equals(previousArtistId, updatedArtistId);
+
+        if (!contentChanged && !artistChanged) {
+            return;
         }
 
-        if (contentId != null) {
-            contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
+        if (contentChanged) {
+            updateContentLocationRanking(locationId, previousContentId, updatedContentId);
         }
-        if (artistId != null && contentId != null) {
-            contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
-            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
-                    new TargetId(locationId, contentId, artistId));
+
+        if (artistChanged) {
+            updateArtistLocationRanking(locationId, previousArtistId, updatedArtistId);
         }
+
+        updateContentArtistRanking(
+                previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+
+        updateContentArtistLocationRanking(
+                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+    }
+
+    private void updateContentLocationRanking(
+            Long locationId, Long previousContentId, Long updatedContentId) {
+
+        contentLocationVisitRankingRepository.decreaseVerificationCount(
+                locationId, previousContentId);
+
+        contentLocationVisitRankingRepository.increaseVerificationCount(
+                locationId, updatedContentId);
+    }
+
+    private void updateArtistLocationRanking(
+            Long locationId, Long previousArtistId, Long updatedArtistId) {
+
+        artistLocationVisitRankingRepository.decreaseVerificationCount(
+                locationId, previousArtistId);
+
+        artistLocationVisitRankingRepository.increaseVerificationCount(locationId, updatedArtistId);
+    }
+
+    private void updateContentArtistRanking(
+            Long previousContentId,
+            Long previousArtistId,
+            Long updatedContentId,
+            Long updatedArtistId) {
+
+        contentArtistVisitRankingRepository.decreaseVerificationCount(
+                previousContentId, previousArtistId);
+
+        contentArtistVisitRankingRepository.increaseVerificationCount(
+                updatedContentId, updatedArtistId);
+    }
+
+    private void updateContentArtistLocationRanking(
+            Long locationId,
+            Long previousContentId,
+            Long previousArtistId,
+            Long updatedContentId,
+            Long updatedArtistId) {
+
+        contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                new TargetId(locationId, previousContentId, previousArtistId));
+
+        contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                new TargetId(locationId, updatedContentId, updatedArtistId));
     }
 }

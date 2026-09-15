@@ -29,7 +29,7 @@ public enum VisitVerificationErrorCode implements BaseErrorCode {
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "visitVerification_008", "올바르지 않은 방문 인증 요청 데이터입니다."),
     INVALID_DATE(HttpStatus.BAD_REQUEST, "visitVerification_009", "시작일은 종료일보다 늦을 수 없습니다."),
     VISIT_ZONE_MISMATCH(HttpStatus.BAD_REQUEST, "visitVerification_010", "방문 인증 할 수 있는 위치가 아닙니다."),
-    ;
+    ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "visitVerification_011", "이미 취소된 방문인증은 수정할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
