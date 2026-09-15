@@ -9,6 +9,7 @@ public record LocationRankingResult(
         Long locationId,
         String locationName,
         String cityName,
+        String imageUrl,
         Long totalVerificationCount) {
 
     public static LocationRankingResult from(LocationRankingView rankingView) {
@@ -17,6 +18,7 @@ public record LocationRankingResult(
                 .locationId(rankingView.locationId())
                 .locationName(rankingView.locationName())
                 .cityName(rankingView.cityName())
+                .imageUrl(rankingView.imageUrl())
                 .totalVerificationCount(rankingView.totalVerificationCount())
                 .build();
     }

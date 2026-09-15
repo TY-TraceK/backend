@@ -9,5 +9,6 @@ public record LocationRankingView(
         Long locationId,
         String cityName,
         String locationName,
+        String imageUrl,
         LocalDateTime lastUpdateAt,
         long totalVerificationCount) {}

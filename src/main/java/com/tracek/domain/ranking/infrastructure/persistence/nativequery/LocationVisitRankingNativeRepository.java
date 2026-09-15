@@ -79,11 +79,13 @@ public class LocationVisitRankingNativeRepository {
                 ranked.city,
                 ranked.locationName,
                 ranked.total_visit_verification_count,
-                ranked.updated_at
+                ranked.updated_at,
+                ranked.image_url
             FROM (
                 SELECT
                     l.id,
                     l.city,
+                    l.image_url,
                     l.name as locationName,
                     r.total_visit_verification_count,
                     r.updated_at,
@@ -122,6 +124,7 @@ public class LocationVisitRankingNativeRepository {
                                                         ? ((Timestamp) row[5]).toLocalDateTime()
                                                         : null)
                                         .totalVerificationCount(((Number) row[4]).longValue())
+                                        .imageUrl((String) row[6])
                                         .build())
                 .toList();
     }
