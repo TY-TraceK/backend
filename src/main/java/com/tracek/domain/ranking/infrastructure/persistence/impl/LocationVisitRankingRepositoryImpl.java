@@ -41,6 +41,11 @@ public class LocationVisitRankingRepositoryImpl implements LocationVisitRankingR
     @Override
     public List<LocationRankingView> findLocationRankingsByRegion(
             RankingSearchCriteria<String> criteria) {
-        return locationVisitRankingNativeRepository.findTopRankings(criteria);
+        return locationVisitRankingNativeRepository.findRegionTopRankings(criteria);
+    }
+
+    @Override
+    public List<LocationRankingView> findLocationRankings(RankingSearchCriteria<Long> criteria) {
+        return locationVisitRankingNativeRepository.findLocationTopRankings(criteria);
     }
 }

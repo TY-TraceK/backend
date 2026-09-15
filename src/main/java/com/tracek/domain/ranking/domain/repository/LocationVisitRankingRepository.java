@@ -19,4 +19,6 @@ public interface LocationVisitRankingRepository {
     void decreaseVerificationCount(Long locationId);
 
     List<LocationRankingView> findLocationRankingsByRegion(RankingSearchCriteria<String> criteria);
+
+    List<LocationRankingView> findLocationRankings(RankingSearchCriteria<Long> criteria);
 }
