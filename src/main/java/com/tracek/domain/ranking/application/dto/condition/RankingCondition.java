@@ -19,7 +19,7 @@ public record RankingCondition(Long lastCount, Long lastId, int size) {
         return RankingSearchCriteria.<Long>builder()
                 .lastCount(lastCount)
                 .lastKey(lastId)
-                .limit(size)
+                .limit(size + 1)
                 .build();
     }
 }
