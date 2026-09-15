@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 public record VisitVerificationCreateRequest(
         @NotNull Long locationId,
         @NotNull Long contentId,
-        Long artistId,
+        @NotNull Long artistId,
         @NotNull
                 @DecimalMin(value = "-90.0", message = "위도는 -90 이상이어야 합니다.")
                 @DecimalMax(value = "90.0", message = "위도는 90 이하여야 합니다.")

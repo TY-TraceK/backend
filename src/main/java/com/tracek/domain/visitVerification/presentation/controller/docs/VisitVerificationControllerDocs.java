@@ -4,9 +4,11 @@ import com.tracek.domain.visitVerification.presentation.dto.VisitVerificationCan
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationCreateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationHistoriesSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationStatusSearchRequest;
+import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationUpdateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationCreateResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationHistoriesResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationStatusSearchResponse;
+import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationUpdateResponse;
 import com.tracek.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +21,7 @@ import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -95,6 +98,48 @@ public interface VisitVerificationControllerDocs {
             @Parameter(hidden = true) @AuthenticationPrincipal
                     com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @Valid @PathVariable Long visitVerificationId);
+
+    @Operation(
+            summary = "관광지 방문 인증 수정",
+            description =
+                    "로그인한 사용자가 자신의 방문 인증에 연결된 콘텐츠와 아티스트 정보를 수정합니다. "
+                            + "방문 인증 생성 후 24시간 이내에만 수정할 수 있으며, "
+                            + "해당 관광지와 연관된 콘텐츠-아티스트 조합으로만 수정할 수 있습니다.")
+    @ApiResponses(
+            value = {
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "200",
+                        description = "방문 인증 수정 성공",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "400",
+                        description =
+                                "1. 요청 값 유효성 검증 실패\n"
+                                        + "2. 이미 취소된 방문 인증을 수정하려는 경우 (ALREADY_CANCELLED)\n"
+                                        + "3. 수정 가능 시간인 24시간이 지난 경우 (CANNOT_BE_CANCELLED)",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "401",
+                        description = "인증 토큰이 누락되었거나 유효하지 않은 경우 (UNAUTHORIZED)",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "403",
+                        description = "방문 인증 소유자가 아닌 사용자가 수정을 요청한 경우 (ACCESS_DINED)",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                        responseCode = "404",
+                        description =
+                                "1. 존재하지 않는 방문 인증 ID인 경우 (VISIT_VERIFICATION_NOT_FOUND)\n"
+                                        + "2. 관광지와 콘텐츠-아티스트의 연관관계를 찾을 수 없는 경우 (VISIT_VERIFICATION_NOT_FOUND)",
+                        content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+            })
+    @SecurityRequirement(name = "jwtAuth")
+    @PatchMapping("/visit-verifications/{visitVerificationId}")
+    ApiResponse<VisitVerificationUpdateResponse> updateVisitVerification(
+            @Parameter(hidden = true) @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal,
+            Long visitVerificationId,
+            @RequestBody @Valid VisitVerificationUpdateRequest request);
 
     @Operation(
             summary = "관광지의 나의 방문 인증 내역 확인",
