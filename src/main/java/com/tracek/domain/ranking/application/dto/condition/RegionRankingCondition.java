@@ -4,9 +4,9 @@ import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
 import lombok.Builder;
 
 @Builder
-public record RegionRankingCondition(int limit) {
+public record RegionRankingCondition(Integer topN) {
 
     public RankingSearchCriteria<String> toCriteria() {
-        return new RankingSearchCriteria<String>(null, null, limit);
+        return RankingSearchCriteria.<String>builder().limit(topN == null ? 10 : topN).build();
     }
 }
