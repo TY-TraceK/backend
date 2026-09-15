@@ -114,8 +114,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 20);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(20).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             assertThat(result).hasSize(2);
@@ -128,7 +129,7 @@ class LocationVisitRankingNativeRepositoryTest {
 
             assertThat(busan.totalVerificationCount()).isEqualTo(600L);
             assertThat(busan.locationId()).isNull();
-            assertThat(busan.locationAddress()).isNull();
+            assertThat(busan.locationName()).isNull();
         }
 
         @Test
@@ -143,8 +144,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 20);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(20).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             assertThat(result)
@@ -180,8 +182,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 20);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(20).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             assertThat(result).hasSize(2);
@@ -214,8 +217,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when (TOP 2까지 요청 -> 1위와 공동 2위인 도시들이 모두 포함되어야 함)
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 2);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(2).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             // 3위 제한이 아니라 2위 이하 조건이므로, 1위 1개 + 공동 2위 2개 = 총 3개가 조회되어야 함
@@ -240,8 +244,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 20);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(20).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             assertThat(result)
@@ -297,8 +302,9 @@ class LocationVisitRankingNativeRepositoryTest {
             flushAndClear();
 
             // when
-            RankingSearchCriteria<String> criteria = new RankingSearchCriteria<>(null, null, 20);
-            List<LocationRankingView> result = repository.findTopRankings(criteria);
+            RankingSearchCriteria<String> criteria =
+                    RankingSearchCriteria.<String>builder().limit(20).build();
+            List<LocationRankingView> result = repository.findRegionTopRankings(criteria);
 
             // then
             assertThat(result).hasSize(1);
@@ -306,6 +312,73 @@ class LocationVisitRankingNativeRepositoryTest {
 
             assertThat(busan.cityName()).isEqualTo("부산광역시");
             assertThat(busan.lastUpdateAt()).isEqualTo(newerTime);
+        }
+    }
+
+    @Nested
+    @DisplayName("장소별 방문 인증 순위 조회 테스트 (findLocationTopRankings)")
+    class LocationTopRankingsTest {
+
+        @Test
+        @DisplayName("조건(카테고리, 도시)에 맞는 장소 랭킹을 조회한다")
+        void findLocationTopRankingsWithConditions() {
+            // given
+            entityManager
+                    .createNativeQuery(
+                            """
+                  INSERT INTO location (id, city, name, category, address)
+                  VALUES (1, '서울특별시', '경복궁', 'CULTURE', '종로구'),
+                         (2, '서울특별시', '남산타워', 'CULTURE', '중구'),
+                         (3, '부산광역시', '해운대', 'FESTIVAL', '해운대구')
+                  """)
+                    .executeUpdate();
+
+            saveRanking(1L, 150L);
+            saveRanking(2L, 300L);
+            saveRanking(3L, 500L);
+
+            flushAndClear();
+
+            // when (서울특별시, CULTURE 카테고리 조건)
+            RankingSearchCriteria<Long> criteria =
+                    RankingSearchCriteria.<Long>builder().limit(20).categoryName("CULTURE").build();
+            List<LocationRankingView> result = repository.findLocationTopRankings(criteria);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result)
+                    .extracting(
+                            LocationRankingView::locationName,
+                            LocationRankingView::totalVerificationCount)
+                    .containsExactly(tuple("남산타워", 300L), tuple("경복궁", 150L));
+        }
+
+        @Test
+        @DisplayName("카테고리나 도시 조건이 null인 경우 전체 대상에서 랭킹을 조회한다")
+        void findLocationTopRankingsWithoutConditions() {
+            // given
+            entityManager
+                    .createNativeQuery(
+                            """
+                  INSERT INTO location (id, city, name, category, address)
+                  VALUES (1, '서울특별시', '경복궁', 'FESTIVAL', '종로구'),
+                         (2, '부산광역시', '해운대', 'FESTIVAL', '해운대구')
+                  """)
+                    .executeUpdate();
+
+            saveRanking(1L, 100L);
+            saveRanking(2L, 500L);
+
+            flushAndClear();
+
+            // when (조건 모두 null)
+            RankingSearchCriteria<Long> criteria =
+                    RankingSearchCriteria.<Long>builder().limit(10).build();
+            List<LocationRankingView> result = repository.findLocationTopRankings(criteria);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result.getFirst().locationName()).isEqualTo("해운대");
         }
     }
 }

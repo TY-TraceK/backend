@@ -15,7 +15,7 @@ public class LocationVisitRankingNativeRepository {
 
     private final EntityManager entityManager;
 
-    public List<LocationRankingView> findTopRankings(RankingSearchCriteria<String> criteria) {
+    public List<LocationRankingView> findRegionTopRankings(RankingSearchCriteria<String> criteria) {
 
         String sql =
                 """
@@ -57,16 +57,72 @@ public class LocationVisitRankingNativeRepository {
         return rows.stream()
                 .map(
                         row ->
-                                new LocationRankingView(
-                                        ((Number) row[0]).intValue(), // rank
-                                        null, // locationId
-                                        (String) row[1], // cityName
-                                        null, // locationAddress
-                                        row[3] != null
-                                                ? ((Timestamp) row[3]).toLocalDateTime()
-                                                : null, // lastUpdateAt
-                                        ((Number) row[2]).longValue() // totalVerificationCount
-                                        ))
+                                LocationRankingView.builder()
+                                        .rank(((Number) row[0]).intValue())
+                                        .cityName((String) row[1])
+                                        .lastUpdateAt(
+                                                row[3] != null
+                                                        ? ((Timestamp) row[3]).toLocalDateTime()
+                                                        : null)
+                                        .totalVerificationCount(((Number) row[2]).longValue())
+                                        .build())
+                .toList();
+    }
+
+    public List<LocationRankingView> findLocationTopRankings(RankingSearchCriteria<Long> criteria) {
+
+        String sql =
+                """
+            SELECT
+                ranked.id,
+                ranked.ranking,
+                ranked.city,
+                ranked.locationName,
+                ranked.total_visit_verification_count,
+                ranked.updated_at
+            FROM (
+                SELECT
+                    l.id,
+                    l.city,
+                    l.name as locationName,
+                    r.total_visit_verification_count,
+                    r.updated_at,
+                    RANK() OVER (
+                        ORDER BY r.total_visit_verification_count DESC
+                    ) AS ranking
+                FROM location_ranking r join location l on r.location_id = l.id
+                WHERE (:category IS NULL OR l.category = :category) AND (:city IS NULL OR l.city = :city)
+            ) ranked
+            WHERE ranked.ranking <= :limit
+            ORDER BY
+                ranked.total_visit_verification_count DESC,
+                ranked.id
+            """;
+
+        Query query =
+                entityManager
+                        .createNativeQuery(sql)
+                        .setParameter("limit", criteria.limit())
+                        .setParameter("category", criteria.categoryName())
+                        .setParameter("city", criteria.cityName());
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+
+        return rows.stream()
+                .map(
+                        row ->
+                                LocationRankingView.builder()
+                                        .rank(((Number) row[1]).intValue())
+                                        .locationId(((Number) row[0]).longValue())
+                                        .locationName((String) row[3])
+                                        .cityName((String) row[2])
+                                        .lastUpdateAt(
+                                                row[5] != null
+                                                        ? ((Timestamp) row[5]).toLocalDateTime()
+                                                        : null)
+                                        .totalVerificationCount(((Number) row[4]).longValue())
+                                        .build())
                 .toList();
     }
 }

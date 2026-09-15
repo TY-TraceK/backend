@@ -1,7 +1,9 @@
 package com.tracek.domain.ranking.application.service.impl;
 
+import com.tracek.domain.ranking.application.dto.condition.LocationRankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RegionRankingCondition;
+import com.tracek.domain.ranking.application.dto.result.LocationRankingResult;
 import com.tracek.domain.ranking.application.dto.result.LocationRegionRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
 import com.tracek.domain.ranking.application.dto.result.RankingTopResult;
@@ -169,5 +171,13 @@ public class VisitRankingQueryServiceImpl implements VisitRankingQueryService {
         return RankingTopResult.from(
                 locationVisitRankingRepository.findLocationRankingsByRegion(condition.toCriteria()),
                 LocationRegionRankingResult::from);
+    }
+
+    @Override
+    public RankingTopResult<LocationRankingResult> getLocationRanking(
+            LocationRankingCondition condition) {
+        return RankingTopResult.from(
+                locationVisitRankingRepository.findLocationRankings(condition.toCriteria()),
+                LocationRankingResult::from);
     }
 }

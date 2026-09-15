@@ -15,7 +15,11 @@ public record RankingCondition(Long lastCount, Long lastId, int size) {
         }
     }
 
-    public RankingSearchCriteria toCriteria() {
-        return new RankingSearchCriteria(lastCount, lastId, size + 1);
+    public RankingSearchCriteria<Long> toCriteria() {
+        return RankingSearchCriteria.<Long>builder()
+                .lastCount(lastCount)
+                .lastKey(lastId)
+                .limit(size + 1)
+                .build();
     }
 }
