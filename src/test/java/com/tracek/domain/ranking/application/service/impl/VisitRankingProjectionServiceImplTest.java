@@ -1,7 +1,7 @@
 package com.tracek.domain.ranking.application.service.impl;
 
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.tracek.domain.ranking.domain.model.TargetId;
 import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRepository;
@@ -44,92 +44,211 @@ class VisitRankingProjectionServiceImplTest {
     }
 
     @Test
-    @DisplayName("관광지 방문 인증만 존재하면 관광지 랭킹만 증가한다")
-    void increaseLocationOnly() {
-        // when
-        service.increase(1L, null, null);
-
-        // then
-        verify(locationVisitRankingRepository).increaseVerificationCount(1L);
-
-        verify(artistLocationVisitRankingRepository, never()).increaseVerificationCount(1L, null);
-
-        verify(contentLocationVisitRankingRepository, never()).increaseVerificationCount(1L, null);
-    }
-
-    @Test
-    @DisplayName("아티스트가 존재하면 관광지-아티스트 랭킹도 증가한다")
-    void increaseWithArtist() {
-        service.increase(1L, null, 2L);
-
-        verify(locationVisitRankingRepository).increaseVerificationCount(1L);
-
-        verify(artistLocationVisitRankingRepository).increaseVerificationCount(1L, 2L);
-
-        verify(contentArtistVisitRankingRepository, never()).increaseVerificationCount(2L, 2L);
-    }
-
-    @Test
-    @DisplayName("콘텐츠와 아티스트가 모두 존재하면 모든 관련 랭킹을 증가한다")
-    void increaseAll() {
+    @DisplayName("방문 인증 생성 시 모든 관련 랭킹을 증가한다")
+    void increase() {
         // given
-        TargetId targetId = new TargetId(1L, 2L, 3L);
+        Long locationId = 1L;
+        Long contentId = 2L;
+        Long artistId = 3L;
+
+        TargetId targetId = new TargetId(locationId, contentId, artistId);
 
         // when
-        service.increase(1L, 2L, 3L);
+        service.increase(locationId, contentId, artistId);
 
         // then
-        verify(locationVisitRankingRepository).increaseVerificationCount(1L);
+        verify(locationVisitRankingRepository).increaseVerificationCount(locationId);
 
-        verify(artistLocationVisitRankingRepository).increaseVerificationCount(1L, 3L);
+        verify(artistLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, artistId);
 
-        verify(contentLocationVisitRankingRepository).increaseVerificationCount(1L, 2L);
+        verify(contentLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, contentId);
 
-        verify(contentArtistVisitRankingRepository).increaseVerificationCount(2L, 3L);
+        verify(contentArtistVisitRankingRepository).increaseVerificationCount(contentId, artistId);
 
         verify(contentArtistLocationVisitRankingRepository).increaseVerificationCount(targetId);
     }
 
     @Test
-    @DisplayName("관광지 방문 인증만 취소하면 관광지 랭킹만 감소한다")
-    void decreaseLocationOnly() {
-        service.decrease(1L, null, null);
-
-        verify(locationVisitRankingRepository).decreaseVerificationCount(1L);
-
-        verify(artistLocationVisitRankingRepository, never()).decreaseVerificationCount(1L, null);
-
-        verify(contentLocationVisitRankingRepository, never()).decreaseVerificationCount(1L, null);
-    }
-
-    @Test
-    @DisplayName("아티스트가 존재하면 관광지-아티스트 랭킹도 감소한다")
-    void decreaseWithArtist() {
-        service.decrease(1L, null, 2L);
-
-        verify(locationVisitRankingRepository).decreaseVerificationCount(1L);
-
-        verify(artistLocationVisitRankingRepository).decreaseVerificationCount(1L, 2L);
-    }
-
-    @Test
-    @DisplayName("콘텐츠와 아티스트가 모두 존재하면 모든 관련 랭킹을 감소한다")
-    void decreaseAll() {
+    @DisplayName("방문 인증 취소 시 모든 관련 랭킹을 감소한다")
+    void decrease() {
         // given
-        TargetId targetId = new TargetId(1L, 2L, 3L);
+        Long locationId = 1L;
+        Long contentId = 2L;
+        Long artistId = 3L;
+
+        TargetId targetId = new TargetId(locationId, contentId, artistId);
 
         // when
-        service.decrease(1L, 2L, 3L);
+        service.decrease(locationId, contentId, artistId);
 
         // then
-        verify(locationVisitRankingRepository).decreaseVerificationCount(1L);
+        verify(locationVisitRankingRepository).decreaseVerificationCount(locationId);
 
-        verify(artistLocationVisitRankingRepository).decreaseVerificationCount(1L, 3L);
+        verify(artistLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, artistId);
 
-        verify(contentLocationVisitRankingRepository).decreaseVerificationCount(1L, 2L);
+        verify(contentLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, contentId);
 
-        verify(contentArtistVisitRankingRepository).decreaseVerificationCount(2L, 3L);
+        verify(contentArtistVisitRankingRepository).decreaseVerificationCount(contentId, artistId);
 
         verify(contentArtistLocationVisitRankingRepository).decreaseVerificationCount(targetId);
+    }
+
+    @Test
+    @DisplayName("콘텐츠만 변경되면 콘텐츠 관련 랭킹만 변경한다")
+    void updateContentOnly() {
+        // given
+        Long locationId = 1L;
+
+        Long previousContentId = 2L;
+        Long previousArtistId = 3L;
+
+        Long updatedContentId = 4L;
+        Long updatedArtistId = 3L;
+
+        TargetId previousTarget = new TargetId(locationId, previousContentId, previousArtistId);
+
+        TargetId updatedTarget = new TargetId(locationId, updatedContentId, updatedArtistId);
+
+        // when
+        service.update(
+                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+
+        // then
+        verifyNoInteractions(locationVisitRankingRepository);
+        verifyNoInteractions(artistLocationVisitRankingRepository);
+
+        verify(contentLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, previousContentId);
+
+        verify(contentLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, updatedContentId);
+
+        verify(contentArtistVisitRankingRepository)
+                .decreaseVerificationCount(previousContentId, previousArtistId);
+
+        verify(contentArtistVisitRankingRepository)
+                .increaseVerificationCount(updatedContentId, updatedArtistId);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .decreaseVerificationCount(previousTarget);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .increaseVerificationCount(updatedTarget);
+    }
+
+    @Test
+    @DisplayName("아티스트만 변경되면 아티스트 관련 랭킹만 변경한다")
+    void updateArtistOnly() {
+        // given
+        Long locationId = 1L;
+
+        Long previousContentId = 2L;
+        Long previousArtistId = 3L;
+
+        Long updatedContentId = 2L;
+        Long updatedArtistId = 4L;
+
+        TargetId previousTarget = new TargetId(locationId, previousContentId, previousArtistId);
+
+        TargetId updatedTarget = new TargetId(locationId, updatedContentId, updatedArtistId);
+
+        // when
+        service.update(
+                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+
+        // then
+        verifyNoInteractions(locationVisitRankingRepository);
+        verifyNoInteractions(contentLocationVisitRankingRepository);
+
+        verify(artistLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, previousArtistId);
+
+        verify(artistLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, updatedArtistId);
+
+        verify(contentArtistVisitRankingRepository)
+                .decreaseVerificationCount(previousContentId, previousArtistId);
+
+        verify(contentArtistVisitRankingRepository)
+                .increaseVerificationCount(updatedContentId, updatedArtistId);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .decreaseVerificationCount(previousTarget);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .increaseVerificationCount(updatedTarget);
+    }
+
+    @Test
+    @DisplayName("콘텐츠와 아티스트가 모두 변경되면 관련 조합 랭킹을 모두 변경한다")
+    void updateContentAndArtist() {
+        // given
+        Long locationId = 1L;
+
+        Long previousContentId = 2L;
+        Long previousArtistId = 3L;
+
+        Long updatedContentId = 4L;
+        Long updatedArtistId = 5L;
+
+        TargetId previousTarget = new TargetId(locationId, previousContentId, previousArtistId);
+
+        TargetId updatedTarget = new TargetId(locationId, updatedContentId, updatedArtistId);
+
+        // when
+        service.update(
+                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+
+        // then
+        // 방문 자체는 그대로이므로 관광지 전체 랭킹은 변경하지 않음
+        verifyNoInteractions(locationVisitRankingRepository);
+
+        verify(contentLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, previousContentId);
+
+        verify(contentLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, updatedContentId);
+
+        verify(artistLocationVisitRankingRepository)
+                .decreaseVerificationCount(locationId, previousArtistId);
+
+        verify(artistLocationVisitRankingRepository)
+                .increaseVerificationCount(locationId, updatedArtistId);
+
+        verify(contentArtistVisitRankingRepository)
+                .decreaseVerificationCount(previousContentId, previousArtistId);
+
+        verify(contentArtistVisitRankingRepository)
+                .increaseVerificationCount(updatedContentId, updatedArtistId);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .decreaseVerificationCount(previousTarget);
+
+        verify(contentArtistLocationVisitRankingRepository)
+                .increaseVerificationCount(updatedTarget);
+    }
+
+    @Test
+    @DisplayName("콘텐츠와 아티스트가 변경되지 않으면 랭킹을 변경하지 않는다")
+    void updateWithoutChanges() {
+        // given
+        Long locationId = 1L;
+        Long contentId = 2L;
+        Long artistId = 3L;
+
+        // when
+        service.update(locationId, contentId, artistId, contentId, artistId);
+
+        // then
+        verifyNoInteractions(
+                locationVisitRankingRepository,
+                artistLocationVisitRankingRepository,
+                contentLocationVisitRankingRepository,
+                contentArtistVisitRankingRepository,
+                contentArtistLocationVisitRankingRepository);
     }
 }
