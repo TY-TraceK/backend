@@ -21,7 +21,8 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
     private final QContentArtistLocationVisitRanking contentArtistLocationVisitRanking =
             QContentArtistLocationVisitRanking.contentArtistLocationVisitRanking;
 
-    public List<RankingItem> findRankingsByArtist(Long artistId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findRankingsByArtist(
+            Long artistId, RankingSearchCriteria<Long> criteria) {
         JPAQuery<RankingItem> query =
                 queryFactory
                         .select(
@@ -48,7 +49,8 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
         return query.fetch();
     }
 
-    public List<RankingItem> findRankingsByContent(Long contentId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findRankingsByContent(
+            Long contentId, RankingSearchCriteria<Long> criteria) {
         JPAQuery<RankingItem> query =
                 queryFactory
                         .select(
@@ -76,7 +78,7 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
     }
 
     public List<RankingItem> findRankingsByLocation(
-            Long locationId, RankingSearchCriteria criteria) {
+            Long locationId, RankingSearchCriteria<Long> criteria) {
         JPAQuery<RankingItem> query =
                 queryFactory
                         .select(
@@ -103,10 +105,10 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
         return query.fetch();
     }
 
-    private BooleanBuilder contentCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder contentCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria == null || criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria == null || criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -120,13 +122,13 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentArtistLocationVisitRanking.contentId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 
-    private BooleanBuilder locationCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder locationCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria == null || criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria == null || criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -140,13 +142,13 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentArtistLocationVisitRanking.locationId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 
-    private BooleanBuilder artistCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder artistCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria == null || criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria == null || criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -160,6 +162,6 @@ public class ContentArtistLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentArtistLocationVisitRanking.artistId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 }

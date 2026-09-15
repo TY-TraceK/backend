@@ -22,7 +22,8 @@ public class ContentArtistVisitRankingQueryDslRepository {
     private final QContentArtistVisitRanking contentArtistVisitRanking =
             QContentArtistVisitRanking.contentArtistVisitRanking;
 
-    public List<RankingItem> findArtistsByContent(Long contentId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findArtistsByContent(
+            Long contentId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -42,7 +43,8 @@ public class ContentArtistVisitRankingQueryDslRepository {
                 .fetch();
     }
 
-    public List<RankingItem> findContentsByArtist(Long artistId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findContentsByArtist(
+            Long artistId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -62,10 +64,10 @@ public class ContentArtistVisitRankingQueryDslRepository {
                 .fetch();
     }
 
-    private BooleanBuilder artistCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder artistCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -79,13 +81,13 @@ public class ContentArtistVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentArtistVisitRanking.artistId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 
-    private BooleanBuilder contentCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder contentCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -99,6 +101,6 @@ public class ContentArtistVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentArtistVisitRanking.contentId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 }

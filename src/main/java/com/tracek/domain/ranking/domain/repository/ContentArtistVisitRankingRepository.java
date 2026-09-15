@@ -13,7 +13,7 @@ public interface ContentArtistVisitRankingRepository {
 
     void decreaseVerificationCount(Long contentId, Long artistId);
 
-    List<RankingItem> findArtistsByContent(Long contentId, RankingSearchCriteria criteria);
+    List<RankingItem> findArtistsByContent(Long contentId, RankingSearchCriteria<Long> criteria);
 
-    List<RankingItem> findContentsByArtist(Long artistId, RankingSearchCriteria criteria);
+    List<RankingItem> findContentsByArtist(Long artistId, RankingSearchCriteria<Long> criteria);
 }

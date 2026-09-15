@@ -17,7 +17,7 @@ public interface ArtistLocationVisitRankingRepository {
 
     void decreaseVerificationCount(Long locationId, Long artistId);
 
-    List<RankingItem> findLocationsByArtist(Long artistId, RankingSearchCriteria criteria);
+    List<RankingItem> findLocationsByArtist(Long artistId, RankingSearchCriteria<Long> criteria);
 
-    List<RankingItem> findArtistsByLocation(Long locationId, RankingSearchCriteria criteria);
+    List<RankingItem> findArtistsByLocation(Long locationId, RankingSearchCriteria<Long> criteria);
 }

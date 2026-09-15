@@ -22,7 +22,8 @@ public class ArtistLocationVisitRankingQueryDslRepository {
     private final QArtistLocationVisitRanking artistLocationVisitRanking =
             QArtistLocationVisitRanking.artistLocationVisitRanking;
 
-    public List<RankingItem> findLocationsByArtist(Long artistId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findLocationsByArtist(
+            Long artistId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -45,7 +46,7 @@ public class ArtistLocationVisitRankingQueryDslRepository {
     }
 
     public List<RankingItem> findArtistsByLocation(
-            Long locationId, RankingSearchCriteria criteria) {
+            Long locationId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -67,10 +68,10 @@ public class ArtistLocationVisitRankingQueryDslRepository {
                 .fetch();
     }
 
-    private BooleanBuilder locationCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder locationCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -84,13 +85,13 @@ public class ArtistLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 artistLocationVisitRanking.locationId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 
-    private BooleanBuilder artistCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder artistCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -104,6 +105,6 @@ public class ArtistLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 artistLocationVisitRanking.artistId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 }

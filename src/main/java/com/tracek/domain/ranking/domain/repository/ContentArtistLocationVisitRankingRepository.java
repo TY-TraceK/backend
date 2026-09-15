@@ -18,9 +18,9 @@ public interface ContentArtistLocationVisitRankingRepository {
 
     void decreaseVerificationCount(TargetId targetId);
 
-    List<RankingItem> findRankingsByContent(Long contentId, RankingSearchCriteria criteria);
+    List<RankingItem> findRankingsByContent(Long contentId, RankingSearchCriteria<Long> criteria);
 
-    List<RankingItem> findRankingsByLocation(Long locationId, RankingSearchCriteria criteria);
+    List<RankingItem> findRankingsByLocation(Long locationId, RankingSearchCriteria<Long> criteria);
 
-    List<RankingItem> findRankingsByArtist(Long artistId, RankingSearchCriteria criteria);
+    List<RankingItem> findRankingsByArtist(Long artistId, RankingSearchCriteria<Long> criteria);
 }
