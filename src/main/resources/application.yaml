@@ -42,3 +42,4 @@ app:
       - "/api/public/**"
       - "/api/test/**"
       - "/api/auth/**"
+      - "/api/rankings/**"
