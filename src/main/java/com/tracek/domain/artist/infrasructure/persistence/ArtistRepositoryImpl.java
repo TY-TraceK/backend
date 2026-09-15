@@ -48,4 +48,14 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     public List<Artist> findByGroupId(Long groupId) {
         return artistJpaRepository.findByGroupId(groupId);
     }
+
+    @Override
+    public void increseVerificationCount(Long id) {
+        artistJpaRepository.increseVerificationCount(id);
+    }
+
+    @Override
+    public void decreseVerificationCount(Long id) {
+        artistJpaRepository.decreseVerificationCount(id);
+    }
 }

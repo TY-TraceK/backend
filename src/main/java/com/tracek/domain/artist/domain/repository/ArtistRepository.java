@@ -20,4 +20,8 @@ public interface ArtistRepository {
     void deleteById(Long id);
 
     List<Artist> findByGroupId(Long groupId);
+
+    void increseVerificationCount(Long id);
+
+    void decreseVerificationCount(Long id);
 }
