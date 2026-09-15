@@ -1,7 +1,10 @@
 package com.tracek.domain.ranking.application.service.impl;
 
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
+import com.tracek.domain.ranking.application.dto.condition.RegionRankingCondition;
+import com.tracek.domain.ranking.application.dto.result.LocationRegionRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
+import com.tracek.domain.ranking.application.dto.result.RankingTopResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedLocationRankingResult;
@@ -12,6 +15,7 @@ import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRep
 import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
+import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,7 @@ public class VisitRankingQueryServiceImpl implements VisitRankingQueryService {
     private final ArtistLocationVisitRankingRepository artistLocationRankingRepository;
     private final ContentArtistLocationVisitRankingRepository
             contentArtistLocationVisitRankingRepository;
+    private final LocationVisitRankingRepository locationVisitRankingRepository;
 
     @Override
     public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
@@ -156,5 +161,13 @@ public class VisitRankingQueryServiceImpl implements VisitRankingQueryService {
                         new RelatedContentRankingResult(
                                 item.targetId().contentId(), item.totalVerificationCount()),
                 item -> item.targetId().contentId());
+    }
+
+    @Override
+    public RankingTopResult<LocationRegionRankingResult> getRegionRanking(
+            RegionRankingCondition condition) {
+        return RankingTopResult.from(
+                locationVisitRankingRepository.findLocationRankingsByRegion(condition.toCriteria()),
+                LocationRegionRankingResult::from);
     }
 }

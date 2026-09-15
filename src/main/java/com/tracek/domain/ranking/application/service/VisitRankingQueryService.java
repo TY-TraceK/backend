@@ -1,7 +1,10 @@
 package com.tracek.domain.ranking.application.service;
 
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
+import com.tracek.domain.ranking.application.dto.condition.RegionRankingCondition;
+import com.tracek.domain.ranking.application.dto.result.LocationRegionRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
+import com.tracek.domain.ranking.application.dto.result.RankingTopResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedLocationRankingResult;
@@ -41,4 +44,8 @@ public interface VisitRankingQueryService {
 
     // 장소 -> 전체 연관 랭킹 조회
     RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(Long locationId);
+
+    // 지역별 랭킹 조회
+    RankingTopResult<LocationRegionRankingResult> getRegionRanking(
+            RegionRankingCondition condition);
 }
