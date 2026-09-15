@@ -45,14 +45,14 @@ public class ContentLocationVisitRankingRepositoryImpl
 
     @Override
     public List<RankingItem> findLocationsByContent(
-            Long contentId, RankingSearchCriteria criteria) {
+            Long contentId, RankingSearchCriteria<Long> criteria) {
         return contentLocationVisitRankingQueryDslRepository.findLocationsByContent(
                 contentId, criteria);
     }
 
     @Override
     public List<RankingItem> findContentsByLocation(
-            Long locationId, RankingSearchCriteria criteria) {
+            Long locationId, RankingSearchCriteria<Long> criteria) {
         return contentLocationVisitRankingQueryDslRepository.findContentsByLocation(
                 locationId, criteria);
     }

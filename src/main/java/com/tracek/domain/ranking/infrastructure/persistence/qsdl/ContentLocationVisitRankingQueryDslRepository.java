@@ -23,7 +23,7 @@ public class ContentLocationVisitRankingQueryDslRepository {
             QContentLocationVisitRanking.contentLocationVisitRanking;
 
     public List<RankingItem> findLocationsByContent(
-            Long contentId, RankingSearchCriteria criteria) {
+            Long contentId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -46,7 +46,7 @@ public class ContentLocationVisitRankingQueryDslRepository {
     }
 
     public List<RankingItem> findContentsByLocation(
-            Long locationId, RankingSearchCriteria criteria) {
+            Long locationId, RankingSearchCriteria<Long> criteria) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -68,10 +68,10 @@ public class ContentLocationVisitRankingQueryDslRepository {
                 .fetch();
     }
 
-    private BooleanBuilder locationCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder locationCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -85,13 +85,13 @@ public class ContentLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentLocationVisitRanking.locationId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 
-    private BooleanBuilder contentCondition(RankingSearchCriteria criteria) {
+    private BooleanBuilder contentCondition(RankingSearchCriteria<Long> criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.lastCount() == null || criteria.lastId() == null) {
+        if (criteria.lastCount() == null || criteria.lastKey() == null) {
             return builder;
         }
 
@@ -105,6 +105,6 @@ public class ContentLocationVisitRankingQueryDslRepository {
                                         .eq(criteria.lastCount())
                                         .and(
                                                 contentLocationVisitRanking.contentId.gt(
-                                                        criteria.lastId()))));
+                                                        criteria.lastKey()))));
     }
 }

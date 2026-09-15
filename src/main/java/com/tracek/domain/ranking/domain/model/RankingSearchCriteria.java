@@ -1,3 +1,3 @@
 package com.tracek.domain.ranking.domain.model;
 
-public record RankingSearchCriteria(Long lastCount, Long lastId, Integer limit) {}
+public record RankingSearchCriteria<T>(Long lastCount, T lastKey, Integer limit) {}

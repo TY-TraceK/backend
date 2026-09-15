@@ -43,14 +43,15 @@ public class ArtistLocationVisitRankingRepositoryImpl
     }
 
     @Override
-    public List<RankingItem> findLocationsByArtist(Long artistId, RankingSearchCriteria criteria) {
+    public List<RankingItem> findLocationsByArtist(
+            Long artistId, RankingSearchCriteria<Long> criteria) {
         return artistLocationVisitRankingQueryDslRepository.findLocationsByArtist(
                 artistId, criteria);
     }
 
     @Override
     public List<RankingItem> findArtistsByLocation(
-            Long locationId, RankingSearchCriteria criteria) {
+            Long locationId, RankingSearchCriteria<Long> criteria) {
         return artistLocationVisitRankingQueryDslRepository.findArtistsByLocation(
                 locationId, criteria);
     }
