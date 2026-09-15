@@ -11,6 +11,7 @@ import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRep
 import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
+import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ class VisitRankingQueryServiceImplTest {
     @Mock
     private ContentArtistLocationVisitRankingRepository contentArtistLocationVisitRankingRepository;
 
+    @Mock private LocationVisitRankingRepository locationVisitRankingRepository;
+
     private VisitRankingQueryServiceImpl service;
 
     @BeforeEach
@@ -39,7 +42,8 @@ class VisitRankingQueryServiceImplTest {
                         contentArtistRankingRepository,
                         contentLocationRankingRepository,
                         artistLocationRankingRepository,
-                        contentArtistLocationVisitRankingRepository);
+                        contentArtistLocationVisitRankingRepository,
+                        locationVisitRankingRepository);
     }
 
     @Test
