@@ -7,7 +7,9 @@ import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRan
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,74 +20,120 @@ import org.springframework.transaction.annotation.Transactional;
 public class VisitRankingProjectionServiceImpl implements VisitRankingProjectionService {
 
     private final LocationVisitRankingRepository locationVisitRankingRepository;
+
     private final ArtistLocationVisitRankingRepository artistLocationVisitRankingRepository;
+
     private final ContentLocationVisitRankingRepository contentLocationVisitRankingRepository;
+
     private final ContentArtistVisitRankingRepository contentArtistVisitRankingRepository;
+
     private final ContentArtistLocationVisitRankingRepository
             contentArtistLocationVisitRankingRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void increase(Long locationId, Long contentId, Long artistId) {
+    public void increase(Long locationId, Long contentId, Set<Long> artistIds) {
 
+        /*
+         * 방문 인증 자체는 1건이므로
+         * 아티스트 수와 관계없이 한 번만 증가
+         */
         locationVisitRankingRepository.increaseVerificationCount(locationId);
 
-        artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
-
+        /*
+         * location + content 역시
+         * 방문 인증 1건 기준으로 한 번만 증가
+         */
         contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
 
-        contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+        /*
+         * 아티스트와 관련된 랭킹만
+         * 선택한 아티스트 각각 반영
+         */
+        for (Long artistId : artistIds) {
 
-        contentArtistLocationVisitRankingRepository.increaseVerificationCount(
-                new TargetId(locationId, contentId, artistId));
+            artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
+
+            contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+
+            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
+        }
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void decrease(Long locationId, Long contentId, Long artistId) {
+    public void decrease(Long locationId, Long contentId, Set<Long> artistIds) {
 
+        /*
+         * 방문 인증 하나가 취소되므로
+         * 한 번만 감소
+         */
         locationVisitRankingRepository.decreaseVerificationCount(locationId);
-
-        artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
 
         contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
 
-        contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+        /*
+         * 방문 인증에 연결돼 있던
+         * 모든 아티스트 랭킹 감소
+         */
+        for (Long artistId : artistIds) {
 
-        contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
-                new TargetId(locationId, contentId, artistId));
+            artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
+
+            contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+
+            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
+        }
     }
 
-    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
     public void update(
             Long locationId,
             Long previousContentId,
-            Long previousArtistId,
+            Set<Long> previousArtistIds,
             Long updatedContentId,
-            Long updatedArtistId) {
+            Set<Long> updatedArtistIds) {
 
         boolean contentChanged = !Objects.equals(previousContentId, updatedContentId);
 
-        boolean artistChanged = !Objects.equals(previousArtistId, updatedArtistId);
+        Set<Long> removedArtistIds = new HashSet<>(previousArtistIds);
+
+        removedArtistIds.removeAll(updatedArtistIds);
+
+        Set<Long> addedArtistIds = new HashSet<>(updatedArtistIds);
+
+        addedArtistIds.removeAll(previousArtistIds);
+
+        boolean artistChanged = !removedArtistIds.isEmpty() || !addedArtistIds.isEmpty();
 
         if (!contentChanged && !artistChanged) {
             return;
         }
-
         if (contentChanged) {
             updateContentLocationRanking(locationId, previousContentId, updatedContentId);
-        }
+            updateContentArtistRankingsWhenContentChanged(
+                    previousContentId, previousArtistIds, updatedContentId, updatedArtistIds);
 
+            updateContentArtistLocationRankingsWhenContentChanged(
+                    locationId,
+                    previousContentId,
+                    previousArtistIds,
+                    updatedContentId,
+                    updatedArtistIds);
+
+        } else if (artistChanged) {
+            updateContentArtistRankingsWhenArtistChanged(
+                    previousContentId, removedArtistIds, addedArtistIds);
+
+            updateContentArtistLocationRankingsWhenArtistChanged(
+                    locationId, previousContentId, removedArtistIds, addedArtistIds);
+        }
         if (artistChanged) {
-            updateArtistLocationRanking(locationId, previousArtistId, updatedArtistId);
+            updateArtistLocationRanking(locationId, removedArtistIds, addedArtistIds);
         }
-
-        updateContentArtistRanking(
-                previousContentId, previousArtistId, updatedContentId, updatedArtistId);
-
-        updateContentArtistLocationRanking(
-                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
     }
 
     private void updateContentLocationRanking(
@@ -98,39 +146,93 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
                 locationId, updatedContentId);
     }
 
+    /**
+     * Artist + Location
+     *
+     * <p>제거된 아티스트만 -1 추가된 아티스트만 +1
+     */
     private void updateArtistLocationRanking(
-            Long locationId, Long previousArtistId, Long updatedArtistId) {
+            Long locationId, Set<Long> removedArtistIds, Set<Long> addedArtistIds) {
 
-        artistLocationVisitRankingRepository.decreaseVerificationCount(
-                locationId, previousArtistId);
+        for (Long artistId : removedArtistIds) {
+            artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
+        }
 
-        artistLocationVisitRankingRepository.increaseVerificationCount(locationId, updatedArtistId);
+        for (Long artistId : addedArtistIds) {
+            artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
+        }
     }
 
-    private void updateContentArtistRanking(
+    /**
+     * Content가 변경된 경우
+     *
+     * <p>Content + Artist는 기존 조합 전체 제거 후 새로운 조합 전체 추가
+     */
+    private void updateContentArtistRankingsWhenContentChanged(
             Long previousContentId,
-            Long previousArtistId,
+            Set<Long> previousArtistIds,
             Long updatedContentId,
-            Long updatedArtistId) {
+            Set<Long> updatedArtistIds) {
 
-        contentArtistVisitRankingRepository.decreaseVerificationCount(
-                previousContentId, previousArtistId);
+        for (Long artistId : previousArtistIds) {
+            contentArtistVisitRankingRepository.decreaseVerificationCount(
+                    previousContentId, artistId);
+        }
 
-        contentArtistVisitRankingRepository.increaseVerificationCount(
-                updatedContentId, updatedArtistId);
+        for (Long artistId : updatedArtistIds) {
+            contentArtistVisitRankingRepository.increaseVerificationCount(
+                    updatedContentId, artistId);
+        }
     }
 
-    private void updateContentArtistLocationRanking(
+    /** Content는 그대로이고 Artist만 변경된 경우 */
+    private void updateContentArtistRankingsWhenArtistChanged(
+            Long contentId, Set<Long> removedArtistIds, Set<Long> addedArtistIds) {
+
+        for (Long artistId : removedArtistIds) {
+            contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+        }
+
+        for (Long artistId : addedArtistIds) {
+            contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+        }
+    }
+
+    /**
+     * Content 변경 시 Location + Content + Artist
+     *
+     * <p>이전 조합 전체 제거 후 새로운 조합 전체 추가
+     */
+    private void updateContentArtistLocationRankingsWhenContentChanged(
             Long locationId,
             Long previousContentId,
-            Long previousArtistId,
+            Set<Long> previousArtistIds,
             Long updatedContentId,
-            Long updatedArtistId) {
+            Set<Long> updatedArtistIds) {
 
-        contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
-                new TargetId(locationId, previousContentId, previousArtistId));
+        for (Long artistId : previousArtistIds) {
+            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                    new TargetId(locationId, previousContentId, artistId));
+        }
 
-        contentArtistLocationVisitRankingRepository.increaseVerificationCount(
-                new TargetId(locationId, updatedContentId, updatedArtistId));
+        for (Long artistId : updatedArtistIds) {
+            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                    new TargetId(locationId, updatedContentId, artistId));
+        }
+    }
+
+    /** Content는 그대로이고 Artist만 변경된 경우 */
+    private void updateContentArtistLocationRankingsWhenArtistChanged(
+            Long locationId, Long contentId, Set<Long> removedArtistIds, Set<Long> addedArtistIds) {
+
+        for (Long artistId : removedArtistIds) {
+            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
+        }
+
+        for (Long artistId : addedArtistIds) {
+            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                    new TargetId(locationId, contentId, artistId));
+        }
     }
 }
