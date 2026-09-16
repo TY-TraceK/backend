@@ -5,6 +5,7 @@ import com.tracek.domain.visitVerification.application.dto.result.VisitVerificat
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 
 @Builder
@@ -50,7 +51,7 @@ record VisitVerificationHistoriesGroupResponse(
 record VisitVerificationHistoriesIndividualResponse(
         Long locationId,
         Long contentId,
-        Long artistId,
+        Set<Long> artistIds,
         LocalDateTime visitVerifiedTimeAt,
         LocalDate visitVerifiedDate,
         String visitVerificationStatus) {
@@ -58,7 +59,7 @@ record VisitVerificationHistoriesIndividualResponse(
     public static VisitVerificationHistoriesIndividualResponse from(
             VisitVerificationHistoriesIndividualResult result) {
         return VisitVerificationHistoriesIndividualResponse.builder()
-                .artistId(result.artistId())
+                .artistIds(result.artistIds())
                 .contentId(result.contentId())
                 .locationId(result.locationId())
                 .visitVerifiedDate(result.visitVerifiedDate())
