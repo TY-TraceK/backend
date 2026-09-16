@@ -19,7 +19,10 @@ public record VisitVerificationCanceledEvent(
                 .visitVerificationOwner(visitVerification.getOwner())
                 .verifiedAt(visitVerification.getVerifiedAt())
                 .locationId(visitVerification.getLocationId())
-                .artistId(visitVerification.getVerificationTarget().getArtistId())
+                .artistId(
+                        visitVerification.getVerificationTarget().getArtistIds().stream()
+                                .toList()
+                                .getFirst())
                 .contentId(visitVerification.getVerificationTarget().getContentId())
                 .build();
     }

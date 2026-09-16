@@ -9,6 +9,7 @@ import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistory
 import com.tracek.domain.visitVerification.domain.repository.VisitVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -28,6 +29,7 @@ public class VisitVerificationQueryServiceImpl implements VisitVerificationQuery
     }
 
     @Override
+    @Transactional(readOnly = true)
     public VisitVerificationHistoriesResult getMyHistories(
             VisitVerificationHistoriesSearchCondition condition) {
         return VisitVerificationHistoriesResult.of(
