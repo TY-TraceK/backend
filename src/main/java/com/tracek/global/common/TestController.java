@@ -45,26 +45,6 @@ public class TestController implements TestControllerDocs {
         return "인증 성공";
     }
 
-    @PostMapping("/ranking/projection/increase")
-    public ApiResponse<Void> increaseRankingProjection(
-            @RequestParam Long locationId,
-            @RequestParam(required = false) Long contentId,
-            @RequestParam(required = false) Long artistId) {
-        visitRankingProjectionService.increase(locationId, contentId, artistId);
-
-        return ApiResponse.success(GeneralSuccessCode.OK, null);
-    }
-
-    @PostMapping("/ranking/projection/decrease")
-    public ApiResponse<Void> decreaseRankingProjection(
-            @RequestParam Long locationId,
-            @RequestParam(required = false) Long contentId,
-            @RequestParam(required = false) Long artistId) {
-        visitRankingProjectionService.decrease(locationId, contentId, artistId);
-
-        return ApiResponse.success(GeneralSuccessCode.OK, null);
-    }
-
     @GetMapping("/ranking/content/{contentId}/artists")
     public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
             @PathVariable Long contentId,
