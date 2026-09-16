@@ -3,12 +3,16 @@ package com.tracek.domain.visitVerification.presentation.dto.request;
 import com.tracek.domain.visitVerification.application.dto.command.VisitVerificationCreateCommand;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import lombok.Builder;
 
+@Builder
 public record VisitVerificationCreateRequest(
         @NotNull Long locationId,
         @NotNull Long contentId,
-        @NotNull Long artistId,
+        @NotEmpty List<Long> artistIds,
         @NotNull
                 @DecimalMin(value = "-90.0", message = "위도는 -90 이상이어야 합니다.")
                 @DecimalMax(value = "90.0", message = "위도는 90 이하여야 합니다.")
@@ -23,7 +27,7 @@ public record VisitVerificationCreateRequest(
                 .userId(userId)
                 .locationId(locationId)
                 .contentId(contentId)
-                .artistId(artistId)
+                .artistIds(artistIds)
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();

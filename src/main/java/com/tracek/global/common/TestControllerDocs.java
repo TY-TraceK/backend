@@ -31,28 +31,6 @@ public interface TestControllerDocs {
     String getTestAuthWithSuccess();
 
     /*
-     * RANKING - Projection
-     */
-
-    @Tag(name = "RANKING", description = "랭킹")
-    @Operation(
-            summary = "랭킹 Projection 증가 테스트",
-            description = "방문 인증 발생 시 실행되는 랭킹 증가 로직을 직접 호출합니다.")
-    ApiResponse<Void> increaseRankingProjection(
-            @Parameter(description = "관광지 ID", required = true) @RequestParam Long locationId,
-            @Parameter(description = "콘텐츠 ID") @RequestParam(required = false) Long contentId,
-            @Parameter(description = "아티스트 ID") @RequestParam(required = false) Long artistId);
-
-    @Tag(name = "RANKING", description = "랭킹")
-    @Operation(
-            summary = "랭킹 Projection 감소 테스트",
-            description = "방문 인증 취소 시 실행되는 랭킹 감소 로직을 직접 호출합니다.")
-    ApiResponse<Void> decreaseRankingProjection(
-            @Parameter(description = "관광지 ID", required = true) @RequestParam Long locationId,
-            @Parameter(description = "콘텐츠 ID") @RequestParam(required = false) Long contentId,
-            @Parameter(description = "아티스트 ID") @RequestParam(required = false) Long artistId);
-
-    /*
      * RANKING - Content
      */
 

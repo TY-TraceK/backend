@@ -8,13 +8,16 @@ import static org.mockito.Mockito.verify;
 
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.SecurityErrorCode;
+import com.tracek.global.security.WhitelistProperties;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +37,13 @@ class JwtAuthenticationFilterTest {
     @Mock private FilterChain filterChain;
 
     @InjectMocks private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Mock private WhitelistProperties whitelistProperties;
+
+    @BeforeEach
+    void setUp() {
+        given(whitelistProperties.getPermitAllUrls()).willReturn(List.of());
+    }
 
     @AfterEach
     void tearDown() {

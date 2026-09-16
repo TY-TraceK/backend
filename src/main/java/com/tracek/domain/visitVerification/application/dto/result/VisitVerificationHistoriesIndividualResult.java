@@ -3,11 +3,12 @@ package com.tracek.domain.visitVerification.application.dto.result;
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public record VisitVerificationHistoriesIndividualResult(
         Long locationId,
         Long contentId,
-        Long artistId,
+        Set<Long> artistIds,
         LocalDateTime visitVerifiedTimeAt,
         LocalDate visitVerifiedDate,
         String visitVerificationStatus) {
@@ -17,7 +18,7 @@ public record VisitVerificationHistoriesIndividualResult(
         return new VisitVerificationHistoriesIndividualResult(
                 visitVerification.getLocationId(),
                 visitVerification.getVerificationTarget().getContentId(),
-                visitVerification.getVerificationTarget().getArtistId(),
+                Set.copyOf(visitVerification.getVerificationTarget().getArtistIds()),
                 visitVerification.getVerifiedAt(),
                 visitVerification.getValidVerifiedAt(),
                 visitVerification.getStatus().name());

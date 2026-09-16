@@ -61,10 +61,16 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
             throw new CustomException(VisitVerificationErrorCode.ALREADY_VERIFIED);
         }
         // 연관되어 있는 지 확인
-        if (!isRelatedVerifiedTarget(
-                command.locationId(), command.contentId(), command.artistId())) {
-            throw new CustomException(VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
-        }
+        command.artistIds()
+                .forEach(
+                        (artistId) -> {
+                            if (!isRelatedVerifiedTarget(
+                                    command.locationId(), command.contentId(), artistId)) {
+                                throw new CustomException(
+                                        VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
+                            }
+                        });
+
         // 방문 가능한 위치인지 확인
         if (!isVisitZoneWithIn(command.latitude(), command.longitude(), command.locationId())) {
             throw new CustomException(VisitVerificationErrorCode.VISIT_ZONE_MISMATCH);
@@ -75,7 +81,7 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
                 VisitVerification.createvisitVerification(
                         command.userId(),
                         command.locationId(),
-                        VisitVerificationTarget.of(command.artistId(), command.contentId()));
+                        VisitVerificationTarget.of(command.artistIds(), command.contentId()));
 
         VisitVerification savedvisitVerification =
                 visitVerificationRepository.save(visitVerification);
@@ -143,15 +149,22 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
                 >= 24) {
             throw new CustomException(VisitVerificationErrorCode.CANNOT_BE_CANCELLED);
         }
-        // 연관관계가 있는 경우만 수정 가능
-        if (!isRelatedVerifiedTarget(
-                visitVerification.getLocationId(), command.contentId(), command.artistId())) {
-            throw new CustomException(VisitVerificationErrorCode.VERIFICATION_TARGET_NOT_FOUND);
-        }
+        // 연관되어 있는 지 확인
+        command.artistIds()
+                .forEach(
+                        (artistId) -> {
+                            if (!isRelatedVerifiedTarget(
+                                    visitVerification.getLocationId(),
+                                    command.contentId(),
+                                    artistId)) {
+                                throw new CustomException(
+                                        VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
+                            }
+                        });
         VisitVerificationTarget previousTarget = visitVerification.getVerificationTarget();
 
         VisitVerificationTarget updatedTarget =
-                VisitVerificationTarget.of(command.artistId(), command.contentId());
+                VisitVerificationTarget.of(command.artistIds(), command.contentId());
 
         visitVerification.updateVerificationTarget(updatedTarget);
 

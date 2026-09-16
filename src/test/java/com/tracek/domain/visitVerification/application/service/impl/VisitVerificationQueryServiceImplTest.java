@@ -61,7 +61,9 @@ class VisitVerificationQueryServiceImplTest {
         void getMy_visitVerificationStatus_success_visitVerified() {
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            userId, locationId, VisitVerificationTarget.of(artistId, contentId));
+                            userId,
+                            locationId,
+                            VisitVerificationTarget.of(List.of(artistId), contentId));
             ReflectionTestUtils.setField(visitVerification, "id", 42L);
 
             given(
@@ -125,7 +127,9 @@ class VisitVerificationQueryServiceImplTest {
         void getMyHistories_success() {
             VisitVerification visitVerification =
                     VisitVerification.createvisitVerification(
-                            userId, locationId, VisitVerificationTarget.of(artistId, contentId));
+                            userId,
+                            locationId,
+                            VisitVerificationTarget.of(List.of(artistId), contentId));
 
             LocalDate testDate = LocalDate.of(2026, 8, 19);
 

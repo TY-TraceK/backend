@@ -1,19 +1,17 @@
 package com.tracek.domain.ranking.application.service;
 
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
 
 public interface VisitRankingProjectionService {
 
-    void increase(Long locationId, Long contentId, Long artistId);
+    void increase(Long locationId, Long contentId, Set<Long> artistIds);
 
-    void decrease(Long locationId, Long contentId, Long artistId);
+    void decrease(Long locationId, Long contentId, Set<Long> artistIds);
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void update(
             Long locationId,
             Long previousContentId,
-            Long previousArtistId,
+            Set<Long> previousArtistIds,
             Long updatedContentId,
-            Long updatedArtistId);
+            Set<Long> updatedArtistIds);
 }

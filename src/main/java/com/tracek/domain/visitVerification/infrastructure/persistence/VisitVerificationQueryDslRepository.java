@@ -50,7 +50,9 @@ public class VisitVerificationQueryDslRepository {
     }
 
     private BooleanExpression artistIdEq(Long artistId) {
-        return artistId != null ? visitVerification.verificationTarget.artistId.eq(artistId) : null;
+        return artistId != null
+                ? visitVerification.verificationTarget.artistIds.contains(artistId)
+                : null;
     }
 
     private BooleanExpression contentIdEq(Long contentId) {

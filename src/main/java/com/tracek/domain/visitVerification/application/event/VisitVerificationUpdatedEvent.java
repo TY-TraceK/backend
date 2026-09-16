@@ -1,13 +1,14 @@
 package com.tracek.domain.visitVerification.application.event;
 
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationTarget;
+import java.util.Set;
 
 public record VisitVerificationUpdatedEvent(
         Long locationId,
         Long previousContentId,
-        Long previousArtistId,
+        Set<Long> previousArtistIds,
         Long updatedContentId,
-        Long updatedArtistId) {
+        Set<Long> updatedArtistIds) {
 
     public static VisitVerificationUpdatedEvent of(
             Long locationId,
@@ -16,8 +17,8 @@ public record VisitVerificationUpdatedEvent(
         return new VisitVerificationUpdatedEvent(
                 locationId,
                 previousTarget.getContentId(),
-                previousTarget.getArtistId(),
+                Set.copyOf(previousTarget.getArtistIds()),
                 updatedTarget.getContentId(),
-                updatedTarget.getArtistId());
+                Set.copyOf(updatedTarget.getArtistIds()));
     }
 }

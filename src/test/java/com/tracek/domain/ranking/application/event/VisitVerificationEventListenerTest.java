@@ -6,6 +6,7 @@ import com.tracek.domain.ranking.application.service.VisitRankingProjectionServi
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCanceledEvent;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCreatedEvent;
 import java.time.LocalDateTime;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,24 +18,29 @@ class VisitVerificationEventListenerTest {
 
     @Mock private VisitRankingProjectionService commandService;
 
-    private VisitVerificationEventListener listener;
+    private VisitRankingEventListener listener;
 
     @BeforeEach
     void setUp() {
-        listener = new VisitVerificationEventListener(commandService);
+        listener = new VisitRankingEventListener(commandService);
     }
 
     @Test
     void handleCreatedEvent() {
         // given
         VisitVerificationCreatedEvent event =
-                new VisitVerificationCreatedEvent(100L, 200L, LocalDateTime.now(), 1L, 3L, 2L);
-
-        // when
+                VisitVerificationCreatedEvent.builder()
+                        .visitVerificationId(100L)
+                        .visitVerificationOwner(200L)
+                        .visitVerifiedAt(LocalDateTime.now())
+                        .locationId(1L)
+                        .contentId(2L)
+                        .artistIds(Set.of(3L))
+                        .build();
         listener.handle(event);
 
         // then
-        verify(commandService).increase(1L, 2L, 3L);
+        verify(commandService).increase(1L, 2L, Set.of(3L));
     }
 
     @Test
@@ -47,6 +53,6 @@ class VisitVerificationEventListenerTest {
         listener.handle(event);
 
         // then
-        verify(commandService).decrease(1L, 2L, 3L);
+        verify(commandService).decrease(1L, 2L, Set.of(3L));
     }
 }

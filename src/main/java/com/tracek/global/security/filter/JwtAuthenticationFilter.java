@@ -2,6 +2,7 @@ package com.tracek.global.security.filter;
 
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.SecurityErrorCode;
+import com.tracek.global.security.WhitelistProperties;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
@@ -10,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +19,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,6 +28,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final WhitelistProperties whitelistProperties;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(
@@ -49,7 +54,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/api/auth/");
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            return true;
+        }
+
+        List<String> permitAllUrls = whitelistProperties.getPermitAllUrls();
+        for (String pattern : permitAllUrls) {
+            if (pathMatcher.match(pattern, path)) {
+                return true;
+            }
+        }
+
+        if ("GET".equalsIgnoreCase(method)) {
+            return pathMatcher.match("/api/artists/**", path)
+                    || pathMatcher.match("/api/locations/**", path)
+                    || pathMatcher.match("/api/contents/**", path)
+                    || pathMatcher.match("/api/search/**", path);
+        }
+        return false;
     }
 
     private String extractToken(HttpServletRequest request) {

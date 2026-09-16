@@ -119,7 +119,7 @@ class VisitVerificationRankingIntegrationTest {
                 .userId(userId)
                 .locationId(locationId)
                 .contentId(contentId)
-                .artistId(artistId)
+                .artistIds(List.of(artistId))
                 .latitude(LATITUDE)
                 .longitude(LONGITUDE)
                 .build();
@@ -660,7 +660,7 @@ class VisitVerificationRankingIntegrationTest {
                     .visitVerificationId(visitVerificationId)
                     .userId(userId)
                     .contentId(targetContentId)
-                    .artistId(targetArtistId)
+                    .artistIds(List.of(targetArtistId))
                     .build();
         }
 

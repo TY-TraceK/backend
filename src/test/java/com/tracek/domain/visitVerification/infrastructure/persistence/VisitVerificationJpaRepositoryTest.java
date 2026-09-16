@@ -7,6 +7,7 @@ import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationTarget;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class VisitVerificationJpaRepositoryTest {
     void setUp() {
         visitVerificationOwner = 1L;
         locationId = 100L;
-        visitVerificationTarget = VisitVerificationTarget.of(1000L, 10L);
+        visitVerificationTarget = VisitVerificationTarget.of(List.of(1000L), 10L);
     }
 
     @Test

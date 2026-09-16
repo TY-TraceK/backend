@@ -1,4 +1,9 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE visit_verification_target_artist;
 TRUNCATE TABLE visit_verification;
+
+SET FOREIGN_KEY_CHECKS = 1;
 TRUNCATE TABLE content_artist_location_ranking;
 TRUNCATE TABLE artist_location_ranking;
 TRUNCATE TABLE content_location_ranking;
