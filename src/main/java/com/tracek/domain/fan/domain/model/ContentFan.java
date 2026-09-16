@@ -2,30 +2,26 @@ package com.tracek.domain.fan.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
 @Table(name = "content_fan")
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@IdClass(ContentFanId.class)
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ContentFan {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
+    @Id
+    @Column(name = "content_id", nullable = false)
     private Long contentId;
 
     private ContentFan(Long userId, Long contentId) {
@@ -33,7 +29,7 @@ public class ContentFan {
         this.contentId = contentId;
     }
 
-    public static ContentFan create(Long userId, Long artistId) {
-        return new ContentFan(userId, artistId);
+    public static ContentFan create(ContentFanId id) {
+        return new ContentFan(id.getUserId(), id.getContentId());
     }
 }
