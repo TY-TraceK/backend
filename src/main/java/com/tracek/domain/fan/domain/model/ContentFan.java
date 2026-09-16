@@ -30,6 +30,6 @@ public class ContentFan {
     }
 
     public static ContentFan create(ContentFanId id) {
-        return new ContentFan(id.getUserId(), id.getContentId());
+        return new ContentFan(id.userId(), id.contentId());
     }
 }

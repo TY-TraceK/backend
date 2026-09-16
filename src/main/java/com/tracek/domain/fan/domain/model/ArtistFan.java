@@ -30,6 +30,6 @@ public class ArtistFan {
     }
 
     public static ArtistFan create(ArtistFanId id) {
-        return new ArtistFan(id.getUserId(), id.getArtistId());
+        return new ArtistFan(id.userId(), id.artistId());
     }
 }
