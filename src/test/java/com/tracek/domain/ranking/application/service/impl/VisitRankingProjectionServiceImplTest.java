@@ -9,6 +9,7 @@ import com.tracek.domain.ranking.domain.repository.ContentArtistLocationVisitRan
 import com.tracek.domain.ranking.domain.repository.ContentArtistVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
 import com.tracek.domain.ranking.domain.repository.LocationVisitRankingRepository;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class VisitRankingProjectionServiceImplTest {
         TargetId targetId = new TargetId(locationId, contentId, artistId);
 
         // when
-        service.increase(locationId, contentId, artistId);
+        service.increase(locationId, contentId, Set.of(artistId));
 
         // then
         verify(locationVisitRankingRepository).increaseVerificationCount(locationId);
@@ -81,7 +82,7 @@ class VisitRankingProjectionServiceImplTest {
         TargetId targetId = new TargetId(locationId, contentId, artistId);
 
         // when
-        service.decrease(locationId, contentId, artistId);
+        service.decrease(locationId, contentId, Set.of(artistId));
 
         // then
         verify(locationVisitRankingRepository).decreaseVerificationCount(locationId);
@@ -115,7 +116,11 @@ class VisitRankingProjectionServiceImplTest {
 
         // when
         service.update(
-                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+                locationId,
+                previousContentId,
+                Set.of(previousArtistId),
+                updatedContentId,
+                Set.of(updatedArtistId));
 
         // then
         verifyNoInteractions(locationVisitRankingRepository);
@@ -158,7 +163,11 @@ class VisitRankingProjectionServiceImplTest {
 
         // when
         service.update(
-                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+                locationId,
+                previousContentId,
+                Set.of(previousArtistId),
+                updatedContentId,
+                Set.of(updatedArtistId));
 
         // then
         verifyNoInteractions(locationVisitRankingRepository);
@@ -201,7 +210,11 @@ class VisitRankingProjectionServiceImplTest {
 
         // when
         service.update(
-                locationId, previousContentId, previousArtistId, updatedContentId, updatedArtistId);
+                locationId,
+                previousContentId,
+                Set.of(previousArtistId),
+                updatedContentId,
+                Set.of(updatedArtistId));
 
         // then
         // 방문 자체는 그대로이므로 관광지 전체 랭킹은 변경하지 않음
@@ -241,7 +254,7 @@ class VisitRankingProjectionServiceImplTest {
         Long artistId = 3L;
 
         // when
-        service.update(locationId, contentId, artistId, contentId, artistId);
+        service.update(locationId, contentId, Set.of(artistId), contentId, Set.of(artistId));
 
         // then
         verifyNoInteractions(

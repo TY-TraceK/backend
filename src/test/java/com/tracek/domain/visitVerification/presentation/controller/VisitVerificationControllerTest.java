@@ -24,6 +24,7 @@ import com.tracek.domain.visitVerification.domain.exception.VisitVerificationErr
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationCreateRequest;
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.response.GeneralErrorCode;
+import com.tracek.global.security.WhitelistProperties;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import java.time.LocalDate;
@@ -56,6 +57,8 @@ class VisitVerificationControllerTest {
 
     @MockitoBean private JwtTokenProvider jwtTokenProvider;
 
+    @MockitoBean private WhitelistProperties whitelistProperties;
+
     private Authentication mockAuthentication;
 
     @BeforeEach
@@ -68,19 +71,28 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/visitVerifications - 방문 인증 생성 API")
+    @DisplayName("POST /api/visit-verifications - 방문 인증 생성 API")
     class CreateVisitVerificationTest {
 
         @Test
         @DisplayName("성공: 인증된 유저와 유효한 Request가 전달되면 200 OK와 함께 생성된 방문 인증 정보가 반환된다.")
         void createVisitVerification_success() throws Exception {
-            // given: locationId, contentId, artistId, latitude, longitude
+            // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(100L)
+                            .contentId(20L)
+                            .artistIds(List.of(10L, 11L))
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
 
             VisitVerificationCreateResult mockResult =
-                    new VisitVerificationCreateResult(
-                            10L, "VALID", LocalDateTime.of(2026, 8, 12, 12, 0, 0));
+                    VisitVerificationCreateResult.builder()
+                            .visitVerificationId(10L)
+                            .visitVerificationStatus("VALID")
+                            .visitVerifiedAt(LocalDateTime.of(2026, 8, 12, 12, 0, 0))
+                            .build();
 
             given(
                             visitVerificationService.createVisitVerification(
@@ -104,9 +116,16 @@ class VisitVerificationControllerTest {
         @Test
         @DisplayName("실패 (@Valid): 필수 필드가 누락되면 400 Bad Request를 반환한다.")
         void createVisitVerification_fail_validation() throws Exception {
-            // given: locationId를 null로 설정하여 검증 실패 유도
+
+            // given
             VisitVerificationCreateRequest invalidRequest =
-                    new VisitVerificationCreateRequest(null, 20L, 10L, 35.123456, 128.123456);
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(null)
+                            .contentId(20L)
+                            .artistIds(List.of(10L, 11L))
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
 
             // when & then
             mockMvc.perform(
@@ -122,9 +141,16 @@ class VisitVerificationControllerTest {
         @Test
         @DisplayName("실패 (인증 누락): 인증 정보가 없는 비로그인 유저 요청 시 401 Unauthorized를 반환한다.")
         void createVisitVerification_fail_unauthorized() throws Exception {
+
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(100L)
+                            .contentId(20L)
+                            .artistIds(List.of(10L, 11L))
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
 
             // when & then
             mockMvc.perform(
@@ -142,7 +168,13 @@ class VisitVerificationControllerTest {
 
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(100L)
+                            .contentId(20L)
+                            .artistIds(List.of(10L, 11L))
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
 
             given(
                             visitVerificationService.createVisitVerification(
@@ -169,7 +201,13 @@ class VisitVerificationControllerTest {
 
             // given
             VisitVerificationCreateRequest request =
-                    new VisitVerificationCreateRequest(100L, 20L, 10L, 35.123456, 128.123456);
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(100L)
+                            .contentId(20L)
+                            .artistIds(List.of(10L, 11L))
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
 
             given(
                             visitVerificationService.createVisitVerification(
@@ -190,17 +228,22 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/visitVerifications/locations/{locationId}/me - 나의 방문 인증 상태 조회 API")
+    @DisplayName("GET /api/locations/{locationId}/visit-verifications - 나의 방문 인증 상태 조회 API")
     class GetMyVisitVerificationStatusControllerTest {
 
         @Test
         @DisplayName("성공: 특정 장소의 나의 방문 인증 상태를 정상 조회한다.")
         void getMyVisitVerificationStatus_success() throws Exception {
+
             // given
             Long locationId = 100L;
 
             VisitVerificationStatusSearchResult mockResult =
-                    new VisitVerificationStatusSearchResult(true, 42L, LocalDate.of(2026, 8, 19));
+                    VisitVerificationStatusSearchResult.builder()
+                            .isVisitVerified(true)
+                            .visitVerificationId(42L)
+                            .targetDate(LocalDate.of(2026, 8, 19))
+                            .build();
 
             given(
                             visitVerificationQueryService.getMyVisitVerificationStatus(
@@ -220,18 +263,23 @@ class VisitVerificationControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/visitVerifications/histories - 나의 방문 인증 이력 조회 API")
+    @DisplayName("GET /api/users/me/visit-verifications - 나의 방문 인증 이력 조회 API")
     class GetMyVisitVerificationHistoriesControllerTest {
 
         @Test
         @DisplayName("성공: 조건과 페이징 정보로 방문 인증 이력을 조회한다.")
         void getMyVisitVerificationHistories_success() throws Exception {
+
             // given
             Map<LocalDate, List<VisitVerificationHistoriesIndividualResult>> dummyHistories =
                     Map.of(LocalDate.of(2026, 8, 19), List.of());
 
             VisitVerificationHistoriesResult mockResult =
-                    new VisitVerificationHistoriesResult(dummyHistories, false, null);
+                    VisitVerificationHistoriesResult.builder()
+                            .histories(dummyHistories)
+                            .hasNext(false)
+                            .nextCursorDate(null)
+                            .build();
 
             given(
                             visitVerificationQueryService.getMyHistories(
