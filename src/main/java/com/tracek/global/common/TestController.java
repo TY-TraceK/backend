@@ -1,6 +1,9 @@
 package com.tracek.global.common;
 
 import com.tracek.domain.auth.application.service.OAuthService;
+import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
@@ -31,6 +34,7 @@ public class TestController implements TestControllerDocs {
     private final OAuthService oAuthService;
     private final VisitRankingQueryService visitRankingQueryService;
     private final VisitRankingProjectionService visitRankingProjectionService;
+    private final FanQueryService fanQueryService;
 
     @PostMapping("/auth/token/{userId}")
     public ApiResponse<String> generateDevToken(@PathVariable Long userId) {
@@ -44,6 +48,32 @@ public class TestController implements TestControllerDocs {
     public String getTestAuthWithSuccess() {
         return "인증 성공";
     }
+
+    @GetMapping("/fan/users/{userId}/artists/{artistId}")
+    public ArtistFanViewResult getArtistFanView(
+            @PathVariable Long userId, @PathVariable Long artistId) {
+        return fanQueryService.getArtistFanView(userId, artistId);
+    }
+
+    @GetMapping("/fan/users/{userId}/contents/{contentId}")
+    public ContentFanViewResult getContentFanView(
+            @PathVariable Long userId, @PathVariable Long contentId) {
+        return fanQueryService.getContentFanView(userId, contentId);
+    }
+
+    @GetMapping("/fan/users/{userId}/artists/count")
+    public Integer countArtistFansByUserId(@PathVariable Long userId) {
+        return fanQueryService.countArtistFansByUserId(userId);
+    }
+
+    @GetMapping("/fan/users/{userId}/contents/count")
+    public Integer countContentFansByUserId(@PathVariable Long userId) {
+        return fanQueryService.countContentFansByUserId(userId);
+    }
+
+    /*
+     * Ranking - Content 기준
+     */
 
     @GetMapping("/ranking/content/{contentId}/artists")
     public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
@@ -74,7 +104,7 @@ public class TestController implements TestControllerDocs {
     }
 
     /*
-     * Artist 기준
+     * Ranking - Artist 기준
      */
 
     @GetMapping("/ranking/artist/{artistId}/locations")
@@ -106,7 +136,7 @@ public class TestController implements TestControllerDocs {
     }
 
     /*
-     * Location 기준
+     * Ranking - Location 기준
      */
 
     @GetMapping("/ranking/location/{locationId}/artists")
