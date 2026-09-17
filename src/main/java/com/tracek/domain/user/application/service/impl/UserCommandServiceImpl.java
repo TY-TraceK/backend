@@ -39,8 +39,6 @@ public class UserCommandServiceImpl implements UserCommandService {
             user = User.createUser(oAuthInfo, command.connectedAt(), userProfile);
             user = userRepository.save(user);
             isNewUser = true;
-        } else {
-            user.setUserProfile(userProfile);
         }
         return SyncUserResult.from(user, isNewUser);
     }
@@ -53,12 +51,20 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     @Transactional
     public UserProfileDataResult updateUserProfile(UserProfileUpdateCommand command) {
-        String uploadUrl = uploadImage(command.userId(), command.imageSource());
         User user =
                 userRepository
                         .findById(command.userId())
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        user.updateUserProfile(UserProfile.register(uploadUrl, command.nickName()));
+        String newImageUrl = user.getUserProfile().getProfileImageUrl();
+        String newNickName = user.getUserProfile().getNickname();
+        if (command.imageSource() != null) {
+            newImageUrl = uploadImage(command.userId(), command.imageSource());
+        }
+        if (command.nickName() != null) {
+            newNickName = command.nickName();
+        }
+
+        user.updateUserProfile(UserProfile.register(newNickName, newImageUrl));
         return UserProfileDataResult.from(user);
     }
 }
