@@ -3,6 +3,10 @@ spring:
     name: traceK
   profiles:
     active: ${SPRING_PROFILE:local}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
 management:
   endpoints:
     web:
@@ -17,6 +21,9 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+storage:
+  local:
+    path: uploads
 app:
   jwt:
     secret: ${JWT_SECRET:default_local_secret_key_for_testing_1234567890}
@@ -43,3 +50,4 @@ app:
       - "/api/test/**"
       - "/api/auth/**"
       - "/api/rankings/**"
+      - "/uploads/**"

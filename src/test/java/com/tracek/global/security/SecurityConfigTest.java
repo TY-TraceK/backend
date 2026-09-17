@@ -85,7 +85,7 @@ class SecurityConfigTest {
         @PostMapping("/api/locations/test")
         void createLocation() {}
 
-        @GetMapping("/api/users/me")
+        @GetMapping("/api/users/test")
         String getMyInformation() {
             return "user";
         }
@@ -132,13 +132,13 @@ class SecurityConfigTest {
         @Test
         @DisplayName("/api/users/**는 인증 없이 접근할 수 없다")
         void usersApi_withoutAuthentication_returnsForbidden() throws Exception {
-            mockMvc.perform(get("/api/users/me")).andExpect(status().isForbidden());
+            mockMvc.perform(get("/api/users/test")).andExpect(status().isForbidden());
         }
 
         @Test
         @DisplayName("/api/users/**는 인증된 사용자가 접근할 수 있다")
         void usersApi_withAuthentication_returnsOk() throws Exception {
-            mockMvc.perform(get("/api/users/me").with(user("1").roles("USER")))
+            mockMvc.perform(get("/api/users/test").with(user("1").roles("USER")))
                     .andExpect(status().isOk())
                     .andExpect(content().string("user"));
         }

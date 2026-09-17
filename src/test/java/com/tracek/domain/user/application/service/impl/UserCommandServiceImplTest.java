@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
+import com.tracek.domain.user.application.client.StorageClient;
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
 import com.tracek.domain.user.application.dto.result.SyncUserResult;
 import com.tracek.domain.user.domain.enums.OAuthProvider;
@@ -29,8 +30,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class UserCommandServiceImplTest {
 
+    @Mock private StorageClient storageClient;
     @Mock private UserRepository userRepository;
-
     @InjectMocks private UserCommandServiceImpl userCommandService;
 
     private SyncUserCommand createCommand(

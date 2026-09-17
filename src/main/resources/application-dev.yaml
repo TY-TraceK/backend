@@ -24,4 +24,13 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org.hibernate.orm.jdbc.bind: trace
+  org.hibernate.type.descriptor.sql.BasicBinder: trace
+storage:
+  local:
+    path: uploads
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET:tracek-storage}
+      region: ap-northeast-2
