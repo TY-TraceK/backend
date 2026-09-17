@@ -25,3 +25,8 @@ logging:
   level:
     org.hibernate.SQL: warn
     org.hibernate.orm.jdbc.bind: warn
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET:tracek-storage}
+      region: ap-northeast-2
