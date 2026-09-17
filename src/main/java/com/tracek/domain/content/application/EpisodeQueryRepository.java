@@ -116,4 +116,32 @@ public class EpisodeQueryRepository {
                 .where(episode.content.id.eq(contentId))
                 .fetch();
     }
+
+    // 콘텐츠 -> 연관 장소 ID 최신 등록순 (장소당 가장 최근 에피소드 기준), 최대 size개
+    public List<Long> getLatestLocationIdsByContentId(Long contentId, int size) {
+        return queryFactory
+                .select(episodeLocation.location.id)
+                .from(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .where(episode.content.id.eq(contentId))
+                .groupBy(episodeLocation.location.id)
+                .orderBy(episode.createdAt.max().desc())
+                .limit(size)
+                .fetch();
+    }
+
+    // 아티스트 -> 연관 장소 ID 최신 등록순 (장소당 가장 최근 에피소드 기준), 최대 size개
+    public List<Long> getLatestLocationIdsByArtistId(Long artistId, int size) {
+        return queryFactory
+                .select(episodeLocation.location.id)
+                .from(episodeLocation)
+                .join(episodeLocation.episode, episode)
+                .join(episodeArtist)
+                .on(episode.id.eq(episodeArtist.episode.id))
+                .where(episodeArtist.artist.id.eq(artistId))
+                .groupBy(episodeLocation.location.id)
+                .orderBy(episode.createdAt.max().desc())
+                .limit(size)
+                .fetch();
+    }
 }

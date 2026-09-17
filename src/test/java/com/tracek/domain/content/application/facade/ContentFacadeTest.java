@@ -123,4 +123,32 @@ class ContentFacadeTest {
         assertThat(result.getLocations()).isEmpty();
         assertThat(result.getContentInfo().getFixedArtists()).isEmpty();
     }
+
+    @Test
+    @DisplayName("콘텐츠 연관 장소 최신순 조회 시 리포지토리가 반환한 id 순서대로 재정렬된다")
+    void getLatestLocationsByContent_success() {
+        Location location2 = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
+        Location location4 = LocationTestFixture.newLocation(4L, "남산타워", "ATTRACTION", 100L);
+
+        given(episodeQueryService.getLatestLocationIdsByContentId(1L, 2))
+                .willReturn(List.of(4L, 2L));
+        given(locationQueryService.getLocationByIds(List.of(4L, 2L)))
+                .willReturn(
+                        List.of(LocationResult.from(location2), LocationResult.from(location4)));
+
+        List<LocationResult> result = contentFacade.getLatestLocationsByContent(1L, 2);
+
+        assertThat(result).extracting(LocationResult::getLocationId).containsExactly(4L, 2L);
+    }
+
+    @Test
+    @DisplayName("콘텐츠 연관 최신 장소가 없으면 빈 리스트를 반환한다")
+    void getLatestLocationsByContent_withoutLocations() {
+        given(episodeQueryService.getLatestLocationIdsByContentId(1L, 2)).willReturn(List.of());
+        given(locationQueryService.getLocationByIds(List.of())).willReturn(List.of());
+
+        List<LocationResult> result = contentFacade.getLatestLocationsByContent(1L, 2);
+
+        assertThat(result).isEmpty();
+    }
 }

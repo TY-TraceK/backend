@@ -103,4 +103,17 @@ public class ContentFacade {
         return ContentDetailResult.of(
                 ContentDetailResult.ContentInfo.of(content, fixedArtists), locationResults);
     }
+
+    // 콘텐츠 -> 연관 장소 최신 등록순 조회 (최대 size개)
+    public List<LocationResult> getLatestLocationsByContent(Long contentId, int size) {
+        List<Long> latestLocationIds =
+                episodeQueryService.getLatestLocationIdsByContentId(contentId, size);
+
+        // JPA get- 쿼리는 입력 id 순서 보장 X, 최신순 재정렬 필요
+        Map<Long, LocationResult> locationMap =
+                locationQueryService.getLocationByIds(latestLocationIds).stream()
+                        .collect(Collectors.toMap(LocationResult::getLocationId, l -> l));
+
+        return latestLocationIds.stream().map(locationMap::get).filter(Objects::nonNull).toList();
+    }
 }
