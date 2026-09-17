@@ -59,6 +59,10 @@ public class User extends BaseEntity {
         this.connectedAt = connectedAt;
     }
 
+    public void updateUserProfile(UserProfile userProfile) {
+        this.userProfile = userProfile;
+    }
+
     public void grantAdminRole() {
         this.userRole = UserRole.ADMIN;
     }
