@@ -281,4 +281,20 @@ public class ArtistFacade {
                 ArtistDetailRelatedContentResult.ArtistInfo.of(artist, relatedArtists),
                 contentResults);
     }
+
+    // 아티스트 -> 연관 장소 최신 등록순 조회 (최대 size개)
+    public List<LocationResult> getLatestLocationsByArtist(Long artistId, int size) {
+        List<Long> latestLocationIds =
+                episodeQueryService.getLatestLocationIdsByArtistId(artistId, size);
+
+        // JPA get- 쿼리는 입력 id 순서 보장 X, 최신순 재정렬 필요
+        Map<Long, LocationResult> locationMap =
+                locationQueryService.getLocationByIds(latestLocationIds).stream()
+                        .collect(Collectors.toMap(LocationResult::getLocationId, l -> l));
+
+        return latestLocationIds.stream()
+                .map(locationMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
 }

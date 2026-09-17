@@ -47,4 +47,12 @@ public class EpisodeQueryService {
     public List<EpisodeLocation> getEpisodesByContentId(Long contentId) {
         return episodeQueryRepository.getEpisodesByContentId(contentId);
     }
+
+    public List<Long> getLatestLocationIdsByContentId(Long contentId, int size) {
+        return episodeQueryRepository.getLatestLocationIdsByContentId(contentId, size);
+    }
+
+    public List<Long> getLatestLocationIdsByArtistId(Long artistId, int size) {
+        return episodeQueryRepository.getLatestLocationIdsByArtistId(artistId, size);
+    }
 }
