@@ -33,4 +33,4 @@ cloud:
   aws:
     s3:
       bucket: ${AWS_S3_BUCKET:tracek-storage}
-      region: ap-northeast-2
+      region: ${AWS_S3_REGION:ap-southeast-2}

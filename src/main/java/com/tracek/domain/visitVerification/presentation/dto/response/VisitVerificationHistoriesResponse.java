@@ -1,11 +1,11 @@
 package com.tracek.domain.visitVerification.presentation.dto.response;
 
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesIndividualResult;
+import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesIndividualResult.ArtistViewResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import lombok.Builder;
 
 @Builder
@@ -49,22 +49,48 @@ record VisitVerificationHistoriesGroupResponse(
 
 @Builder
 record VisitVerificationHistoriesIndividualResponse(
+        Long visitVerificationId,
         Long locationId,
+        String locationName,
+        String locationAddress,
+        String locationImageUrl,
+        String city,
         Long contentId,
-        Set<Long> artistIds,
+        String contentTitle,
+        List<ArtistViewResponse> artists,
         LocalDateTime visitVerifiedTimeAt,
-        LocalDate visitVerifiedDate,
-        String visitVerificationStatus) {
+        String visitVerificationStatus,
+        boolean liked,
+        boolean archived) {
 
     public static VisitVerificationHistoriesIndividualResponse from(
             VisitVerificationHistoriesIndividualResult result) {
+
         return VisitVerificationHistoriesIndividualResponse.builder()
-                .artistIds(result.artistIds())
-                .contentId(result.contentId())
+                .visitVerificationId(result.visitVerificationId())
                 .locationId(result.locationId())
-                .visitVerifiedDate(result.visitVerifiedDate())
+                .locationName(result.locationName())
+                .locationAddress(result.locationAddress())
+                .locationImageUrl(result.locationImageUrl())
+                .city(result.city())
+                .liked(result.liked())
+                .archived(result.archived())
+                .contentId(result.contentId())
+                .contentTitle(result.contentTitle())
+                .artists(result.artists().stream().map(ArtistViewResponse::from).toList())
                 .visitVerifiedTimeAt(result.visitVerifiedTimeAt())
                 .visitVerificationStatus(result.visitVerificationStatus())
                 .build();
+    }
+
+    @Builder
+    public record ArtistViewResponse(Long artistId, String artistName) {
+
+        public static ArtistViewResponse from(ArtistViewResult viewResult) {
+            return ArtistViewResponse.builder()
+                    .artistId(viewResult.artistId())
+                    .artistName(viewResult.artistName())
+                    .build();
+        }
     }
 }

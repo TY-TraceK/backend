@@ -1,6 +1,6 @@
 package com.tracek.domain.visitVerification.application.dto.result;
 
-import com.tracek.domain.visitVerification.domain.model.VisitVerification;
+import com.tracek.domain.visitVerification.domain.model.VisitVerificationView;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,7 +15,7 @@ public record VisitVerificationHistoriesResult(
         LocalDate nextCursorDate) {
 
     public static VisitVerificationHistoriesResult of(
-            List<VisitVerification> visitVerifications, int requestedSize) {
+            List<VisitVerificationView> visitVerifications, int requestedSize) {
 
         if (visitVerifications.isEmpty()) {
             return VisitVerificationHistoriesResult.builder()
@@ -28,13 +28,13 @@ public record VisitVerificationHistoriesResult(
         // 조회된 데이터에서 고유한 날짜 목록 순서대로 추출
         List<LocalDate> distinctDates =
                 visitVerifications.stream()
-                        .map(VisitVerification::getValidVerifiedAt)
+                        .map(VisitVerificationView::visitVerifiedDate)
                         .distinct()
                         .toList();
 
         boolean hasNext = false;
         LocalDate nextCursorDate = null;
-        List<VisitVerification> targetVerifications = visitVerifications;
+        List<VisitVerificationView> targetVerifications = visitVerifications;
 
         // 고유 날짜 개수가 요청한 size보다 많다면, 딱 size만큼의 날짜까지만 허용하고 자름
         if (distinctDates.size() > requestedSize) {
@@ -43,7 +43,7 @@ public record VisitVerificationHistoriesResult(
 
             targetVerifications =
                     visitVerifications.stream()
-                            .filter(v -> allowedDates.contains(v.getValidVerifiedAt()))
+                            .filter(v -> allowedDates.contains(v.visitVerifiedDate()))
                             .toList();
 
             nextCursorDate = allowedDates.getLast();
