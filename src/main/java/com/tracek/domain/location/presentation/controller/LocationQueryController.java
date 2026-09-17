@@ -40,8 +40,7 @@ public class LocationQueryController {
             @Parameter(description = "관광지 ID") @PathVariable Long locationId,
             @ParameterObject @ModelAttribute LocationDetailRequest request,
             @AuthenticationPrincipal
-                    com.tracek.global.security.authentication.AuthenticationPrincipal
-                            principal) {
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal) {
         RankingCondition condition = request.toCondition();
         Long userId = principal == null ? null : principal.userId();
         LocationDetailResult result =

@@ -99,7 +99,8 @@ public class LocationQueryService {
 
     // 로그인 유저의 관광지 좋아요 여부 (비로그인 시 false)
     public boolean isLikedByUser(Long userId, Long locationId) {
-        return userId != null && locationRepository.existsLikeByUserIdAndLocationId(userId, locationId);
+        return userId != null
+                && locationRepository.existsLikeByUserIdAndLocationId(userId, locationId);
     }
 
     // 로그인 유저의 관광지 아카이브 여부 (비로그인 시 false)
