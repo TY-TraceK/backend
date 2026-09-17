@@ -285,9 +285,7 @@ class ArtistFacadeTest {
 
         List<LocationResult> result = artistFacade.getLatestLocationsByArtist(1L, 2);
 
-        assertThat(result)
-                .extracting(LocationResult::getLocationId)
-                .containsExactly(5L, 3L);
+        assertThat(result).extracting(LocationResult::getLocationId).containsExactly(5L, 3L);
     }
 
     @Test
