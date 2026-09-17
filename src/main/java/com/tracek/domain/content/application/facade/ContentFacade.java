@@ -114,9 +114,6 @@ public class ContentFacade {
                 locationQueryService.getLocationByIds(latestLocationIds).stream()
                         .collect(Collectors.toMap(LocationResult::getLocationId, l -> l));
 
-        return latestLocationIds.stream()
-                .map(locationMap::get)
-                .filter(Objects::nonNull)
-                .toList();
+        return latestLocationIds.stream().map(locationMap::get).filter(Objects::nonNull).toList();
     }
 }
