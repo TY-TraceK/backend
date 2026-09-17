@@ -4,6 +4,7 @@ import com.tracek.domain.fan.domain.model.ContentFan;
 import com.tracek.domain.fan.domain.model.ContentFanId;
 import com.tracek.domain.fan.domain.repository.ContentFanRepository;
 import com.tracek.domain.fan.infrastructure.persistence.jpa.ContentFanJpaRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -32,5 +33,20 @@ public class ContentFanRepositoryImpl implements ContentFanRepository {
     @Override
     public void delete(ContentFanId fanId) {
         contentFanJpaRepository.deleteById(fanId);
+    }
+
+    @Override
+    public List<ContentFan> findAllByUserId(Long userId) {
+        return contentFanJpaRepository.findAllByUserId(userId);
+    }
+
+    @Override
+    public Integer countContentsFansByUserId(Long userId) {
+        return contentFanJpaRepository.countContentFanByUserId(userId);
+    }
+
+    @Override
+    public Integer countContentsFansByContentId(Long contentId) {
+        return contentFanJpaRepository.countContentFanByContentId(contentId);
     }
 }
