@@ -10,7 +10,6 @@ import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResu
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedLocationRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedMultiRankingResult;
-import com.tracek.domain.ranking.application.service.VisitRankingProjectionService;
 import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
@@ -18,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +33,6 @@ public class TestController implements TestControllerDocs {
 
     private final OAuthService oAuthService;
     private final VisitRankingQueryService visitRankingQueryService;
-    private final VisitRankingProjectionService visitRankingProjectionService;
     private final FanQueryService fanQueryService;
 
     @PostMapping("/auth/token/{userId}")
@@ -49,15 +48,26 @@ public class TestController implements TestControllerDocs {
         return "인증 성공";
     }
 
-    @GetMapping("/fan/users/{userId}/artists/{artistId}")
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/fan/users/artists/{artistId}")
     public ArtistFanViewResult getArtistFanView(
-            @PathVariable Long userId, @PathVariable Long artistId) {
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal
+                            authenticationPrincipal,
+            @PathVariable Long artistId) {
+        Long userId = authenticationPrincipal != null ? authenticationPrincipal.userId() : null;
+
         return fanQueryService.getArtistFanView(userId, artistId);
     }
 
-    @GetMapping("/fan/users/{userId}/contents/{contentId}")
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/fan/users/contents/{contentId}")
     public ContentFanViewResult getContentFanView(
-            @PathVariable Long userId, @PathVariable Long contentId) {
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal
+                            authenticationPrincipal,
+            @PathVariable Long contentId) {
+        Long userId = authenticationPrincipal != null ? authenticationPrincipal.userId() : null;
         return fanQueryService.getContentFanView(userId, contentId);
     }
 
