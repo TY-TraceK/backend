@@ -1,5 +1,6 @@
 package com.tracek.domain.fan.presentaion.controller.docs;
 
+import com.tracek.domain.fan.presentaion.dto.response.MyFanResponse;
 import com.tracek.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "FAN", description = "팬")
@@ -56,4 +58,10 @@ public interface FanControllerDocs {
             @Parameter(hidden = true) @AuthenticationPrincipal
                     com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @PathVariable Long contentId);
+
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/users/me/fans")
+    ApiResponse<MyFanResponse> getMyFanTargets(
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal);
 }

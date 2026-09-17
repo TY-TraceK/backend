@@ -1,13 +1,15 @@
 package com.tracek.global.common;
 
 import com.tracek.domain.auth.application.service.OAuthService;
+import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedArtistRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedContentRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedLocationRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RelatedMultiRankingResult;
-import com.tracek.domain.ranking.application.service.VisitRankingProjectionService;
 import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
@@ -15,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +33,7 @@ public class TestController implements TestControllerDocs {
 
     private final OAuthService oAuthService;
     private final VisitRankingQueryService visitRankingQueryService;
-    private final VisitRankingProjectionService visitRankingProjectionService;
+    private final FanQueryService fanQueryService;
 
     @PostMapping("/auth/token/{userId}")
     public ApiResponse<String> generateDevToken(@PathVariable Long userId) {
@@ -44,6 +47,43 @@ public class TestController implements TestControllerDocs {
     public String getTestAuthWithSuccess() {
         return "인증 성공";
     }
+
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/fan/users/artists/{artistId}")
+    public ArtistFanViewResult getArtistFanView(
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal
+                            authenticationPrincipal,
+            @PathVariable Long artistId) {
+        Long userId = authenticationPrincipal != null ? authenticationPrincipal.userId() : null;
+
+        return fanQueryService.getArtistFanView(userId, artistId);
+    }
+
+    @SecurityRequirement(name = "jwtAuth")
+    @GetMapping("/fan/users/contents/{contentId}")
+    public ContentFanViewResult getContentFanView(
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal
+                            authenticationPrincipal,
+            @PathVariable Long contentId) {
+        Long userId = authenticationPrincipal != null ? authenticationPrincipal.userId() : null;
+        return fanQueryService.getContentFanView(userId, contentId);
+    }
+
+    @GetMapping("/fan/users/{userId}/artists/count")
+    public Integer countArtistFansByUserId(@PathVariable Long userId) {
+        return fanQueryService.countArtistFansByUserId(userId);
+    }
+
+    @GetMapping("/fan/users/{userId}/contents/count")
+    public Integer countContentFansByUserId(@PathVariable Long userId) {
+        return fanQueryService.countContentFansByUserId(userId);
+    }
+
+    /*
+     * Ranking - Content 기준
+     */
 
     @GetMapping("/ranking/content/{contentId}/artists")
     public RankingSliceResult<RelatedArtistRankingResult> getArtistsByContent(
@@ -74,7 +114,7 @@ public class TestController implements TestControllerDocs {
     }
 
     /*
-     * Artist 기준
+     * Ranking - Artist 기준
      */
 
     @GetMapping("/ranking/artist/{artistId}/locations")
@@ -106,7 +146,7 @@ public class TestController implements TestControllerDocs {
     }
 
     /*
-     * Location 기준
+     * Ranking - Location 기준
      */
 
     @GetMapping("/ranking/location/{locationId}/artists")
