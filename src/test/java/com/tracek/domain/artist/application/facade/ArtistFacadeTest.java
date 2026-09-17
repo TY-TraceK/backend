@@ -270,4 +270,34 @@ class ArtistFacadeTest {
 
         assertThat(result.getContents()).isEmpty();
     }
+
+    @Test
+    @DisplayName("아티스트 연관 장소 최신순 조회 시 리포지토리가 반환한 id 순서대로 재정렬된다")
+    void getLatestLocationsByArtist_success() {
+        Location location3 = LocationTestFixture.newLocation(3L, "경복궁", "ATTRACTION", 100L);
+        Location location5 = LocationTestFixture.newLocation(5L, "남산타워", "ATTRACTION", 100L);
+
+        given(episodeQueryService.getLatestLocationIdsByArtistId(1L, 2))
+                .willReturn(List.of(5L, 3L));
+        given(locationQueryService.getLocationByIds(List.of(5L, 3L)))
+                .willReturn(
+                        List.of(LocationResult.from(location3), LocationResult.from(location5)));
+
+        List<LocationResult> result = artistFacade.getLatestLocationsByArtist(1L, 2);
+
+        assertThat(result)
+                .extracting(LocationResult::getLocationId)
+                .containsExactly(5L, 3L);
+    }
+
+    @Test
+    @DisplayName("아티스트 연관 최신 장소가 없으면 빈 리스트를 반환한다")
+    void getLatestLocationsByArtist_withoutLocations() {
+        given(episodeQueryService.getLatestLocationIdsByArtistId(1L, 2)).willReturn(List.of());
+        given(locationQueryService.getLocationByIds(List.of())).willReturn(List.of());
+
+        List<LocationResult> result = artistFacade.getLatestLocationsByArtist(1L, 2);
+
+        assertThat(result).isEmpty();
+    }
 }

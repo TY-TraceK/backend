@@ -141,4 +141,24 @@ class EpisodeQueryServiceTest {
         assertThat(episodeQueryService.getEpisodesByContentId(10L))
                 .containsExactly(episodeLocation);
     }
+
+    @Test
+    @DisplayName("콘텐츠 기준 최신 등록순 관광지 id 목록 조회를 리포지토리에 위임한다")
+    void getLatestLocationIdsByContentId_delegates() {
+        given(episodeQueryRepository.getLatestLocationIdsByContentId(10L, 5))
+                .willReturn(List.of(2L, 1L));
+
+        assertThat(episodeQueryService.getLatestLocationIdsByContentId(10L, 5))
+                .containsExactly(2L, 1L);
+    }
+
+    @Test
+    @DisplayName("아티스트 기준 최신 등록순 관광지 id 목록 조회를 리포지토리에 위임한다")
+    void getLatestLocationIdsByArtistId_delegates() {
+        given(episodeQueryRepository.getLatestLocationIdsByArtistId(1L, 5))
+                .willReturn(List.of(3L, 2L));
+
+        assertThat(episodeQueryService.getLatestLocationIdsByArtistId(1L, 5))
+                .containsExactly(3L, 2L);
+    }
 }
