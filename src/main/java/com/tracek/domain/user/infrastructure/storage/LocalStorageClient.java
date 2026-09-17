@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
-@Profile("local")
+@Profile({"local", "test"})
 public class LocalStorageClient implements StorageClient {
 
     private final Path rootPath;
