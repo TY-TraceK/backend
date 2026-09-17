@@ -39,7 +39,8 @@ public class LocationFacade {
     private final ContentArtistQueryService contentArtistQueryService;
 
     // 메인 관광지 상세 정보 조회 (플랫 구조 - 연관 콘텐츠, 아티스트)
-    public LocationDetailResult getLocationDetails(Long locationId, RankingCondition condition) {
+    public LocationDetailResult getLocationDetails(
+            Long locationId, RankingCondition condition, Long userId) {
         // 관광지 엔티티 & 사진 URL 목록 조회
         Location location = locationQueryService.getLocationEntity(locationId);
 
@@ -129,8 +130,11 @@ public class LocationFacade {
                         .filter(Objects::nonNull)
                         .toList();
 
+        boolean isLiked = locationQueryService.isLikedByUser(userId, locationId);
+        boolean isArchived = locationQueryService.isArchivedByUser(userId, locationId);
+
         return LocationDetailResult.of(
-                LocationDetailResult.LocationInfo.from(location),
+                LocationDetailResult.LocationInfo.from(location, isLiked, isArchived),
                 imageResults,
                 contentResults,
                 artistResults);

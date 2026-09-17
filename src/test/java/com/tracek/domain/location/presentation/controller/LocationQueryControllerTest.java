@@ -53,13 +53,14 @@ class LocationQueryControllerTest {
         LocationDetailRequest request = new LocationDetailRequest(null, null, 20);
         LocationDetailResult result =
                 LocationDetailResult.of(
-                        LocationDetailResult.LocationInfo.from(location),
+                        LocationDetailResult.LocationInfo.from(location, false, false),
                         Collections.emptyList(),
                         Collections.emptyList(),
                         Collections.emptyList());
-        given(locationFacade.getLocationDetails(1L, condition)).willReturn(result);
+        given(locationFacade.getLocationDetails(1L, condition, null)).willReturn(result);
 
-        ApiResponse<LocationDetailResponse> response = controller.getLocationDetails(1L, request);
+        ApiResponse<LocationDetailResponse> response =
+                controller.getLocationDetails(1L, request, null);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getLocationInfo().getLocationId()).isEqualTo(1L);

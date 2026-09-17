@@ -24,7 +24,7 @@ class LocationDetailResponseTest {
     void from_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult.LocationInfo locationInfo =
-                LocationDetailResult.LocationInfo.from(location);
+                LocationDetailResult.LocationInfo.from(location, true, false);
 
         Image image = Image.create("http://image.com/a.jpg");
         ReflectionTestUtils.setField(image, "id", 5L);
@@ -60,6 +60,8 @@ class LocationDetailResponseTest {
 
         assertThat(response.getLocationInfo().getLocationId()).isEqualTo(1L);
         assertThat(response.getLocationInfo().getName()).isEqualTo("경복궁");
+        assertThat(response.getLocationInfo().getIsLiked()).isTrue();
+        assertThat(response.getLocationInfo().getIsArchived()).isFalse();
         assertThat(response.getImages()).hasSize(1);
         assertThat(response.getImages().get(0).getImageUrl()).isEqualTo("http://image.com/a.jpg");
         assertThat(response.getContents()).hasSize(1);
@@ -74,7 +76,7 @@ class LocationDetailResponseTest {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
         LocationDetailResult result =
                 LocationDetailResult.of(
-                        LocationDetailResult.LocationInfo.from(location),
+                        LocationDetailResult.LocationInfo.from(location, false, false),
                         List.of(),
                         List.of(),
                         List.of());

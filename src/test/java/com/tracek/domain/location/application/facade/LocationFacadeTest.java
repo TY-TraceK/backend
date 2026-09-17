@@ -107,7 +107,7 @@ class LocationFacadeTest {
         given(artistQueryService.getArtistsByIds(List.of(3L)))
                 .willReturn(List.of(ArtistResult.from(artist)));
 
-        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition);
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition, null);
 
         assertThat(result.getLocationInfo().getId()).isEqualTo(1L);
         assertThat(result.getLocationInfo().getName()).isEqualTo("경복궁");
@@ -135,7 +135,7 @@ class LocationFacadeTest {
         given(contentQueryService.getContentsByIds(List.of())).willReturn(List.of());
         given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());
 
-        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition);
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition, null);
 
         assertThat(result.getImages()).isEmpty();
         assertThat(result.getContents()).isEmpty();

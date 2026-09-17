@@ -25,7 +25,9 @@ public class LocationSummaryResult {
                 location.getName(),
                 location.getCategory(),
                 location.getAddress(),
-                location.getMainImageUrl().getImageUrl(),
+                location.getMainImageUrl() == null
+                        ? null
+                        : location.getMainImageUrl().getImageUrl(),
                 location.getLikeCount(),
                 location.getTotalVerificationCount());
     }

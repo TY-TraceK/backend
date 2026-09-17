@@ -97,6 +97,17 @@ public class LocationQueryService {
                 .map(LocationSummaryResult::from);
     }
 
+    // 로그인 유저의 관광지 좋아요 여부 (비로그인 시 false)
+    public boolean isLikedByUser(Long userId, Long locationId) {
+        return userId != null && locationRepository.existsLikeByUserIdAndLocationId(userId, locationId);
+    }
+
+    // 로그인 유저의 관광지 아카이브 여부 (비로그인 시 false)
+    public boolean isArchivedByUser(Long userId, Long locationId) {
+        return userId != null
+                && locationRepository.existsArchiveByUserIdAndLocationId(userId, locationId);
+    }
+
     // contentArtistLocationId 연관관계 기반 매핑 정보 및 관련 ID(Location, Artist, Content) 반환
     public LocationContentArtistResult getMappingById(Long contentArtistLocationId) {
         LocationContentArtist mapping =

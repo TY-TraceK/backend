@@ -47,6 +47,8 @@ public class LocationDetailResponse {
         private Long archiveCount;
         private Long likeCount;
         private Long totalVerificationCount;
+        private Boolean isLiked;
+        private Boolean isArchived;
 
         public static LocationInfoResponse from(LocationDetailResult.LocationInfo locationInfo) {
             return new LocationInfoResponse(
@@ -61,7 +63,9 @@ public class LocationDetailResponse {
                     locationInfo.getOverview(),
                     locationInfo.getArchiveCount(),
                     locationInfo.getLikeCount(),
-                    locationInfo.getTotalVerificationCount());
+                    locationInfo.getTotalVerificationCount(),
+                    locationInfo.getIsLiked(),
+                    locationInfo.getIsArchived());
         }
     }
 

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Location", description = "관광지 조회 API")
@@ -37,9 +38,14 @@ public class LocationQueryController {
     @GetMapping("/{locationId}")
     public ApiResponse<LocationDetailResponse> getLocationDetails(
             @Parameter(description = "관광지 ID") @PathVariable Long locationId,
-            @ParameterObject @ModelAttribute LocationDetailRequest request) {
+            @ParameterObject @ModelAttribute LocationDetailRequest request,
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal
+                            principal) {
         RankingCondition condition = request.toCondition();
-        LocationDetailResult result = locationFacade.getLocationDetails(locationId, condition);
+        Long userId = principal == null ? null : principal.userId();
+        LocationDetailResult result =
+                locationFacade.getLocationDetails(locationId, condition, userId);
         return ApiResponse.success(GeneralSuccessCode.OK, LocationDetailResponse.from(result));
     }
 

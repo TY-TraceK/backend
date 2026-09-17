@@ -44,7 +44,9 @@ public class LocationResult {
                 location.getCategory() == null ? null : location.getCategory().name(),
                 location.getAddress(),
                 location.getGeoLocation(),
-                location.getMainImageUrl().getImageUrl(),
+                location.getMainImageUrl() == null
+                        ? null
+                        : location.getMainImageUrl().getImageUrl(),
                 location.getTel(),
                 location.getBusinessHours(),
                 location.getOverview(),

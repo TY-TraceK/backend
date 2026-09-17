@@ -45,15 +45,19 @@ public class LocationDetailResult {
         private Long archiveCount;
         private Long likeCount;
         private Long totalVerificationCount;
+        private Boolean isLiked;
+        private Boolean isArchived;
 
-        public static LocationInfo from(Location location) {
+        public static LocationInfo from(Location location, Boolean isLiked, Boolean isArchived) {
             return new LocationInfo(
                     location.getId(),
                     location.getName(),
                     location.getCategory() == null ? null : location.getCategory().name(),
                     location.getAddress(),
                     location.getGeoLocation(),
-                    location.getMainImageUrl().getImageUrl(),
+                    location.getMainImageUrl() == null
+                            ? null
+                            : location.getMainImageUrl().getImageUrl(),
                     location.getTel(),
                     location.getBusinessHours(),
                     location.getOverview(),
@@ -61,7 +65,9 @@ public class LocationDetailResult {
                     location.getSourceType(),
                     location.getArchiveCount(),
                     location.getLikeCount(),
-                    location.getTotalVerificationCount());
+                    location.getTotalVerificationCount(),
+                    isLiked,
+                    isArchived);
         }
     }
 

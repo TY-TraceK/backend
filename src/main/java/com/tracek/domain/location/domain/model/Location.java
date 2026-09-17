@@ -44,13 +44,13 @@ public class Location extends BaseEntity {
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageLocation> imageLocations = new ArrayList<>();
 
-    @Column(length = 20)
+    @Column(length = 100)
     private String tel;
 
     @Column(length = 100)
     private String businessHours;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String overview;
 
     private Long externalContentId; // 데이터 배치 시 중복 삽입 방지
