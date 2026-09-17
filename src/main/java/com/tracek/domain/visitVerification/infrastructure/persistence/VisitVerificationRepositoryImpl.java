@@ -3,6 +3,7 @@ package com.tracek.domain.visitVerification.infrastructure.persistence;
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
+import com.tracek.domain.visitVerification.domain.model.VisitVerificationView;
 import com.tracek.domain.visitVerification.domain.repository.VisitVerificationRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,7 +53,7 @@ public class VisitVerificationRepositoryImpl implements VisitVerificationReposit
     }
 
     @Override
-    public List<VisitVerification> findHistoriesByCriteria(
+    public List<VisitVerificationView> findHistoriesByCriteria(
             VisitVerificationHistoryCriteria visitVerificationHistoryCriteria) {
         return visitVerificationQueryDslRepository.findHistoriesByCriteria(
                 visitVerificationHistoryCriteria);

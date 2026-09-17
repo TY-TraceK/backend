@@ -2,6 +2,7 @@ package com.tracek.domain.visitVerification.domain.repository;
 
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
+import com.tracek.domain.visitVerification.domain.model.VisitVerificationView;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,6 @@ public interface VisitVerificationRepository {
     Optional<VisitVerification> findUserLocationVerifiedByDate(
             Long userId, Long locationID, LocalDate date);
 
-    List<VisitVerification> findHistoriesByCriteria(
+    List<VisitVerificationView> findHistoriesByCriteria(
             VisitVerificationHistoryCriteria visitVerificationHistoryCriteria);
 }
