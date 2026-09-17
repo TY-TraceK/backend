@@ -21,7 +21,9 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
-
+storage:
+  local:
+    path: uploads
 app:
   jwt:
     secret: ${JWT_SECRET:default_local_secret_key_for_testing_1234567890}
