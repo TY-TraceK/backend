@@ -95,12 +95,7 @@ class AuthControllerTest {
         TokenRefreshRequest request = new TokenRefreshRequest("refresh_token");
         OAuthLoginResult result =
                 OAuthLoginResult.of(
-                        1L,
-                        "new_access_token",
-                        "new_refresh_token",
-                        false,
-                        "송유진",
-                        "profile.jpg");
+                        1L, "new_access_token", "new_refresh_token", false, "송유진", "profile.jpg");
         given(oAuthService.refreshTokens("refresh_token")).willReturn(result);
 
         mockMvc.perform(

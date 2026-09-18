@@ -22,8 +22,7 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @PostMapping("/refresh")
-    public ApiResponse<OAuthLoginResponse> refreshTokens(
-            @RequestBody TokenRefreshRequest request) {
+    public ApiResponse<OAuthLoginResponse> refreshTokens(@RequestBody TokenRefreshRequest request) {
         return ApiResponse.success(
                 GeneralSuccessCode.OK,
                 OAuthLoginResponse.from(oAuthService.refreshTokens(request.refreshToken())));
