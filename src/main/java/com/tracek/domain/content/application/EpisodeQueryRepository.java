@@ -1,5 +1,6 @@
 package com.tracek.domain.content.application;
 
+import static com.tracek.domain.content.domain.model.QContent.content;
 import static com.tracek.domain.content.domain.model.QEpisode.episode;
 import static com.tracek.domain.content.domain.model.QEpisodeArtist.episodeArtist;
 import static com.tracek.domain.content.domain.model.QEpisodeLocation.episodeLocation;
@@ -90,6 +91,9 @@ public class EpisodeQueryRepository {
         return queryFactory
                 .selectFrom(episodeLocation)
                 .join(episodeLocation.episode, episode)
+                .fetchJoin()
+                .join(episode.content, content)
+                .fetchJoin()
                 .join(episodeArtist)
                 .on(episode.id.eq(episodeArtist.episode.id))
                 .where(
@@ -103,6 +107,9 @@ public class EpisodeQueryRepository {
         return queryFactory
                 .selectFrom(episodeLocation)
                 .join(episodeLocation.episode, episode)
+                .fetchJoin()
+                .join(episode.content, content)
+                .fetchJoin()
                 .join(episodeArtist)
                 .on(episode.id.eq(episodeArtist.episode.id))
                 .where(episodeArtist.artist.id.eq(artistId), episode.content.id.in(contentIds))
