@@ -33,7 +33,7 @@ class RankingRepositoryImplDelegationTest {
         var repository =
                 new ArtistLocationVisitRankingRepositoryImpl(
                         artistLocationJpaRepository, artistLocationQueryRepository);
-        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, 10);
+        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, null, 10, null, null);
 
         assertThat(repository.findByLocationIdAndArtistId(1L, 2L)).isEmpty();
         assertThat(repository.save(null)).isNull();
@@ -55,7 +55,7 @@ class RankingRepositoryImplDelegationTest {
         var repository =
                 new ContentLocationVisitRankingRepositoryImpl(
                         contentLocationJpaRepository, contentLocationQueryRepository);
-        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, 10);
+        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, null, 10, null, null);
 
         assertThat(repository.findByLocationIdAndContentId(1L, 3L)).isEmpty();
         assertThat(repository.save(null)).isNull();
@@ -79,7 +79,7 @@ class RankingRepositoryImplDelegationTest {
                         contentArtistLocationQueryRepository,
                         contentArtistVisitJpaRepository,
                         contentArtistLocationJpaRepository);
-        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, 10);
+        RankingSearchCriteria<Long> criteria = new RankingSearchCriteria<>(null, null, null, 10, null, null);
         TargetId targetId = new TargetId(1L, 3L, 2L);
 
         assertThat(repository.findByLocationIdAndContentId(1L, 3L)).isEmpty();
