@@ -5,12 +5,16 @@ import com.tracek.domain.location.application.dto.*;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationArchive;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
+import com.tracek.domain.location.domain.model.LocationLike;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import com.tracek.global.exception.CustomException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -126,5 +130,35 @@ public class LocationQueryService {
         return locationQueryRepository.findTopSavedLocations(limit).stream()
                 .map(LocationSummaryResult::from)
                 .toList();
+    }
+
+    // 마이페이지 - 내가 좋아요한 관광지 목록 (최신순)
+    public List<LocationSimpleResult> getLikedLocations(Long userId) {
+        List<Long> locationIds =
+                locationRepository.findAllLikesByUserId(userId).stream()
+                        .map(LocationLike::getLocationId)
+                        .toList();
+        return reorderByIds(locationIds);
+    }
+
+    // 마이페이지 - 내가 북마크(아카이브)한 관광지 목록 (최신순)
+    public List<LocationSimpleResult> getArchivedLocations(Long userId) {
+        List<Long> locationIds =
+                locationRepository.findAllArchivesByUserId(userId).stream()
+                        .map(LocationArchive::getLocationId)
+                        .toList();
+        return reorderByIds(locationIds);
+    }
+
+    // JPA IN 조회는 id 순서를 보장하지 않으므로, 요청한 id 순서대로 재정렬
+    private List<LocationSimpleResult> reorderByIds(List<Long> locationIds) {
+        if (locationIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<Long, LocationSimpleResult> locationMap =
+                locationRepository.findAllByIds(locationIds).stream()
+                        .map(LocationSimpleResult::from)
+                        .collect(Collectors.toMap(LocationSimpleResult::getId, result -> result));
+        return locationIds.stream().map(locationMap::get).filter(Objects::nonNull).toList();
     }
 }

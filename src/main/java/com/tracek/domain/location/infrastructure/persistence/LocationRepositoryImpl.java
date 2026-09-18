@@ -133,4 +133,14 @@ public class LocationRepositoryImpl implements LocationRepository {
     public void deleteArchive(Long userId, Long locationId) {
         locationArchiveJpaRepository.deleteByUserIdAndLocationId(userId, locationId);
     }
+
+    @Override
+    public List<LocationLike> findAllLikesByUserId(Long userId) {
+        return locationLikeJpaRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public List<LocationArchive> findAllArchivesByUserId(Long userId) {
+        return locationArchiveJpaRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+    }
 }

@@ -59,4 +59,10 @@ public interface LocationRepository {
     void saveArchive(LocationArchive locationArchive);
 
     void deleteArchive(Long userId, Long archiveId);
+
+    // 유저가 좋아요한 관광지 목록 (최신순)
+    List<LocationLike> findAllLikesByUserId(Long userId);
+
+    // 유저가 북마크(아카이브)한 관광지 목록 (최신순)
+    List<LocationArchive> findAllArchivesByUserId(Long userId);
 }
