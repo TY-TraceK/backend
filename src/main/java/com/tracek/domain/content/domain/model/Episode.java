@@ -27,7 +27,7 @@ public class Episode extends BaseEntity {
     @Column(length = 200)
     private String episodeInfo;
 
-    @Column(length = 20)
+    @Column(length = 100)
     private String visitDate;
 
     @Column(length = 500)
