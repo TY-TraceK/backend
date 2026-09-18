@@ -17,6 +17,7 @@ public class LocationSummaryResult {
     private Address address;
     private String mainImageUrl;
     private Long likeCount;
+    private Long archiveCount;
     private Long totalVerificationCount;
 
     public static LocationSummaryResult from(Location location) {
@@ -29,6 +30,7 @@ public class LocationSummaryResult {
                         ? null
                         : location.getMainImageUrl().getImageUrl(),
                 location.getLikeCount(),
+                location.getArchiveCount(),
                 location.getTotalVerificationCount());
     }
 }

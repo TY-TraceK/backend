@@ -101,4 +101,16 @@ public class LocationQueryController {
                 locations.map(LocationSummaryResponse::from);
         return ApiResponse.success(GeneralSuccessCode.OK, locationResponses);
     }
+
+    @Operation(
+            summary = "관광지 좋아요+북마크 TOP N 조회",
+            description = "좋아요 수와 북마크(아카이브) 수를 합산한 기준으로 상위 N개 관광지를 조회합니다.")
+    @GetMapping("/top-saved")
+    public ApiResponse<List<LocationSummaryResponse>> getTopSavedLocations(
+            @Parameter(description = "조회 개수") @RequestParam(defaultValue = "5") int limit) {
+        List<LocationSummaryResult> locations = locationQueryService.getTopSavedLocations(limit);
+        List<LocationSummaryResponse> response =
+                locations.stream().map(LocationSummaryResponse::from).toList();
+        return ApiResponse.success(GeneralSuccessCode.OK, response);
+    }
 }
