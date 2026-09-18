@@ -222,6 +222,27 @@ class JwtTokenProviderTest {
         }
 
         @Test
+        @DisplayName("Refresh Token 타입 검증에 성공한다")
+        void validateRefreshToken_success() {
+            String refreshToken = jwtProvider.createRefreshToken(1L);
+
+            assertTrue(jwtProvider.validateRefreshToken(refreshToken));
+        }
+
+        @Test
+        @DisplayName("Access Token은 Refresh Token으로 사용할 수 없다")
+        void validateRefreshToken_rejectsAccessToken() {
+            String accessToken = jwtProvider.createAccessToken(1L, "ROLE_USER", "TEST_USER");
+
+            CustomException exception =
+                    assertThrows(
+                            CustomException.class,
+                            () -> jwtProvider.validateRefreshToken(accessToken));
+
+            assertEquals(SecurityErrorCode.INVALID_TOKEN, exception.getErrorCode());
+        }
+
+        @Test
         @DisplayName("Refresh Token에는 만료 시간이 설정된다")
         void createRefreshToken_containsExpiration() {
             // given
