@@ -42,4 +42,15 @@ public class UserController implements UserControllerDocs {
                 UserProfileResponse.from(
                         userQueryService.getUserProfileData(authenticationPrincipal.userId())));
     }
+
+    @GetMapping("/me/projection")
+    @Override
+    public ApiResponse<UserActivityProjectionResponse> getUserActivityProjection(
+            AuthenticationPrincipal authenticationPrincipal) {
+        return ApiResponse.success(
+                GeneralSuccessCode.OK,
+                UserActivityProjectionResponse.from(
+                        userQueryService.getUserActivityProjection(
+                                authenticationPrincipal.userId())));
+    }
 }
