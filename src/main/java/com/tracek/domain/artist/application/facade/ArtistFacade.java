@@ -13,6 +13,7 @@ import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Episode;
 import com.tracek.domain.content.domain.model.EpisodeLocation;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
@@ -36,6 +37,7 @@ public class ArtistFacade {
     private final ContentArtistQueryService contentArtistQueryService;
     private final EpisodeQueryService episodeQueryService;
     private final VisitRankingQueryService visitRankingQueryService;
+    private final FanQueryService fanQueryService;
 
     // 메인 아티스트 상세 정보 조회 (플랫 구조 : 관광지 목록, 콘텐츠 목록)
     public ArtistDetailResult getArtistDetails(Long artistId) {
@@ -66,7 +68,7 @@ public class ArtistFacade {
 
     // 아티스트 상세 정보 조회 - 연관 관광지 탭
     public ArtistDetailRelatedLocationResult getArtistDetailsRelatedLocation(
-            Long artistId, String city, RankingCondition condition) {
+            Long userId, Long artistId, String city, RankingCondition condition) {
         Artist artist = artistQueryService.getArtistEntity(artistId);
         // group -> members / member -> group
         List<ArtistSummaryResult> relatedArtists =
@@ -136,12 +138,13 @@ public class ArtistFacade {
                         .toList();
 
         return ArtistDetailRelatedLocationResult.of(
-                ArtistDetailRelatedLocationResult.ArtistInfo.of(artist, relatedArtists),
+                ArtistDetailRelatedLocationResult.ArtistInfo.of(
+                        artist, relatedArtists, fanQueryService.getArtistFanView(userId, artistId)),
                 locationResults);
     }
 
     public ArtistDetailRelatedContentResult getArtistDetailsRelatedContent(
-            Long artistId, RankingCondition condition) {
+            Long userId, Long artistId, RankingCondition condition) {
         Artist artist = artistQueryService.getArtistEntity(artistId);
         // group -> members / member -> group
         List<ArtistSummaryResult> relatedArtists =
@@ -278,7 +281,8 @@ public class ArtistFacade {
                         .toList();
 
         return ArtistDetailRelatedContentResult.of(
-                ArtistDetailRelatedContentResult.ArtistInfo.of(artist, relatedArtists),
+                ArtistDetailRelatedContentResult.ArtistInfo.of(
+                        artist, relatedArtists, fanQueryService.getArtistFanView(userId, artistId)),
                 contentResults);
     }
 

@@ -1,6 +1,7 @@
 package com.tracek.domain.artist.application.dto;
 
 import com.tracek.domain.artist.domain.model.Artist;
+import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
 import com.tracek.domain.location.domain.model.Address;
 import java.util.List;
 import lombok.AccessLevel;
@@ -31,11 +32,15 @@ public class ArtistDetailRelatedLocationResult {
         private Long groupId;
         private Boolean isGroup;
         private Long fanCount;
+        private Boolean isFan;
         private Long totalVerificationCount;
         private List<ArtistSummaryResult>
                 relatedArtists; // group -> relatedMember, member -> relatedGroup
 
-        public static ArtistInfo of(Artist artist, List<ArtistSummaryResult> relatedArtists) {
+        public static ArtistInfo of(
+                Artist artist,
+                List<ArtistSummaryResult> relatedArtists,
+                ArtistFanViewResult fanView) {
             return new ArtistInfo(
                     artist.getId(),
                     artist.getName(),
@@ -43,7 +48,8 @@ public class ArtistDetailRelatedLocationResult {
                     artist.getPictureUrl() == null ? null : artist.getPictureUrl().getImageUrl(),
                     artist.getGroup() == null ? null : artist.getGroup().getId(),
                     Boolean.TRUE.equals(artist.getIsGroup()),
-                    artist.getFanCount(),
+                    fanView.fanCount(),
+                    fanView.isFan(),
                     artist.getTotalVerificationCount(),
                     relatedArtists);
         }

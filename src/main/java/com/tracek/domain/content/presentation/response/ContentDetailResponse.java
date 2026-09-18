@@ -30,6 +30,8 @@ public class ContentDetailResponse {
         private String category;
         private String pictureUrl;
         private Long totalVerificationCount;
+        private Long fanCount;
+        private Boolean isFan;
         private List<FixedArtistResponse> fixedArtists;
 
         public static ContentInfoResponse from(ContentDetailResult.ContentInfo contentInfo) {
@@ -39,6 +41,8 @@ public class ContentDetailResponse {
                     contentInfo.getCategory(),
                     contentInfo.getPictureUrl(),
                     contentInfo.getTotalVerificationCount(),
+                    contentInfo.getFanCount(),
+                    contentInfo.getIsFan(),
                     contentInfo.getFixedArtists() == null
                             ? null
                             : contentInfo.getFixedArtists().stream()

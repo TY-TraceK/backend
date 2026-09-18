@@ -13,6 +13,8 @@ import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.domain.model.Episode;
 import com.tracek.domain.content.domain.model.EpisodeLocation;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
@@ -40,6 +42,7 @@ class ContentFacadeTest {
     @Mock private ArtistQueryService artistQueryService;
     @Mock private EpisodeQueryService episodeQueryService;
     @Mock private VisitRankingQueryService visitRankingQueryService;
+    @Mock private FanQueryService fanQueryService;
 
     private ContentFacade contentFacade;
 
@@ -52,7 +55,8 @@ class ContentFacadeTest {
                         locationQueryService,
                         artistQueryService,
                         episodeQueryService,
-                        visitRankingQueryService);
+                        visitRankingQueryService,
+                        fanQueryService);
     }
 
     @Test
@@ -87,8 +91,10 @@ class ContentFacadeTest {
         given(locationQueryService.getLocationByIds(List.of(2L)))
                 .willReturn(List.of(LocationResult.from(location)));
         given(episodeQueryService.getEpisodesByContentId(1L)).willReturn(List.of(episodeLocation));
+        given(fanQueryService.getContentFanView(null, 1L))
+                .willReturn(ContentFanViewResult.of(0L, false));
 
-        ContentDetailResult result = contentFacade.getContentDetails(1L, null, condition);
+        ContentDetailResult result = contentFacade.getContentDetails(null, 1L, null, condition);
 
         assertThat(result.getContentInfo().getId()).isEqualTo(1L);
         assertThat(result.getContentInfo().getTitle()).isEqualTo("데뷔 앨범");
@@ -117,8 +123,10 @@ class ContentFacadeTest {
         given(visitRankingQueryService.getLocationsByContent(1L, condition))
                 .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
         given(episodeQueryService.getEpisodesByContentId(1L)).willReturn(List.of());
+        given(fanQueryService.getContentFanView(null, 1L))
+                .willReturn(ContentFanViewResult.of(0L, false));
 
-        ContentDetailResult result = contentFacade.getContentDetails(1L, null, condition);
+        ContentDetailResult result = contentFacade.getContentDetails(null, 1L, null, condition);
 
         assertThat(result.getLocations()).isEmpty();
         assertThat(result.getContentInfo().getFixedArtists()).isEmpty();

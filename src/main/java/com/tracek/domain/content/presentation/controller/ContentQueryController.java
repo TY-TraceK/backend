@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Content", description = "콘텐츠 조회 API")
@@ -35,11 +36,14 @@ public class ContentQueryController {
                     "콘텐츠 ID로 상세 정보(고정 출연진 포함)와 연관 관광지를 방문 인증 랭킹 순으로 조회합니다. city로 필터링할 수 있습니다.")
     @GetMapping("/{contentId}")
     public ApiResponse<ContentDetailResponse> getContentDetails(
+            @Parameter(hidden = true) @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @Parameter(description = "콘텐츠 ID") @PathVariable Long contentId,
             @ParameterObject @ModelAttribute ContentDetailRequest request) {
+        Long userId = principal == null ? null : principal.userId();
         RankingCondition condition = request.toCondition();
         ContentDetailResult result =
-                contentFacade.getContentDetails(contentId, request.getCity(), condition);
+                contentFacade.getContentDetails(userId, contentId, request.getCity(), condition);
         return ApiResponse.success(GeneralSuccessCode.OK, ContentDetailResponse.from(result));
     }
 

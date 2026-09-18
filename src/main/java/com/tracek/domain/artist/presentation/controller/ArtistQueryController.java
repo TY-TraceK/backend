@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Artist", description = "아티스트 조회 API")
@@ -59,11 +60,14 @@ public class ArtistQueryController {
             description = "아티스트 ID로 상세 정보와 연관 관광지를 방문 인증 랭킹 순으로 조회합니다. city로 필터링할 수 있습니다.")
     @GetMapping("/{artistId}/locations")
     public ApiResponse<ArtistDetailRelatedLocationResponse> getArtistDetailRelatedLocations(
+            @Parameter(hidden = true) @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @Parameter(description = "아티스트 ID") @PathVariable Long artistId,
             @ParameterObject @ModelAttribute ArtistDetailRelatedLocationRequest request) {
+        Long userId = principal == null ? null : principal.userId();
         ArtistDetailRelatedLocationResult result =
                 artistFacade.getArtistDetailsRelatedLocation(
-                        artistId, request.getCity(), request.toCondition());
+                        userId, artistId, request.getCity(), request.toCondition());
         return ApiResponse.success(
                 GeneralSuccessCode.OK, ArtistDetailRelatedLocationResponse.from(result));
     }
@@ -73,10 +77,14 @@ public class ArtistQueryController {
             description = "아티스트 ID로 상세 정보와 연관 콘텐츠 방문 인증 랭킹 순으로 조회합니다.")
     @GetMapping("/{artistId}/contents")
     public ApiResponse<ArtistDetailRelatedContentResponse> getArtistDetailRelatedContents(
+            @Parameter(hidden = true) @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal,
             @Parameter(description = "아티스트 ID") @PathVariable Long artistId,
             @ParameterObject @ModelAttribute ArtistDetailRelatedContentRequest request) {
+        Long userId = principal == null ? null : principal.userId();
         ArtistDetailRelatedContentResult result =
-                artistFacade.getArtistDetailsRelatedContent(artistId, request.toCondition());
+                artistFacade.getArtistDetailsRelatedContent(
+                        userId, artistId, request.toCondition());
         return ApiResponse.success(
                 GeneralSuccessCode.OK, ArtistDetailRelatedContentResponse.from(result));
     }

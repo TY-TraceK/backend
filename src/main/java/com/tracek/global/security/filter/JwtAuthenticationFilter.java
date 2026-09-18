@@ -68,12 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if ("GET".equalsIgnoreCase(method)) {
-            return pathMatcher.match("/api/artists/**", path)
-                    || pathMatcher.match("/api/locations/**", path)
-                    || pathMatcher.match("/api/contents/**", path)
-                    || pathMatcher.match("/api/search/**", path);
-        }
         return false;
     }
 

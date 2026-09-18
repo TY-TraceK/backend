@@ -15,6 +15,8 @@ import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.domain.model.Episode;
 import com.tracek.domain.content.domain.model.EpisodeLocation;
+import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
@@ -45,6 +47,7 @@ class ArtistFacadeTest {
     @Mock private ContentArtistQueryService contentArtistQueryService;
     @Mock private EpisodeQueryService episodeQueryService;
     @Mock private VisitRankingQueryService visitRankingQueryService;
+    @Mock private FanQueryService fanQueryService;
 
     private ArtistFacade artistFacade;
 
@@ -57,7 +60,8 @@ class ArtistFacadeTest {
                         contentQueryService,
                         contentArtistQueryService,
                         episodeQueryService,
-                        visitRankingQueryService);
+                        visitRankingQueryService,
+                        fanQueryService);
     }
 
     @Test
@@ -142,9 +146,11 @@ class ArtistFacadeTest {
                 .willReturn(List.of(LocationResult.from(location)));
         given(episodeQueryService.getEpisodesByArtistAndLocationIds(1L, List.of(3L)))
                 .willReturn(List.of(episodeLocation));
+        given(fanQueryService.getArtistFanView(null, 1L))
+                .willReturn(ArtistFanViewResult.of(0L, false));
 
         ArtistDetailRelatedLocationResult result =
-                artistFacade.getArtistDetailsRelatedLocation(1L, null, condition);
+                artistFacade.getArtistDetailsRelatedLocation(null, 1L, null, condition);
 
         assertThat(result.getArtistInfo().getId()).isEqualTo(1L);
         assertThat(result.getArtistInfo().getRelatedArtists()).isEmpty();
@@ -178,9 +184,11 @@ class ArtistFacadeTest {
                 .willReturn(List.of(LocationResult.from(location)));
         given(episodeQueryService.getEpisodesByArtistAndLocationIds(1L, List.of(3L)))
                 .willReturn(List.of());
+        given(fanQueryService.getArtistFanView(null, 1L))
+                .willReturn(ArtistFanViewResult.of(0L, false));
 
         ArtistDetailRelatedLocationResult result =
-                artistFacade.getArtistDetailsRelatedLocation(1L, "부산광역시", condition);
+                artistFacade.getArtistDetailsRelatedLocation(null, 1L, "부산광역시", condition);
 
         assertThat(result.getLocations()).isEmpty();
     }
@@ -228,9 +236,11 @@ class ArtistFacadeTest {
                                 null,
                                 null,
                                 false));
+        given(fanQueryService.getArtistFanView(null, 1L))
+                .willReturn(ArtistFanViewResult.of(0L, false));
 
         ArtistDetailRelatedContentResult result =
-                artistFacade.getArtistDetailsRelatedContent(1L, condition);
+                artistFacade.getArtistDetailsRelatedContent(null, 1L, condition);
 
         assertThat(result.getArtistInfo().getId()).isEqualTo(1L);
         assertThat(result.getContents()).hasSize(1);
@@ -264,9 +274,11 @@ class ArtistFacadeTest {
                 .willReturn(List.of());
         given(visitRankingQueryService.getMultiRankingByArtist(1L))
                 .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
+        given(fanQueryService.getArtistFanView(null, 1L))
+                .willReturn(ArtistFanViewResult.of(0L, false));
 
         ArtistDetailRelatedContentResult result =
-                artistFacade.getArtistDetailsRelatedContent(1L, condition);
+                artistFacade.getArtistDetailsRelatedContent(null, 1L, condition);
 
         assertThat(result.getContents()).isEmpty();
     }

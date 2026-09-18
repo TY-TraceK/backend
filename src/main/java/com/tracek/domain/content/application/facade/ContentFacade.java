@@ -9,6 +9,7 @@ import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.domain.model.Episode;
 import com.tracek.domain.content.domain.model.EpisodeLocation;
+import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
@@ -32,10 +33,11 @@ public class ContentFacade {
     private final ArtistQueryService artistQueryService;
     private final EpisodeQueryService episodeQueryService;
     private final VisitRankingQueryService visitRankingQueryService;
+    private final FanQueryService fanQueryService;
 
     // 메인 콘텐츠 상세 정보 조회 (콘텐츠 정보 + 고정 출연진, 연관 관광지는 방문 인증 랭킹 순)
     public ContentDetailResult getContentDetails(
-            Long contentId, String city, RankingCondition condition) {
+            Long userId, Long contentId, String city, RankingCondition condition) {
         Content content = contentQueryService.getContentEntity(contentId);
 
         // 고정 출연 아티스트
@@ -101,7 +103,11 @@ public class ContentFacade {
                         .toList();
 
         return ContentDetailResult.of(
-                ContentDetailResult.ContentInfo.of(content, fixedArtists), locationResults);
+                ContentDetailResult.ContentInfo.of(
+                        content,
+                        fixedArtists,
+                        fanQueryService.getContentFanView(userId, contentId)),
+                locationResults);
     }
 
     // 콘텐츠 -> 연관 장소 최신 등록순 조회 (최대 size개)
