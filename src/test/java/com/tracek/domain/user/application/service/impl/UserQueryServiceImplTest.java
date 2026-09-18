@@ -6,12 +6,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
+import com.tracek.domain.user.application.dto.result.UserActivityProjectionResult;
 import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 import com.tracek.domain.user.domain.enums.OAuthProvider;
 import com.tracek.domain.user.domain.enums.UserStatus;
 import com.tracek.domain.user.domain.exception.UserErrorCode;
 import com.tracek.domain.user.domain.model.OAuthInfo;
 import com.tracek.domain.user.domain.model.User;
+import com.tracek.domain.user.domain.model.UserActivityProjection;
 import com.tracek.domain.user.domain.model.UserProfile;
 import com.tracek.domain.user.domain.repository.UserRepository;
 import com.tracek.global.exception.CustomException;
@@ -150,6 +152,38 @@ class UserQueryServiceImplTest {
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(UserErrorCode.USER_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserActivityProjection 테스트")
+    class GetUserActivityProjectionTest {
+
+        @Test
+        @DisplayName("유저 활동 집계 결과를 정상 반환한다")
+        void returnUserActivityProjection() {
+            // given
+            Long userId = 1L;
+            UserActivityProjection projection =
+                    UserActivityProjection.builder()
+                            .artistFanCount(2L)
+                            .contentFanCount(3L)
+                            .visitVerificationCount(4L)
+                            .likedCount(5L)
+                            .bookMarkCount(6L)
+                            .build();
+            given(userRepository.findUserActivity(userId)).willReturn(projection);
+
+            // when
+            UserActivityProjectionResult result =
+                    userQueryService.getUserActivityProjection(userId);
+
+            // then
+            assertThat(result.fanCount()).isEqualTo(5L);
+            assertThat(result.visitVerificationCount()).isEqualTo(4L);
+            assertThat(result.likedCount()).isEqualTo(5L);
+            assertThat(result.bookMarkCount()).isEqualTo(6L);
+            then(userRepository).should(times(1)).findUserActivity(userId);
         }
     }
 }
