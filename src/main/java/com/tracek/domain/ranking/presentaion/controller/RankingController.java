@@ -4,6 +4,7 @@ import com.tracek.domain.ranking.application.service.VisitRankingQueryService;
 import com.tracek.domain.ranking.presentaion.controller.docs.RankingControllerDocs;
 import com.tracek.domain.ranking.presentaion.dto.request.LocationRankingRequest;
 import com.tracek.domain.ranking.presentaion.dto.request.RegionRankingRequest;
+import com.tracek.domain.ranking.presentaion.dto.response.ContentCurationResponse;
 import com.tracek.domain.ranking.presentaion.dto.response.LocationRankingResponse;
 import com.tracek.domain.ranking.presentaion.dto.response.LocationRegionRankingResponse;
 import com.tracek.domain.ranking.presentaion.dto.response.RankingTopResponse;
@@ -20,6 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RankingController implements RankingControllerDocs {
 
     private final VisitRankingQueryService visitRankingQueryService;
+
+    @Override
+    @GetMapping("/content-curation")
+    public ApiResponse<ContentCurationResponse> getLowVisitContentCuration() {
+        var result = visitRankingQueryService.getLowVisitContentCuration();
+        return ApiResponse.success(
+                GeneralSuccessCode.OK,
+                result == null ? null : ContentCurationResponse.from(result));
+    }
 
     @Override
     @GetMapping("/region")

@@ -1,10 +1,12 @@
 package com.tracek.domain.ranking.infrastructure.persistence.impl;
 
+import com.tracek.domain.ranking.domain.model.ContentCurationView;
 import com.tracek.domain.ranking.domain.model.ContentLocationVisitRanking;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.RankingSearchCriteria;
 import com.tracek.domain.ranking.domain.repository.ContentLocationVisitRankingRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentLocationVisitRankingJpaRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.nativequery.ContentCurationNativeRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.qsdl.ContentLocationVisitRankingQueryDslRepository;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,7 @@ public class ContentLocationVisitRankingRepositoryImpl
     private final ContentLocationVisitRankingJpaRepository contentLocationVisitRankingJpaRepository;
     private final ContentLocationVisitRankingQueryDslRepository
             contentLocationVisitRankingQueryDslRepository;
+    private final ContentCurationNativeRepository contentCurationNativeRepository;
 
     @Override
     public Optional<ContentLocationVisitRanking> findByLocationIdAndContentId(
@@ -55,5 +58,10 @@ public class ContentLocationVisitRankingRepositoryImpl
             Long locationId, RankingSearchCriteria<Long> criteria) {
         return contentLocationVisitRankingQueryDslRepository.findContentsByLocation(
                 locationId, criteria);
+    }
+
+    @Override
+    public Optional<ContentCurationView> findLowVisitContentCuration() {
+        return contentCurationNativeRepository.findLowVisitContentCuration();
     }
 }

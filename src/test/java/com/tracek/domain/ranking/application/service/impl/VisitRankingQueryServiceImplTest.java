@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
+import com.tracek.domain.ranking.domain.model.ContentCurationView;
 import com.tracek.domain.ranking.domain.model.RankingItem;
 import com.tracek.domain.ranking.domain.model.TargetId;
 import com.tracek.domain.ranking.domain.repository.ArtistLocationVisitRankingRepository;
@@ -116,6 +117,28 @@ class VisitRankingQueryServiceImplTest {
         var result = service.getContentsByLocation(2L, condition);
 
         assertThat(result.rankings()).hasSize(1);
+    }
+
+    @Test
+    void getLowVisitContentCuration() {
+        given(contentLocationRankingRepository.findLowVisitContentCuration())
+                .willReturn(
+                        java.util.Optional.of(
+                                new ContentCurationView(
+                                        1L, "런닝맨", 10L, List.of("송도해수욕장", "흰여울문화마을"))));
+
+        var result = service.getLowVisitContentCuration();
+
+        assertThat(result.contentId()).isEqualTo(1L);
+        assertThat(result.locationNames()).containsExactly("송도해수욕장", "흰여울문화마을");
+    }
+
+    @Test
+    void getLowVisitContentCurationReturnsNullWhenEmpty() {
+        given(contentLocationRankingRepository.findLowVisitContentCuration())
+                .willReturn(java.util.Optional.empty());
+
+        assertThat(service.getLowVisitContentCuration()).isNull();
     }
 
     @Test

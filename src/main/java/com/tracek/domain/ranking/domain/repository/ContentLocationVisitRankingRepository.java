@@ -20,4 +20,7 @@ public interface ContentLocationVisitRankingRepository {
     List<RankingItem> findLocationsByContent(Long contentId, RankingSearchCriteria<Long> criteria);
 
     List<RankingItem> findContentsByLocation(Long locationId, RankingSearchCriteria<Long> criteria);
+
+    Optional<com.tracek.domain.ranking.domain.model.ContentCurationView>
+            findLowVisitContentCuration();
 }
