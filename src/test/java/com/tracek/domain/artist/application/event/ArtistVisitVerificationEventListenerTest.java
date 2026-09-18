@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import com.tracek.domain.artist.domain.repository.ArtistRepository;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCanceledEvent;
 import com.tracek.domain.visitVerification.application.event.VisitVerificationCreatedEvent;
+import com.tracek.domain.visitVerification.application.event.VisitVerificationUpdatedEvent;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,5 +70,32 @@ class ArtistVisitVerificationEventListenerTest {
         listener.handle(event);
 
         verify(artistRepository, never()).decreseVerificationCount(any());
+    }
+
+    @Test
+    @DisplayName("방문 인증 수정 이벤트에서 빠진 아티스트는 감소, 새로 추가된 아티스트는 증가시킨다")
+    void handle_updatedEvent_artistsChanged() {
+        VisitVerificationUpdatedEvent event =
+                new VisitVerificationUpdatedEvent(
+                        10L, 1L, Set.of(100L, 200L), 1L, Set.of(200L, 300L));
+
+        listener.handle(event);
+
+        verify(artistRepository).decreseVerificationCount(100L);
+        verify(artistRepository).increseVerificationCount(300L);
+        verify(artistRepository, never()).decreseVerificationCount(200L);
+        verify(artistRepository, never()).increseVerificationCount(200L);
+    }
+
+    @Test
+    @DisplayName("방문 인증 수정 이벤트에서 아티스트 구성이 그대로면 증감시키지 않는다")
+    void handle_updatedEvent_artistsUnchanged() {
+        VisitVerificationUpdatedEvent event =
+                new VisitVerificationUpdatedEvent(10L, 1L, Set.of(100L), 2L, Set.of(100L));
+
+        listener.handle(event);
+
+        verify(artistRepository, never()).decreseVerificationCount(any());
+        verify(artistRepository, never()).increseVerificationCount(any());
     }
 }
