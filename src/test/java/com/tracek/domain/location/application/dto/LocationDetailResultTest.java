@@ -78,8 +78,7 @@ class LocationDetailResultTest {
         LocationDetailResult.ArtistResult artist = mock(LocationDetailResult.ArtistResult.class);
 
         LocationDetailResult result =
-                LocationDetailResult.of(
-                        info, List.of(image), List.of(content), List.of(artist));
+                LocationDetailResult.of(info, List.of(image), List.of(content), List.of(artist));
 
         assertThat(result.getLocationInfo()).isSameAs(info);
         assertThat(result.getImages()).containsExactly(image);
