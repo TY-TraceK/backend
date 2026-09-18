@@ -9,6 +9,7 @@ import com.tracek.domain.ranking.infrastructure.persistence.jpa.ArtistLocationVi
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentArtistLocationVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentArtistVisitRankingJpaRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.jpa.ContentLocationVisitRankingJpaRepository;
+import com.tracek.domain.ranking.infrastructure.persistence.nativequery.ContentCurationNativeRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.qsdl.ArtistLocationVisitRankingQueryDslRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.qsdl.ContentArtistLocationVisitRankingQueryDslRepository;
 import com.tracek.domain.ranking.infrastructure.persistence.qsdl.ContentLocationVisitRankingQueryDslRepository;
@@ -24,6 +25,7 @@ class RankingRepositoryImplDelegationTest {
     @Mock ArtistLocationVisitRankingQueryDslRepository artistLocationQueryRepository;
     @Mock ContentLocationVisitRankingJpaRepository contentLocationJpaRepository;
     @Mock ContentLocationVisitRankingQueryDslRepository contentLocationQueryRepository;
+    @Mock ContentCurationNativeRepository contentCurationNativeRepository;
     @Mock ContentArtistLocationVisitRankingJpaRepository contentArtistLocationJpaRepository;
     @Mock ContentArtistVisitRankingJpaRepository contentArtistVisitJpaRepository;
     @Mock ContentArtistLocationVisitRankingQueryDslRepository contentArtistLocationQueryRepository;
@@ -55,7 +57,9 @@ class RankingRepositoryImplDelegationTest {
     void contentLocationRepositoryDelegatesAllOperations() {
         var repository =
                 new ContentLocationVisitRankingRepositoryImpl(
-                        contentLocationJpaRepository, contentLocationQueryRepository);
+                        contentLocationJpaRepository,
+                        contentLocationQueryRepository,
+                        contentCurationNativeRepository);
         RankingSearchCriteria<Long> criteria =
                 new RankingSearchCriteria<>(null, null, null, 10, null, null);
 
@@ -65,6 +69,7 @@ class RankingRepositoryImplDelegationTest {
         repository.decreaseVerificationCount(1L, 3L);
         assertThat(repository.findLocationsByContent(3L, criteria)).isEmpty();
         assertThat(repository.findContentsByLocation(1L, criteria)).isEmpty();
+        assertThat(repository.findLowVisitContentCuration()).isEmpty();
 
         verify(contentLocationJpaRepository).findByLocationIdAndContentId(1L, 3L);
         verify(contentLocationJpaRepository).save(null);
@@ -72,6 +77,7 @@ class RankingRepositoryImplDelegationTest {
         verify(contentLocationJpaRepository).decreaseVerificationCount(1L, 3L);
         verify(contentLocationQueryRepository).findLocationsByContent(3L, criteria);
         verify(contentLocationQueryRepository).findContentsByLocation(1L, criteria);
+        verify(contentCurationNativeRepository).findLowVisitContentCuration();
     }
 
     @Test

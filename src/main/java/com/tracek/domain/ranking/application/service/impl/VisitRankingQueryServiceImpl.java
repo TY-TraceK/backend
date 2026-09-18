@@ -3,6 +3,7 @@ package com.tracek.domain.ranking.application.service.impl;
 import com.tracek.domain.ranking.application.dto.condition.LocationRankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RegionRankingCondition;
+import com.tracek.domain.ranking.application.dto.result.ContentCurationResult;
 import com.tracek.domain.ranking.application.dto.result.LocationRankingResult;
 import com.tracek.domain.ranking.application.dto.result.LocationRegionRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
@@ -163,6 +164,14 @@ public class VisitRankingQueryServiceImpl implements VisitRankingQueryService {
                         new RelatedContentRankingResult(
                                 item.targetId().contentId(), item.totalVerificationCount()),
                 item -> item.targetId().contentId());
+    }
+
+    @Override
+    public ContentCurationResult getLowVisitContentCuration() {
+        return contentLocationRankingRepository
+                .findLowVisitContentCuration()
+                .map(ContentCurationResult::from)
+                .orElse(null);
     }
 
     @Override

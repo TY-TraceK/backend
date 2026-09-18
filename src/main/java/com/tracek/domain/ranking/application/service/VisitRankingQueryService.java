@@ -3,6 +3,7 @@ package com.tracek.domain.ranking.application.service;
 import com.tracek.domain.ranking.application.dto.condition.LocationRankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.domain.ranking.application.dto.condition.RegionRankingCondition;
+import com.tracek.domain.ranking.application.dto.result.ContentCurationResult;
 import com.tracek.domain.ranking.application.dto.result.LocationRankingResult;
 import com.tracek.domain.ranking.application.dto.result.LocationRegionRankingResult;
 import com.tracek.domain.ranking.application.dto.result.RankingSliceResult;
@@ -46,6 +47,9 @@ public interface VisitRankingQueryService {
 
     // 장소 -> 전체 연관 랭킹 조회
     RankingSliceResult<RelatedMultiRankingResult> getMultiRankingByLocation(Long locationId);
+
+    // 방문 인증이 적은 콘텐츠 여행 큐레이션 조회
+    ContentCurationResult getLowVisitContentCuration();
 
     // 지역별 랭킹 조회
     RankingTopResult<LocationRegionRankingResult> getRegionRanking(
