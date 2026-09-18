@@ -1,6 +1,7 @@
 package com.tracek.domain.user.application.service.impl;
 
 import com.tracek.domain.user.application.dto.result.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.UserActivityProjectionResult;
 import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.domain.user.domain.enums.UserStatus;
@@ -41,5 +42,10 @@ public class UserQueryServiceImpl implements UserQueryService {
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND)),
                 false);
+    }
+
+    @Override
+    public UserActivityProjectionResult getUserActivityProjection(Long userId) {
+        return UserActivityProjectionResult.from(userRepository.findUserActivity(userId));
     }
 }

@@ -3,6 +3,7 @@ package com.tracek.domain.user.infrastructure.persistence;
 import com.tracek.domain.user.domain.enums.UserStatus;
 import com.tracek.domain.user.domain.model.OAuthInfo;
 import com.tracek.domain.user.domain.model.User;
+import com.tracek.domain.user.domain.model.UserActivityProjection;
 import com.tracek.domain.user.domain.repository.UserRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
 
     private final UserJpaRepository userJpaRepository;
+    private final UserQueryDslRepository userQueryDslRepository;
 
     @Override
     public Optional<User> findByOAuthInfo(OAuthInfo oAuthInfo) {
@@ -32,5 +34,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User save(User user) {
         return userJpaRepository.save(user);
+    }
+
+    @Override
+    public UserActivityProjection findUserActivity(Long userId) {
+        return userQueryDslRepository.findUserActivity(userId);
     }
 }

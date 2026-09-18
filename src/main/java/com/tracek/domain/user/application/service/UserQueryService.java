@@ -1,6 +1,7 @@
 package com.tracek.domain.user.application.service;
 
 import com.tracek.domain.user.application.dto.result.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.UserActivityProjectionResult;
 import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 
 public interface UserQueryService {
@@ -12,4 +13,6 @@ public interface UserQueryService {
     UserProfileDataResult getUserProfileData(Long userId);
 
     SyncUserResult getUserSummaryData(Long userId);
+
+    UserActivityProjectionResult getUserActivityProjection(Long userId);
 }
