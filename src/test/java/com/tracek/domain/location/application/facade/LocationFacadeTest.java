@@ -17,6 +17,8 @@ import com.tracek.domain.image.application.service.ImageQueryService;
 import com.tracek.domain.image.domain.model.Image;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
+import com.tracek.domain.location.application.dto.LocationSummaryResult;
+import com.tracek.domain.location.application.dto.LocationTopSavedResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.ImageLocation;
 import com.tracek.domain.location.domain.model.Location;
@@ -183,5 +185,39 @@ class LocationFacadeTest {
                 .isEqualTo("아이유");
         assertThat(result.getRelatedContentGroups().get(0).getRelatedArtists().get(0).getIsFixed())
                 .isTrue();
+    }
+
+    @Test
+    @DisplayName("TOP N 관광지 조회 시 연관 콘텐츠 top3와 로그인 유저의 북마크 여부가 함께 조립된다")
+    void getTopSavedLocations_success() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Content content =
+                Content.create(
+                        "궁궐 브이로그",
+                        "ENTERTAINMENT",
+                        "궁궐 브이로그 콘텐츠 소개",
+                        ImageUrl.from("http://image.com/content.jpg"));
+        ReflectionTestUtils.setField(content, "id", 2L);
+        RankingCondition top3Condition = new RankingCondition(null, null, 3);
+
+        given(locationQueryService.getTopSavedLocations(5))
+                .willReturn(List.of(LocationSummaryResult.from(location)));
+        given(visitRankingQueryService.getContentsByLocation(1L, top3Condition))
+                .willReturn(
+                        new RankingSliceResult<>(
+                                List.of(new RelatedContentRankingResult(2L, 10L)),
+                                null,
+                                null,
+                                false));
+        given(contentQueryService.getContentsByIds(List.of(2L)))
+                .willReturn(List.of(ContentResult.from(content)));
+        given(locationQueryService.isArchivedByUser(9L, 1L)).willReturn(true);
+
+        List<LocationTopSavedResult> results = locationFacade.getTopSavedLocations(9L, 5);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(1L);
+        assertThat(results.get(0).getRelatedContentTitles()).containsExactly("궁궐 브이로그");
+        assertThat(results.get(0).getIsArchived()).isTrue();
     }
 }

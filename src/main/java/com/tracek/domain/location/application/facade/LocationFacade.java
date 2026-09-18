@@ -11,6 +11,8 @@ import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.image.application.service.ImageQueryService;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
+import com.tracek.domain.location.application.dto.LocationSummaryResult;
+import com.tracek.domain.location.application.dto.LocationTopSavedResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
@@ -216,5 +218,58 @@ public class LocationFacade {
 
         return LocationRelatedInfoResult.of(
                 location.getId(), location.getName(), location.getAddress().getCity(), groups);
+    }
+
+    // 좋아요+북마크 합산 TOP N 관광지 조회 (연관 콘텐츠 방문 인증 top3, 로그인 유저의 북마크 여부 포함)
+    public List<LocationTopSavedResult> getTopSavedLocations(Long userId, int limit) {
+        List<LocationSummaryResult> topLocations = locationQueryService.getTopSavedLocations(limit);
+
+        RankingCondition top3Condition = new RankingCondition(null, null, 3);
+
+        // 관광지별 연관 콘텐츠 방문 인증 top3 랭킹 조회
+        Map<Long, List<RelatedContentRankingResult>> rankingsByLocationId =
+                topLocations.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        LocationSummaryResult::getId,
+                                        location ->
+                                                visitRankingQueryService
+                                                        .getContentsByLocation(
+                                                                location.getId(), top3Condition)
+                                                        .rankings()));
+
+        List<Long> allContentIds =
+                rankingsByLocationId.values().stream()
+                        .flatMap(List::stream)
+                        .map(RelatedContentRankingResult::contentId)
+                        .distinct()
+                        .toList();
+
+        // IN 절 Batch Query로 N+1 문제 최적화 조회
+        Map<Long, String> contentTitleById =
+                contentQueryService.getContentsByIds(allContentIds).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        ContentResult::getContentId, ContentResult::getTitle));
+
+        return topLocations.stream()
+                .map(
+                        location -> {
+                            List<String> relatedContentTitles =
+                                    rankingsByLocationId
+                                            .getOrDefault(location.getId(), List.of())
+                                            .stream()
+                                            .map(
+                                                    ranking ->
+                                                            contentTitleById.get(
+                                                                    ranking.contentId()))
+                                            .filter(Objects::nonNull)
+                                            .toList();
+                            boolean isArchived =
+                                    locationQueryService.isArchivedByUser(userId, location.getId());
+                            return LocationTopSavedResult.of(
+                                    location, relatedContentTitles, isArchived);
+                        })
+                .toList();
     }
 }

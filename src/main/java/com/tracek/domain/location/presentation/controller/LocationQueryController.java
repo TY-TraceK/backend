@@ -104,13 +104,18 @@ public class LocationQueryController {
 
     @Operation(
             summary = "관광지 좋아요+북마크 TOP N 조회",
-            description = "좋아요 수와 북마크(아카이브) 수를 합산한 기준으로 상위 N개 관광지를 조회합니다.")
+            description =
+                    "좋아요 수와 북마크(아카이브) 수를 합산한 기준으로 상위 N개 관광지를 조회합니다. 방문 인증 누적 수와 연관 콘텐츠(방문 인증"
+                            + " 순 top3), 로그인 유저의 북마크 여부를 함께 반환합니다.")
     @GetMapping("/top-saved")
-    public ApiResponse<List<LocationSummaryResponse>> getTopSavedLocations(
-            @Parameter(description = "조회 개수") @RequestParam(defaultValue = "5") int limit) {
-        List<LocationSummaryResult> locations = locationQueryService.getTopSavedLocations(limit);
-        List<LocationSummaryResponse> response =
-                locations.stream().map(LocationSummaryResponse::from).toList();
+    public ApiResponse<List<LocationTopSavedResponse>> getTopSavedLocations(
+            @Parameter(description = "조회 개수") @RequestParam(defaultValue = "5") int limit,
+            @AuthenticationPrincipal
+                    com.tracek.global.security.authentication.AuthenticationPrincipal principal) {
+        Long userId = principal == null ? null : principal.userId();
+        List<LocationTopSavedResult> locations = locationFacade.getTopSavedLocations(userId, limit);
+        List<LocationTopSavedResponse> response =
+                locations.stream().map(LocationTopSavedResponse::from).toList();
         return ApiResponse.success(GeneralSuccessCode.OK, response);
     }
 }
