@@ -13,6 +13,7 @@ import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
 import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
 import com.tracek.domain.fan.application.dto.result.FanTargetResult;
+import com.tracek.domain.fan.application.dto.result.MyFanResult;
 import com.tracek.domain.fan.domain.model.ArtistFan;
 import com.tracek.domain.fan.domain.model.ArtistFanId;
 import com.tracek.domain.fan.domain.model.ContentFan;
@@ -100,13 +101,11 @@ class FanQueryServiceImplTest {
         when(artistResult2.getTotalVerificationCount()).thenReturn(90L);
 
         // when
-        List<List<FanTargetResult>> result = fanQueryService.getMyFanTargets(userId);
+        MyFanResult result = fanQueryService.getMyFanTargets(userId);
 
         // then
-        assertThat(result).hasSize(2);
-
-        List<FanTargetResult> contents = result.get(0);
-        List<FanTargetResult> artists = result.get(1);
+        List<FanTargetResult> contents = result.contents();
+        List<FanTargetResult> artists = result.artists();
 
         assertThat(contents).hasSize(2);
         assertThat(artists).hasSize(2);
@@ -146,12 +145,11 @@ class FanQueryServiceImplTest {
         when(artistQueryService.getArtistsByIds(List.of())).thenReturn(List.of());
 
         // when
-        List<List<FanTargetResult>> result = fanQueryService.getMyFanTargets(userId);
+        MyFanResult result = fanQueryService.getMyFanTargets(userId);
 
         // then
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0)).isEmpty();
-        assertThat(result.get(1)).isEmpty();
+        assertThat(result.contents()).isEmpty();
+        assertThat(result.artists()).isEmpty();
     }
 
     @Test

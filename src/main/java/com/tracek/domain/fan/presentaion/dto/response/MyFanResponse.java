@@ -1,6 +1,7 @@
 package com.tracek.domain.fan.presentaion.dto.response;
 
 import com.tracek.domain.fan.application.dto.result.FanTargetResult;
+import com.tracek.domain.fan.application.dto.result.MyFanResult;
 import java.util.List;
 import lombok.Builder;
 
@@ -8,10 +9,10 @@ import lombok.Builder;
 public record MyFanResponse(
         List<FanDataIndividualResponse> artist, List<FanDataIndividualResponse> content) {
 
-    public static MyFanResponse from(List<List<FanTargetResult>> results) {
+    public static MyFanResponse from(MyFanResult result) {
         return MyFanResponse.builder()
-                .artist(results.getFirst().stream().map(FanDataIndividualResponse::from).toList())
-                .content(results.getFirst().stream().map(FanDataIndividualResponse::from).toList())
+                .artist(result.artists().stream().map(FanDataIndividualResponse::from).toList())
+                .content(result.contents().stream().map(FanDataIndividualResponse::from).toList())
                 .build();
     }
 }
