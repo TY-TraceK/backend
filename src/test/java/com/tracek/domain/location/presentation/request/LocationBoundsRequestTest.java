@@ -12,7 +12,8 @@ class LocationBoundsRequestTest {
     @Test
     @DisplayName("좌표를 모두 입력하지 않으면 부산광역시청 기준 기본 범위로 변환된다")
     void toQuery_allNull_usesBusanDefault() {
-        LocationBoundsRequest request = new LocationBoundsRequest(null, null, null, null, null);
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(null, null, null, null, null, false);
 
         LocationBoundsQuery query = request.toQuery();
         LocationBoundsQuery busanDefault = LocationBoundsQuery.busanDefault();
@@ -26,7 +27,8 @@ class LocationBoundsRequestTest {
     @Test
     @DisplayName("좌표를 입력하면 그대로 Query에 전달된다")
     void toQuery_withCoordinates_passesThrough() {
-        LocationBoundsRequest request = new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, null);
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, null, false);
 
         LocationBoundsQuery query = request.toQuery();
 
@@ -39,7 +41,8 @@ class LocationBoundsRequestTest {
     @Test
     @DisplayName("category를 입력하면 LocationCategory로 변환되어 Query에 전달된다")
     void toQuery_withCategory_convertsToEnum() {
-        LocationBoundsRequest request = new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, "CAFE");
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, "CAFE", false);
 
         LocationBoundsQuery query = request.toQuery();
 
@@ -49,12 +52,24 @@ class LocationBoundsRequestTest {
     @Test
     @DisplayName("좌표 없이 category만 입력하면 부산광역시청 기본 범위 + 카테고리로 변환된다")
     void toQuery_onlyCategory_usesBusanDefaultWithCategory() {
-        LocationBoundsRequest request = new LocationBoundsRequest(null, null, null, null, "CAFE");
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(null, null, null, null, "CAFE", false);
 
         LocationBoundsQuery query = request.toQuery();
         LocationBoundsQuery busanDefault = LocationBoundsQuery.busanDefault();
 
         assertThat(query.getSwLat()).isEqualTo(busanDefault.getSwLat());
         assertThat(query.getCategory()).isEqualTo(LocationCategory.CAFE);
+    }
+
+    @Test
+    @DisplayName("archivedOnly를 true로 입력하면 그대로 Query에 전달된다")
+    void toQuery_withArchivedOnly_passesThrough() {
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, null, true);
+
+        LocationBoundsQuery query = request.toQuery();
+
+        assertThat(query.isArchivedOnly()).isTrue();
     }
 }

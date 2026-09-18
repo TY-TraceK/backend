@@ -23,24 +23,32 @@ public class LocationBoundsQuery {
     private double neLat;
     private double neLng;
     private LocationCategory category;
+    private boolean archivedOnly;
 
     public static LocationBoundsQuery busanDefault() {
-        return busanDefault(null);
+        return busanDefault(null, false);
     }
 
-    public static LocationBoundsQuery busanDefault(String category) {
+    public static LocationBoundsQuery busanDefault(String category, boolean archivedOnly) {
         return new LocationBoundsQuery(
                 BUSAN_CITY_HALL_LAT - DEFAULT_HALF_SPAN,
                 BUSAN_CITY_HALL_LNG - DEFAULT_HALF_SPAN,
                 BUSAN_CITY_HALL_LAT + DEFAULT_HALF_SPAN,
                 BUSAN_CITY_HALL_LNG + DEFAULT_HALF_SPAN,
-                LocationCategory.from(category));
+                LocationCategory.from(category),
+                archivedOnly);
     }
 
     public static LocationBoundsQuery of(
-            Double swLat, Double swLng, Double neLat, Double neLng, String category) {
+            Double swLat,
+            Double swLng,
+            Double neLat,
+            Double neLng,
+            String category,
+            boolean archivedOnly) {
         validate(swLat, swLng, neLat, neLng);
-        return new LocationBoundsQuery(swLat, swLng, neLat, neLng, LocationCategory.from(category));
+        return new LocationBoundsQuery(
+                swLat, swLng, neLat, neLng, LocationCategory.from(category), archivedOnly);
     }
 
     private static void validate(Double swLat, Double swLng, Double neLat, Double neLng) {

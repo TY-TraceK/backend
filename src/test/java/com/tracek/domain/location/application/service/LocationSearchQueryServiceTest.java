@@ -96,12 +96,22 @@ class LocationSearchQueryServiceTest {
     @Test
     @DisplayName("bounds 조회 결과를 페이징 없이 그대로 반환한다")
     void findLocationsWithinBounds_success() {
-        LocationBoundsQuery query = LocationBoundsQuery.of(35.0, 128.9, 35.2, 129.1, null);
-        given(locationQueryRepository.findLocationsWithinBounds(query))
+        LocationBoundsQuery query = LocationBoundsQuery.of(35.0, 128.9, 35.2, 129.1, null, false);
+        given(locationQueryRepository.findLocationsWithinBounds(query, 1L))
                 .willReturn(List.of(info(1L), info(2L)));
 
-        LocationBoundsResult result = service.findLocationsWithinBounds(query);
+        LocationBoundsResult result = service.findLocationsWithinBounds(query, 1L);
 
         assertThat(result.getLocations()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("archivedOnly=true인데 비로그인이면 조회 없이 빈 리스트를 반환한다")
+    void findLocationsWithinBounds_archivedOnly_anonymous_returnsEmpty() {
+        LocationBoundsQuery query = LocationBoundsQuery.of(35.0, 128.9, 35.2, 129.1, null, true);
+
+        LocationBoundsResult result = service.findLocationsWithinBounds(query, null);
+
+        assertThat(result.getLocations()).isEmpty();
     }
 }

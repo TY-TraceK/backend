@@ -2,6 +2,7 @@ package com.tracek.domain.location.presentation.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.location.application.dto.LocationBoundsQuery;
@@ -85,7 +86,8 @@ class LocationSearchControllerTest {
     @Test
     @DisplayName("bounds 조회 결과를 성공 응답으로 감싸서 반환한다")
     void findLocationsWithinBounds_success() {
-        LocationBoundsRequest request = new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, null);
+        LocationBoundsRequest request =
+                new LocationBoundsRequest(35.0, 128.9, 35.2, 129.1, null, false);
         LocationSearchResult.LocationInfo info =
                 new LocationSearchResult.LocationInfo(
                         1L,
@@ -96,11 +98,13 @@ class LocationSearchControllerTest {
                         35.1796,
                         129.0756);
         LocationBoundsResult result = LocationBoundsResult.of(List.of(info));
-        given(locationSearchQueryService.findLocationsWithinBounds(any(LocationBoundsQuery.class)))
+        given(
+                        locationSearchQueryService.findLocationsWithinBounds(
+                                any(LocationBoundsQuery.class), isNull()))
                 .willReturn(result);
 
         ApiResponse<LocationBoundsResponse> response =
-                controller.findLocationsWithinBounds(request);
+                controller.findLocationsWithinBounds(request, null);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getLocations()).hasSize(1);
