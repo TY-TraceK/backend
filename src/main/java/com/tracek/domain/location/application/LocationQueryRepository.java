@@ -1,11 +1,13 @@
 package com.tracek.domain.location.application;
 
 import static com.tracek.domain.location.domain.model.QLocation.location;
+import static com.tracek.domain.location.domain.model.QLocationArchive.locationArchive;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.location.application.dto.LocationBoundsQuery;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
@@ -127,7 +129,7 @@ public class LocationQueryRepository {
     private static final int BOUNDS_RESULT_LIMIT = 500;
 
     public List<LocationSearchResult.LocationInfo> findLocationsWithinBounds(
-            LocationBoundsQuery query) {
+            LocationBoundsQuery query, Long userId) {
         return queryFactory
                 .select(
                         Projections.constructor(
@@ -143,13 +145,25 @@ public class LocationQueryRepository {
                 .where(
                         location.geoLocation.latitude.between(query.getSwLat(), query.getNeLat()),
                         location.geoLocation.longitude.between(query.getSwLng(), query.getNeLng()),
-                        eqCategory(query.getCategory()))
+                        eqCategory(query.getCategory()),
+                        archivedByUser(query.isArchivedOnly(), userId))
                 .limit(BOUNDS_RESULT_LIMIT)
                 .fetch();
     }
 
     private BooleanExpression eqCategory(LocationCategory category) {
         return category != null ? location.category.eq(category) : null;
+    }
+
+    // archivedOnly가 true일 때만 해당 유저가 북마크한 관광지로 필터링 (userId는 컨트롤러/서비스에서 null 검증 후 전달)
+    private BooleanExpression archivedByUser(boolean archivedOnly, Long userId) {
+        if (!archivedOnly) {
+            return null;
+        }
+        return location.id.in(
+                JPAExpressions.select(locationArchive.locationId)
+                        .from(locationArchive)
+                        .where(locationArchive.userId.eq(userId)));
     }
 
     // 좋아요 + 북마크(아카이브) 합산 기준 상위 N개 관광지 조회

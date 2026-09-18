@@ -47,9 +47,13 @@ public class LocationSearchQueryService {
     }
 
     // 지도 bounds 범위 조회 - 페이징 없이 안전장치용 limit만 적용
-    public LocationBoundsResult findLocationsWithinBounds(LocationBoundsQuery query) {
+    public LocationBoundsResult findLocationsWithinBounds(LocationBoundsQuery query, Long userId) {
+        if (query.isArchivedOnly() && userId == null) {
+            return LocationBoundsResult.of(Collections.emptyList());
+        }
+
         List<LocationSearchResult.LocationInfo> locations =
-                locationQueryRepository.findLocationsWithinBounds(query);
+                locationQueryRepository.findLocationsWithinBounds(query, userId);
 
         return LocationBoundsResult.of(locations);
     }

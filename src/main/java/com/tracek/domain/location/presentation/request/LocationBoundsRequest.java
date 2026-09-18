@@ -7,20 +7,22 @@ public record LocationBoundsRequest(
         Double southwestLongitude,
         Double northeastLatitude,
         Double northeastLongitude,
-        String category) {
+        String category,
+        boolean archivedOnly) {
 
     public LocationBoundsQuery toQuery() {
         if (southwestLatitude == null
                 && southwestLongitude == null
                 && northeastLatitude == null
                 && northeastLongitude == null) {
-            return LocationBoundsQuery.busanDefault(category);
+            return LocationBoundsQuery.busanDefault(category, archivedOnly);
         }
         return LocationBoundsQuery.of(
                 southwestLatitude,
                 southwestLongitude,
                 northeastLatitude,
                 northeastLongitude,
-                category);
+                category,
+                archivedOnly);
     }
 }
