@@ -11,6 +11,7 @@ import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.presentation.request.ContentDetailRequest;
 import com.tracek.domain.content.presentation.response.ContentDetailResponse;
 import com.tracek.domain.content.presentation.response.ContentSummaryResponse;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.common.vo.ImageUrl;
 import com.tracek.global.response.ApiResponse;
@@ -51,10 +52,13 @@ class ContentQueryControllerTest {
         ContentDetailRequest request = new ContentDetailRequest(null, null, null, 20);
         ContentDetailResult result =
                 ContentDetailResult.of(
-                        ContentDetailResult.ContentInfo.of(content, List.of()), List.of());
-        given(contentFacade.getContentDetails(1L, null, condition)).willReturn(result);
+                        ContentDetailResult.ContentInfo.of(
+                                content, List.of(), ContentFanViewResult.of(0L, false)),
+                        List.of());
+        given(contentFacade.getContentDetails(null, 1L, null, condition)).willReturn(result);
 
-        ApiResponse<ContentDetailResponse> response = controller.getContentDetails(1L, request);
+        ApiResponse<ContentDetailResponse> response =
+                controller.getContentDetails(null, 1L, request);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getContentInfo().getId()).isEqualTo(1L);

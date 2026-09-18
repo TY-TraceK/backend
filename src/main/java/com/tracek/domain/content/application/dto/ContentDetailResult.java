@@ -1,6 +1,7 @@
 package com.tracek.domain.content.application.dto;
 
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
 import com.tracek.domain.location.domain.model.Address;
 import java.util.List;
 import lombok.AccessLevel;
@@ -28,15 +29,22 @@ public class ContentDetailResult {
         private String category;
         private String pictureUrl;
         private Long totalVerificationCount;
+        private Long fanCount;
+        private Boolean isFan;
         private List<FixedArtistResult> fixedArtists;
 
-        public static ContentInfo of(Content content, List<FixedArtistResult> fixedArtists) {
+        public static ContentInfo of(
+                Content content,
+                List<FixedArtistResult> fixedArtists,
+                ContentFanViewResult fanView) {
             return new ContentInfo(
                     content.getId(),
                     content.getTitle(),
                     content.getCategory() == null ? null : content.getCategory().name(),
                     content.getPictureUrl().getImageUrl(),
                     content.getTotalVerificationCount(),
+                    fanView.fanCount(),
+                    fanView.isFan(),
                     fixedArtists);
         }
     }

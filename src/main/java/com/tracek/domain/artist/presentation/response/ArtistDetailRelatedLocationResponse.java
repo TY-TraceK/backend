@@ -33,6 +33,7 @@ public class ArtistDetailRelatedLocationResponse {
         private Long groupId;
         private Boolean isGroup;
         private Long fanCount;
+        private Boolean isFan;
         private Long totalVerificationCount;
         private List<ArtistSummaryResponse> relatedArtists;
 
@@ -46,6 +47,7 @@ public class ArtistDetailRelatedLocationResponse {
                     artistInfo.getGroupId(),
                     artistInfo.getIsGroup(),
                     artistInfo.getFanCount(),
+                    artistInfo.getIsFan(),
                     artistInfo.getTotalVerificationCount(),
                     artistInfo.getRelatedArtists() == null
                             ? null

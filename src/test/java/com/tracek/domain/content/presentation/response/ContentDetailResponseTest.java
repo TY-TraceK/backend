@@ -7,6 +7,7 @@ import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.application.dto.ContentDetailResult;
 import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.content.domain.model.Episode;
+import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
@@ -34,7 +35,8 @@ class ContentDetailResponseTest {
                 ContentDetailResult.FixedArtistResult.from(artistResult);
 
         ContentDetailResult.ContentInfo contentInfo =
-                ContentDetailResult.ContentInfo.of(content, List.of(fixedArtistResult));
+                ContentDetailResult.ContentInfo.of(
+                        content, List.of(fixedArtistResult), ContentFanViewResult.of(0L, false));
 
         Location location = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
         LocationResult locationResult = LocationResult.from(location);
@@ -65,7 +67,9 @@ class ContentDetailResponseTest {
         ReflectionTestUtils.setField(content, "id", 1L);
         ContentDetailResult result =
                 ContentDetailResult.of(
-                        ContentDetailResult.ContentInfo.of(content, List.of()), List.of());
+                        ContentDetailResult.ContentInfo.of(
+                                content, List.of(), ContentFanViewResult.of(0L, false)),
+                        List.of());
 
         ContentDetailResponse response = ContentDetailResponse.from(result);
 
@@ -82,7 +86,8 @@ class ContentDetailResponseTest {
         ReflectionTestUtils.setField(content, "id", 1L);
 
         ContentDetailResult.ContentInfo contentInfo =
-                ContentDetailResult.ContentInfo.of(content, null);
+                ContentDetailResult.ContentInfo.of(
+                        content, null, ContentFanViewResult.of(0L, false));
 
         Location location = LocationTestFixture.newLocation(2L, "경복궁", "ATTRACTION", 100L);
         LocationResult locationResult = LocationResult.from(location);
@@ -119,7 +124,8 @@ class ContentDetailResponseTest {
 
         ContentDetailResult result =
                 ContentDetailResult.of(
-                        ContentDetailResult.ContentInfo.of(content, List.of()),
+                        ContentDetailResult.ContentInfo.of(
+                                content, List.of(), ContentFanViewResult.of(0L, false)),
                         List.of(detailLocationResult));
 
         ContentDetailResponse response = ContentDetailResponse.from(result);

@@ -16,6 +16,7 @@ import com.tracek.domain.artist.presentation.response.ArtistDetailRelatedContent
 import com.tracek.domain.artist.presentation.response.ArtistDetailRelatedLocationResponse;
 import com.tracek.domain.artist.presentation.response.ArtistDetailResponse;
 import com.tracek.domain.artist.presentation.response.ArtistSummaryResponse;
+import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.common.vo.ImageUrl;
 import com.tracek.global.response.ApiResponse;
@@ -91,12 +92,14 @@ class ArtistQueryControllerTest {
                 new ArtistDetailRelatedLocationRequest(null, null, null, 20);
         ArtistDetailRelatedLocationResult result =
                 ArtistDetailRelatedLocationResult.of(
-                        ArtistDetailRelatedLocationResult.ArtistInfo.of(artist, List.of()),
+                        ArtistDetailRelatedLocationResult.ArtistInfo.of(
+                                artist, List.of(), ArtistFanViewResult.of(0L, false)),
                         List.of());
-        given(artistFacade.getArtistDetailsRelatedLocation(1L, null, condition)).willReturn(result);
+        given(artistFacade.getArtistDetailsRelatedLocation(null, 1L, null, condition))
+                .willReturn(result);
 
         ApiResponse<ArtistDetailRelatedLocationResponse> response =
-                controller.getArtistDetailRelatedLocations(1L, request);
+                controller.getArtistDetailRelatedLocations(null, 1L, request);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getArtistInfo().getId()).isEqualTo(1L);
@@ -113,12 +116,13 @@ class ArtistQueryControllerTest {
                 new ArtistDetailRelatedContentRequest(null, null, 20);
         ArtistDetailRelatedContentResult result =
                 ArtistDetailRelatedContentResult.of(
-                        ArtistDetailRelatedContentResult.ArtistInfo.of(artist, List.of()),
+                        ArtistDetailRelatedContentResult.ArtistInfo.of(
+                                artist, List.of(), ArtistFanViewResult.of(0L, false)),
                         List.of());
-        given(artistFacade.getArtistDetailsRelatedContent(1L, condition)).willReturn(result);
+        given(artistFacade.getArtistDetailsRelatedContent(null, 1L, condition)).willReturn(result);
 
         ApiResponse<ArtistDetailRelatedContentResponse> response =
-                controller.getArtistDetailRelatedContents(1L, request);
+                controller.getArtistDetailRelatedContents(null, 1L, request);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData().getArtistInfo().getId()).isEqualTo(1L);
