@@ -23,6 +23,10 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.jwt.secret")
 public class JwtTokenProvider {
 
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "ACCESS";
+    private static final String REFRESH_TOKEN_TYPE = "REFRESH";
+
     private final JwtProperties jwtProperties;
     private SecretKey secretKey;
 
@@ -40,6 +44,7 @@ public class JwtTokenProvider {
                 .subject(String.valueOf(userId))
                 .claim("role", role)
                 .claim("name", userName)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .issuedAt(now)
                 .expiration(expirationDate)
                 .signWith(secretKey)
@@ -62,6 +67,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
@@ -85,6 +91,15 @@ public class JwtTokenProvider {
         } catch (IllegalArgumentException e) {
             throw new CustomException(SecurityErrorCode.EMPTY_CLAIMS);
         }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        validateToken(token);
+        String tokenType = getClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
+        if (!REFRESH_TOKEN_TYPE.equals(tokenType)) {
+            throw new CustomException(SecurityErrorCode.INVALID_TOKEN);
+        }
+        return true;
     }
 
     public Long getUserId(String token) {

@@ -46,6 +46,9 @@ public class SecurityConfig {
                                         .requestMatchers(permitAllPatterns)
                                         .permitAll()
 
+                                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh")
+                                        .permitAll()
+
                                         // 특정 HTTP Method가 필요한 Public API들
                                         .requestMatchers(
                                                 HttpMethod.GET,

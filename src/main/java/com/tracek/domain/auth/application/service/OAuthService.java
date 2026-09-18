@@ -7,5 +7,7 @@ public interface OAuthService {
 
     OAuthLoginResult createOauthLogin(OAuthLoginCommand command);
 
+    OAuthLoginResult refreshTokens(String refreshToken);
+
     String getUserAndAccessToken(Long userId);
 }
