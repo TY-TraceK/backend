@@ -35,11 +35,9 @@ class ContentDetailResultTest {
                 ContentDetailResult.EpisodeResult.from(episode);
 
         ContentDetailResult.LocationResult locationResult =
-                ContentDetailResult.LocationResult.of(
-                        location, 4L, List.of(episodeResult));
+                ContentDetailResult.LocationResult.of(location, 4L, List.of(episodeResult));
         ContentDetailResult.ContentInfo info = mock(ContentDetailResult.ContentInfo.class);
-        ContentDetailResult result =
-                ContentDetailResult.of(info, List.of(locationResult));
+        ContentDetailResult result = ContentDetailResult.of(info, List.of(locationResult));
 
         assertThat(fixed.getArtistId()).isEqualTo(1L);
         assertThat(fixed.getArtistName()).isEqualTo("artist");
