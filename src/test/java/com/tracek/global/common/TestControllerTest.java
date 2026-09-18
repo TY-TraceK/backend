@@ -23,7 +23,8 @@ class TestControllerTest {
 
     @Test
     void coversAuthenticationAndFanEndpoints() {
-        var controller = new TestController(oAuthService, visitRankingQueryService, fanQueryService);
+        var controller =
+                new TestController(oAuthService, visitRankingQueryService, fanQueryService);
         var principal = new AuthenticationPrincipal(7L, "user", "ROLE_USER");
         when(oAuthService.getUserAndAccessToken(7L)).thenReturn("token");
 
@@ -44,7 +45,8 @@ class TestControllerTest {
 
     @Test
     void coversAllRankingEndpoints() {
-        var controller = new TestController(oAuthService, visitRankingQueryService, fanQueryService);
+        var controller =
+                new TestController(oAuthService, visitRankingQueryService, fanQueryService);
 
         assertThat(controller.getArtistsByContent(1L, null, null, 10)).isNull();
         assertThat(controller.getLocationsByContent(1L, 5L, 2L, 10)).isNull();
@@ -58,14 +60,20 @@ class TestControllerTest {
         assertThat(controller.getContentsByLocation(3L, 5L, 4L, 10)).isNull();
         assertThat(controller.getMultiRankingByLocation(3L)).isNull();
 
-        verify(visitRankingQueryService).getArtistsByContent(org.mockito.ArgumentMatchers.eq(1L), any());
-        verify(visitRankingQueryService).getLocationsByContent(org.mockito.ArgumentMatchers.eq(1L), any());
+        verify(visitRankingQueryService)
+                .getArtistsByContent(org.mockito.ArgumentMatchers.eq(1L), any());
+        verify(visitRankingQueryService)
+                .getLocationsByContent(org.mockito.ArgumentMatchers.eq(1L), any());
         verify(visitRankingQueryService).getMultiRankingByContent(1L);
-        verify(visitRankingQueryService).getLocationsByArtist(org.mockito.ArgumentMatchers.eq(2L), any());
-        verify(visitRankingQueryService).getContentsByArtist(org.mockito.ArgumentMatchers.eq(2L), any());
+        verify(visitRankingQueryService)
+                .getLocationsByArtist(org.mockito.ArgumentMatchers.eq(2L), any());
+        verify(visitRankingQueryService)
+                .getContentsByArtist(org.mockito.ArgumentMatchers.eq(2L), any());
         verify(visitRankingQueryService).getMultiRankingByArtist(2L);
-        verify(visitRankingQueryService).getArtistsByLocation(org.mockito.ArgumentMatchers.eq(3L), any());
-        verify(visitRankingQueryService).getContentsByLocation(org.mockito.ArgumentMatchers.eq(3L), any());
+        verify(visitRankingQueryService)
+                .getArtistsByLocation(org.mockito.ArgumentMatchers.eq(3L), any());
+        verify(visitRankingQueryService)
+                .getContentsByLocation(org.mockito.ArgumentMatchers.eq(3L), any());
         verify(visitRankingQueryService).getMultiRankingByLocation(3L);
     }
 }
