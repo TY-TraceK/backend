@@ -9,6 +9,7 @@ import com.tracek.domain.auth.domain.enums.OAuthProvider;
 import com.tracek.domain.auth.domain.exception.AuthErrorCode;
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
 import com.tracek.domain.user.application.dto.result.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 import com.tracek.domain.user.application.service.UserCommandService;
 import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.global.exception.CustomException;
@@ -52,6 +53,28 @@ public class OAuthServiceImpl implements OAuthService {
                 userResult.isNewUser(),
                 dataResult.nickName(),
                 dataResult.profileImageUrl());
+    }
+
+    @Override
+    public OAuthLoginResult refreshTokens(String refreshToken) {
+        jwtTokenProvider.validateRefreshToken(refreshToken);
+
+        Long userId = jwtTokenProvider.getUserId(refreshToken);
+        SyncUserResult userResult = userQueryService.getUserSummaryData(userId);
+        UserProfileDataResult profileResult = userQueryService.getUserProfileData(userId);
+
+        String accessToken =
+                jwtTokenProvider.createAccessToken(
+                        userResult.userId(), userResult.userRole(), userResult.userName());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userResult.userId());
+
+        return OAuthLoginResult.of(
+                userResult.userId(),
+                accessToken,
+                newRefreshToken,
+                false,
+                profileResult.nickname(),
+                profileResult.profileImageUrl());
     }
 
     private OAuthUserDataResult connectAndGetOauthUser(

@@ -11,6 +11,7 @@ import com.tracek.domain.auth.application.dto.command.OAuthLoginCommand;
 import com.tracek.domain.auth.application.dto.result.OAuthLoginResult;
 import com.tracek.domain.auth.application.service.OAuthService;
 import com.tracek.domain.auth.presentation.dto.request.OAuthLoginRequest;
+import com.tracek.domain.auth.presentation.dto.request.TokenRefreshRequest;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,5 +87,27 @@ class AuthControllerTest {
                 .andExpect(
                         jsonPath("$.data.profileImageUrl")
                                 .value("https://example.com/profile.jpg"));
+    }
+
+    @Test
+    @DisplayName("Refresh Token 재발급 시 로그인과 동일한 응답 구조를 반환한다")
+    void refreshTokens_Success() throws Exception {
+        TokenRefreshRequest request = new TokenRefreshRequest("refresh_token");
+        OAuthLoginResult result =
+                OAuthLoginResult.of(
+                        1L, "new_access_token", "new_refresh_token", false, "송유진", "profile.jpg");
+        given(oAuthService.refreshTokens("refresh_token")).willReturn(result);
+
+        mockMvc.perform(
+                        post("/api/auth/refresh")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId").value(1L))
+                .andExpect(jsonPath("$.data.accessToken").value("new_access_token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("new_refresh_token"))
+                .andExpect(jsonPath("$.data.isNewUser").value(false))
+                .andExpect(jsonPath("$.data.nickName").value("송유진"))
+                .andExpect(jsonPath("$.data.profileImageUrl").value("profile.jpg"));
     }
 }

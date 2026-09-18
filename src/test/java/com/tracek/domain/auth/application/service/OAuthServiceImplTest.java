@@ -15,7 +15,9 @@ import com.tracek.domain.auth.domain.enums.OAuthProvider;
 import com.tracek.domain.auth.domain.exception.AuthErrorCode;
 import com.tracek.domain.user.application.dto.command.SyncUserCommand;
 import com.tracek.domain.user.application.dto.result.SyncUserResult;
+import com.tracek.domain.user.application.dto.result.UserProfileDataResult;
 import com.tracek.domain.user.application.service.UserCommandService;
+import com.tracek.domain.user.application.service.UserQueryService;
 import com.tracek.global.exception.CustomException;
 import com.tracek.global.security.jwt.JwtTokenProvider;
 import java.time.OffsetDateTime;
@@ -34,6 +36,7 @@ class OAuthServiceImplTest {
     @InjectMocks private OAuthServiceImpl oAuthService;
     @Mock private OAuthClientProvider oAuthClientProvider;
     @Mock private UserCommandService userCommandService;
+    @Mock private UserQueryService userQueryService;
     @Mock private JwtTokenProvider jwtTokenProvider;
     @Mock private OAuthClient oAuthClient;
 
@@ -85,6 +88,34 @@ class OAuthServiceImplTest {
             verify(userCommandService).registerOrUpdateUser(any(SyncUserCommand.class));
             verify(jwtTokenProvider).createAccessToken(1L, "ROLE_USER", "송유진");
             verify(jwtTokenProvider).createRefreshToken(1L);
+        }
+    }
+
+    @Nested
+    @DisplayName("토큰 재발급 테스트")
+    class RefreshTokenTest {
+
+        @Test
+        @DisplayName("유효한 Refresh Token이면 로그인과 동일한 형태의 새 토큰 정보를 반환한다")
+        void refreshTokens_Success() {
+            given(jwtTokenProvider.validateRefreshToken("refresh_token")).willReturn(true);
+            given(jwtTokenProvider.getUserId("refresh_token")).willReturn(1L);
+            given(userQueryService.getUserSummaryData(1L))
+                    .willReturn(new SyncUserResult(1L, false, "송유진", "ROLE_USER"));
+            given(userQueryService.getUserProfileData(1L))
+                    .willReturn(new UserProfileDataResult(1L, "송유진", "profile.jpg"));
+            given(jwtTokenProvider.createAccessToken(1L, "ROLE_USER", "송유진"))
+                    .willReturn("new_access_token");
+            given(jwtTokenProvider.createRefreshToken(1L)).willReturn("new_refresh_token");
+
+            OAuthLoginResult result = oAuthService.refreshTokens("refresh_token");
+
+            assertThat(result.accessToken()).isEqualTo("new_access_token");
+            assertThat(result.refreshToken()).isEqualTo("new_refresh_token");
+            assertThat(result.isNewUser()).isFalse();
+            assertThat(result.nickName()).isEqualTo("송유진");
+            assertThat(result.profileImageUrl()).isEqualTo("profile.jpg");
+            verify(jwtTokenProvider).validateRefreshToken("refresh_token");
         }
     }
 

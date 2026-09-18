@@ -45,6 +45,8 @@ public class SecurityConfig {
                                         // 환경변수/yml에서 불러온 Whitelist URL 전체 permitAll 처리
                                         .requestMatchers(permitAllPatterns)
                                         .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh")
+                                        .permitAll()
 
                                         // 특정 HTTP Method가 필요한 Public API들
                                         .requestMatchers(
