@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.tracek.domain.artist.domain.model.Artist;
 import com.tracek.domain.content.domain.model.Content;
+import com.tracek.domain.location.application.LocationQueryRepository;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
@@ -35,12 +36,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 class LocationQueryServiceTest {
 
     @Mock private LocationRepository locationRepository;
+    @Mock private LocationQueryRepository locationQueryRepository;
 
     private LocationQueryService locationQueryService;
 
     @BeforeEach
     void setUp() {
-        locationQueryService = new LocationQueryService(locationRepository);
+        locationQueryService =
+                new LocationQueryService(locationRepository, locationQueryRepository);
     }
 
     @Test
@@ -220,5 +223,17 @@ class LocationQueryServiceTest {
         Page<LocationSummaryResult> results = locationQueryService.getAllLocations(pageable);
 
         assertThat(results.getContent()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("좋아요+북마크 합산 기준 상위 N개 관광지를 조회한다")
+    void getTopSavedLocations_success() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        given(locationQueryRepository.findTopSavedLocations(5)).willReturn(List.of(location));
+
+        List<LocationSummaryResult> results = locationQueryService.getTopSavedLocations(5);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo(1L);
     }
 }

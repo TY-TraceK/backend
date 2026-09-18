@@ -5,10 +5,12 @@ import static com.tracek.domain.location.domain.model.QLocation.location;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tracek.domain.location.application.dto.LocationBoundsQuery;
 import com.tracek.domain.location.application.dto.LocationSearchQuery;
 import com.tracek.domain.location.application.dto.LocationSearchResult;
+import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import java.util.Arrays;
 import java.util.List;
@@ -148,5 +150,19 @@ public class LocationQueryRepository {
 
     private BooleanExpression eqCategory(LocationCategory category) {
         return category != null ? location.category.eq(category) : null;
+    }
+
+    // 좋아요 + 북마크(아카이브) 합산 기준 상위 N개 관광지 조회
+    public List<Location> findTopSavedLocations(int limit) {
+        NumberExpression<Long> likeCountSafe =
+                Expressions.numberTemplate(Long.class, "COALESCE({0}, 0)", location.likeCount);
+        NumberExpression<Long> archiveCountSafe =
+                Expressions.numberTemplate(Long.class, "COALESCE({0}, 0)", location.archiveCount);
+
+        return queryFactory
+                .selectFrom(location)
+                .orderBy(likeCountSafe.add(archiveCountSafe).desc(), location.id.asc())
+                .limit(limit)
+                .fetch();
     }
 }

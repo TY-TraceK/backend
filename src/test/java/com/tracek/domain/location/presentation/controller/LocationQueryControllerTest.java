@@ -128,4 +128,18 @@ class LocationQueryControllerTest {
         assertThat(response.getData().getContent()).hasSize(1);
         assertThat(response.getData().getContent().get(0).getName()).isEqualTo("경복궁");
     }
+
+    @Test
+    @DisplayName("좋아요+북마크 합산 기준 상위 N개 관광지를 응답으로 감싸서 반환한다")
+    void getTopSavedLocations_success() {
+        Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        given(locationQueryService.getTopSavedLocations(5))
+                .willReturn(List.of(LocationSummaryResult.from(location)));
+
+        ApiResponse<List<LocationSummaryResponse>> response = controller.getTopSavedLocations(5);
+
+        assertThat(response.getIsSuccess()).isTrue();
+        assertThat(response.getData()).hasSize(1);
+        assertThat(response.getData().get(0).getName()).isEqualTo("경복궁");
+    }
 }

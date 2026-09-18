@@ -1,5 +1,6 @@
 package com.tracek.domain.location.application.service;
 
+import com.tracek.domain.location.application.LocationQueryRepository;
 import com.tracek.domain.location.application.dto.*;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.GeoLocation;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LocationQueryService {
     private final LocationRepository locationRepository;
+    private final LocationQueryRepository locationQueryRepository;
 
     // 관광지 Entity get
     public Location getLocationEntity(Long locationId) {
@@ -117,5 +119,12 @@ public class LocationQueryService {
                         .orElseThrow(
                                 () -> new CustomException(LocationErrorCode.MAPPING_NOT_FOUND));
         return LocationContentArtistResult.from(mapping);
+    }
+
+    // 좋아요 + 북마크(아카이브) 합산 기준 상위 N개 관광지 조회
+    public List<LocationSummaryResult> getTopSavedLocations(int limit) {
+        return locationQueryRepository.findTopSavedLocations(limit).stream()
+                .map(LocationSummaryResult::from)
+                .toList();
     }
 }
