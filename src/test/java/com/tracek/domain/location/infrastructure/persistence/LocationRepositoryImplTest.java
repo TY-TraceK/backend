@@ -152,6 +152,20 @@ class LocationRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("유저의 좋아요/북마크 목록 조회는 각 JpaRepository에 위임한다")
+    void findAllByUserId_delegates() {
+        LocationLike like = LocationLike.of(1L, 2L);
+        LocationArchive archive = LocationArchive.of(1L, 2L);
+        given(locationLikeJpaRepository.findAllByUserIdOrderByCreatedAtDesc(1L))
+                .willReturn(List.of(like));
+        given(locationArchiveJpaRepository.findAllByUserIdOrderByCreatedAtDesc(1L))
+                .willReturn(List.of(archive));
+
+        assertThat(locationRepositoryImpl.findAllLikesByUserId(1L)).containsExactly(like);
+        assertThat(locationRepositoryImpl.findAllArchivesByUserId(1L)).containsExactly(archive);
+    }
+
+    @Test
     @DisplayName("방문 인증 카운트 증가/감소는 LocationJpaRepository에 위임한다")
     void verificationCount_delegates() {
         locationRepositoryImpl.increseVerificationCount(1L);

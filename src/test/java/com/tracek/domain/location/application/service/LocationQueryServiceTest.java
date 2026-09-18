@@ -9,11 +9,14 @@ import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.location.application.LocationQueryRepository;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationResult;
+import com.tracek.domain.location.application.dto.LocationSimpleResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.domain.exception.LocationErrorCode;
 import com.tracek.domain.location.domain.model.Location;
+import com.tracek.domain.location.domain.model.LocationArchive;
 import com.tracek.domain.location.domain.model.LocationCategory;
 import com.tracek.domain.location.domain.model.LocationContentArtist;
+import com.tracek.domain.location.domain.model.LocationLike;
 import com.tracek.domain.location.domain.model.LocationTestFixture;
 import com.tracek.domain.location.domain.repository.LocationRepository;
 import com.tracek.global.common.vo.ImageUrl;
@@ -235,5 +238,55 @@ class LocationQueryServiceTest {
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("좋아요한 관광지 목록을 좋아요한 최신순으로 조회한다")
+    void getLikedLocations_success() {
+        Location location1 = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Location location2 = LocationTestFixture.newLocation(2L, "남산타워", "ATTRACTION", 100L);
+        given(locationRepository.findAllLikesByUserId(10L))
+                .willReturn(List.of(LocationLike.of(10L, 2L), LocationLike.of(10L, 1L)));
+        given(locationRepository.findAllByIds(List.of(2L, 1L)))
+                .willReturn(List.of(location1, location2));
+
+        List<LocationSimpleResult> results = locationQueryService.getLikedLocations(10L);
+
+        assertThat(results).extracting(LocationSimpleResult::getId).containsExactly(2L, 1L);
+    }
+
+    @Test
+    @DisplayName("좋아요한 관광지가 없으면 빈 리스트를 반환한다")
+    void getLikedLocations_empty() {
+        given(locationRepository.findAllLikesByUserId(10L)).willReturn(List.of());
+
+        List<LocationSimpleResult> results = locationQueryService.getLikedLocations(10L);
+
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("북마크한 관광지 목록을 북마크한 최신순으로 조회한다")
+    void getArchivedLocations_success() {
+        Location location1 = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
+        Location location2 = LocationTestFixture.newLocation(2L, "남산타워", "ATTRACTION", 100L);
+        given(locationRepository.findAllArchivesByUserId(10L))
+                .willReturn(List.of(LocationArchive.of(10L, 2L), LocationArchive.of(10L, 1L)));
+        given(locationRepository.findAllByIds(List.of(2L, 1L)))
+                .willReturn(List.of(location1, location2));
+
+        List<LocationSimpleResult> results = locationQueryService.getArchivedLocations(10L);
+
+        assertThat(results).extracting(LocationSimpleResult::getId).containsExactly(2L, 1L);
+    }
+
+    @Test
+    @DisplayName("북마크한 관광지가 없으면 빈 리스트를 반환한다")
+    void getArchivedLocations_empty() {
+        given(locationRepository.findAllArchivesByUserId(10L)).willReturn(List.of());
+
+        List<LocationSimpleResult> results = locationQueryService.getArchivedLocations(10L);
+
+        assertThat(results).isEmpty();
     }
 }

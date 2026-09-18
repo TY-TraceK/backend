@@ -1,6 +1,7 @@
 package com.tracek.domain.location.infrastructure.persistence;
 
 import com.tracek.domain.location.domain.model.LocationLike;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,4 +11,6 @@ public interface LocationLikeJpaRepository extends JpaRepository<LocationLike, L
     Optional<LocationLike> findByUserIdAndLocationId(Long userId, Long locationId);
 
     void deleteByUserIdAndLocationId(Long userId, Long locationId);
+
+    List<LocationLike> findAllByUserIdOrderByCreatedAtDesc(Long userId);
 }
