@@ -7,6 +7,7 @@ import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationNearbyResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
+import com.tracek.domain.location.application.dto.LocationTopSavedResult;
 import com.tracek.domain.location.application.facade.LocationFacade;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
@@ -17,6 +18,7 @@ import com.tracek.domain.location.presentation.response.LocationDetailResponse;
 import com.tracek.domain.location.presentation.response.LocationNearbyResponse;
 import com.tracek.domain.location.presentation.response.LocationRelatedInfoResponse;
 import com.tracek.domain.location.presentation.response.LocationSummaryResponse;
+import com.tracek.domain.location.presentation.response.LocationTopSavedResponse;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
 import com.tracek.global.response.ApiResponse;
 import java.util.Collections;
@@ -133,13 +135,21 @@ class LocationQueryControllerTest {
     @DisplayName("좋아요+북마크 합산 기준 상위 N개 관광지를 응답으로 감싸서 반환한다")
     void getTopSavedLocations_success() {
         Location location = LocationTestFixture.newLocation(1L, "경복궁", "ATTRACTION", 100L);
-        given(locationQueryService.getTopSavedLocations(5))
-                .willReturn(List.of(LocationSummaryResult.from(location)));
+        given(locationFacade.getTopSavedLocations(null, 5))
+                .willReturn(
+                        List.of(
+                                LocationTopSavedResult.of(
+                                        LocationSummaryResult.from(location),
+                                        List.of("궁궐 브이로그"),
+                                        false)));
 
-        ApiResponse<List<LocationSummaryResponse>> response = controller.getTopSavedLocations(5);
+        ApiResponse<List<LocationTopSavedResponse>> response =
+                controller.getTopSavedLocations(5, null);
 
         assertThat(response.getIsSuccess()).isTrue();
         assertThat(response.getData()).hasSize(1);
         assertThat(response.getData().get(0).getName()).isEqualTo("경복궁");
+        assertThat(response.getData().get(0).getRelatedContentTitles()).containsExactly("궁궐 브이로그");
+        assertThat(response.getData().get(0).getIsArchived()).isFalse();
     }
 }
