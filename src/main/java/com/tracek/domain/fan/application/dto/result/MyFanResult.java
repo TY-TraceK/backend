@@ -4,5 +4,4 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record MyFanResult(
-        List<FanTargetResult> artists, List<FanTargetResult> contents) {}
+public record MyFanResult(List<FanTargetResult> artists, List<FanTargetResult> contents) {}
