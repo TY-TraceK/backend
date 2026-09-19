@@ -138,6 +138,32 @@ class VisitVerificationCommandServiceImplTest {
         }
 
         @Test
+        @DisplayName("실패: 관광지에서 100m를 벗어나면 VISIT_ZONE_MISMATCH 예외가 발생한다.")
+        void createVisitVerification_fail_outOfVisitZone() {
+            // given
+            given(
+                            locationQueryService.isWithinDistance(
+                                    anyDouble(), anyDouble(), anyLong(), anyLong()))
+                    .willReturn(false);
+
+            VisitVerificationCreateCommand command =
+                    VisitVerificationCreateCommand.builder()
+                            .userId(userId)
+                            .locationId(locationId)
+                            .artistIds(artistIds)
+                            .contentId(contentId)
+                            .latitude(latitude)
+                            .longitude(longitude)
+                            .build();
+
+            // when & then
+            assertThatThrownBy(() -> visitVerificationService.createVisitVerification(command))
+                    .isInstanceOf(CustomException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(VisitVerificationErrorCode.VISIT_ZONE_MISMATCH);
+        }
+
+        @Test
         @DisplayName("동시성: 동일 유저가 동시에 같은 관광지에 방문 인증하면 1건만 성공한다.")
         void createVisitVerification_concurrency_twoThreads() throws InterruptedException {
 
