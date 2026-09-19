@@ -115,6 +115,32 @@ class VisitVerificationCommandServiceImplTest {
         }
 
         @Test
+        @DisplayName("성공: 장소만 선택해도 방문 인증을 생성할 수 있다.")
+        void createVisitVerification_locationOnly_success() {
+            VisitVerificationCreateCommand command =
+                    VisitVerificationCreateCommand.builder()
+                            .userId(userId)
+                            .locationId(locationId)
+                            .artistIds(List.of())
+                            .contentId(null)
+                            .latitude(latitude)
+                            .longitude(longitude)
+                            .build();
+
+            VisitVerificationCreateResult result =
+                    visitVerificationService.createVisitVerification(command);
+
+            VisitVerification savedVerification =
+                    visitVerificationRepository
+                            .findById(result.visitVerificationId())
+                            .orElseThrow();
+
+            assertThat(savedVerification.getLocationId()).isEqualTo(locationId);
+            assertThat(savedVerification.getVerificationTarget().getContentId()).isNull();
+            assertThat(savedVerification.getVerificationTarget().getArtistIds()).isEmpty();
+        }
+
+        @Test
         @DisplayName("실패: 이미 방문 인증한 관광지에 다시 방문 인증을 시도하면 ALREADY_VERIFIED 예외가 발생한다.")
         void createVisitVerification_fail_alreadyVerified() {
             // given
