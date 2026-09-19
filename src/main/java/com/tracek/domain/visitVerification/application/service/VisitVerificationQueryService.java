@@ -2,9 +2,9 @@ package com.tracek.domain.visitVerification.application.service;
 
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationHistoriesSearchCondition;
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationStatusSearchCondition;
+import com.tracek.domain.visitVerification.application.dto.result.VerificationLocationResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationStatusSearchResult;
-import com.tracek.domain.visitVerification.application.dto.result.VerificationLocationResult;
 
 public interface VisitVerificationQueryService {
 
@@ -13,5 +13,6 @@ public interface VisitVerificationQueryService {
 
     VisitVerificationHistoriesResult getMyHistories(
             VisitVerificationHistoriesSearchCondition condition);
+
     VerificationLocationResult getVerificationLocationCandidates(double latitude, double longitude);
 }

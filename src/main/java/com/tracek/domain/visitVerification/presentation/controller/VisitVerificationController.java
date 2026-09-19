@@ -5,24 +5,24 @@ import com.tracek.domain.visitVerification.application.service.VisitVerification
 import com.tracek.domain.visitVerification.application.service.VisitVerificationQueryService;
 import com.tracek.domain.visitVerification.presentation.controller.docs.VisitVerificationControllerDocs;
 import com.tracek.domain.visitVerification.presentation.dto.VisitVerificationCancelResponse;
+import com.tracek.domain.visitVerification.presentation.dto.request.VerificationLocationRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationCreateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationHistoriesSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationStatusSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationUpdateRequest;
-import com.tracek.domain.visitVerification.presentation.dto.request.VerificationLocationRequest;
+import com.tracek.domain.visitVerification.presentation.dto.response.VerificationLocationResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationCreateResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationHistoriesResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationStatusSearchResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationUpdateResponse;
-import com.tracek.domain.visitVerification.presentation.dto.response.VerificationLocationResponse;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import com.tracek.global.response.ApiResponse;
 import com.tracek.global.response.GeneralSuccessCode;
 import com.tracek.global.security.authentication.AuthenticationPrincipal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -95,6 +95,7 @@ public class VisitVerificationController implements VisitVerificationControllerD
                         visitVerificationQueryService.getMyHistories(
                                 request.toCondition(principal.userId()))));
     }
+
     @Override
     @GetMapping("/visit-verifications/location-candidates")
     public ApiResponse<VerificationLocationResponse> getVerificationLocationCandidates(
