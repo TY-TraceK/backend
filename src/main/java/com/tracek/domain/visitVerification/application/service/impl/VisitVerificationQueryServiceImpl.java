@@ -11,6 +11,7 @@ import com.tracek.domain.visitVerification.application.service.VisitVerification
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
 import com.tracek.domain.visitVerification.domain.repository.VisitVerificationRepository;
 import java.util.List;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
