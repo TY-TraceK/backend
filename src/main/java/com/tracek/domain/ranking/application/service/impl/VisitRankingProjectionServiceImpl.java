@@ -43,8 +43,11 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
         /*
          * location + content 역시
          * 방문 인증 1건 기준으로 한 번만 증가
+         * (contentId가 없는 장소 단독 인증이면 스킵)
          */
-        contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
+        if (contentId != null) {
+            contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
+        }
 
         /*
          * 아티스트와 관련된 랭킹만
@@ -54,10 +57,12 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
 
             artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
 
-            contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
+            if (contentId != null) {
+                contentArtistVisitRankingRepository.increaseVerificationCount(contentId, artistId);
 
-            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
-                    new TargetId(locationId, contentId, artistId));
+                contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                        new TargetId(locationId, contentId, artistId));
+            }
         }
     }
 
@@ -71,7 +76,9 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
          */
         locationVisitRankingRepository.decreaseVerificationCount(locationId);
 
-        contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
+        if (contentId != null) {
+            contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
+        }
 
         /*
          * 방문 인증에 연결돼 있던
@@ -81,10 +88,12 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
 
             artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
 
-            contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
+            if (contentId != null) {
+                contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
 
-            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
-                    new TargetId(locationId, contentId, artistId));
+                contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                        new TargetId(locationId, contentId, artistId));
+            }
         }
     }
 
@@ -139,11 +148,15 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
     private void updateContentLocationRanking(
             Long locationId, Long previousContentId, Long updatedContentId) {
 
-        contentLocationVisitRankingRepository.decreaseVerificationCount(
-                locationId, previousContentId);
+        if (previousContentId != null) {
+            contentLocationVisitRankingRepository.decreaseVerificationCount(
+                    locationId, previousContentId);
+        }
 
-        contentLocationVisitRankingRepository.increaseVerificationCount(
-                locationId, updatedContentId);
+        if (updatedContentId != null) {
+            contentLocationVisitRankingRepository.increaseVerificationCount(
+                    locationId, updatedContentId);
+        }
     }
 
     /**
@@ -174,20 +187,28 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
             Long updatedContentId,
             Set<Long> updatedArtistIds) {
 
-        for (Long artistId : previousArtistIds) {
-            contentArtistVisitRankingRepository.decreaseVerificationCount(
-                    previousContentId, artistId);
+        if (previousContentId != null) {
+            for (Long artistId : previousArtistIds) {
+                contentArtistVisitRankingRepository.decreaseVerificationCount(
+                        previousContentId, artistId);
+            }
         }
 
-        for (Long artistId : updatedArtistIds) {
-            contentArtistVisitRankingRepository.increaseVerificationCount(
-                    updatedContentId, artistId);
+        if (updatedContentId != null) {
+            for (Long artistId : updatedArtistIds) {
+                contentArtistVisitRankingRepository.increaseVerificationCount(
+                        updatedContentId, artistId);
+            }
         }
     }
 
     /** Content는 그대로이고 Artist만 변경된 경우 */
     private void updateContentArtistRankingsWhenArtistChanged(
             Long contentId, Set<Long> removedArtistIds, Set<Long> addedArtistIds) {
+
+        if (contentId == null) {
+            return;
+        }
 
         for (Long artistId : removedArtistIds) {
             contentArtistVisitRankingRepository.decreaseVerificationCount(contentId, artistId);
@@ -210,20 +231,28 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
             Long updatedContentId,
             Set<Long> updatedArtistIds) {
 
-        for (Long artistId : previousArtistIds) {
-            contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
-                    new TargetId(locationId, previousContentId, artistId));
+        if (previousContentId != null) {
+            for (Long artistId : previousArtistIds) {
+                contentArtistLocationVisitRankingRepository.decreaseVerificationCount(
+                        new TargetId(locationId, previousContentId, artistId));
+            }
         }
 
-        for (Long artistId : updatedArtistIds) {
-            contentArtistLocationVisitRankingRepository.increaseVerificationCount(
-                    new TargetId(locationId, updatedContentId, artistId));
+        if (updatedContentId != null) {
+            for (Long artistId : updatedArtistIds) {
+                contentArtistLocationVisitRankingRepository.increaseVerificationCount(
+                        new TargetId(locationId, updatedContentId, artistId));
+            }
         }
     }
 
     /** Content는 그대로이고 Artist만 변경된 경우 */
     private void updateContentArtistLocationRankingsWhenArtistChanged(
             Long locationId, Long contentId, Set<Long> removedArtistIds, Set<Long> addedArtistIds) {
+
+        if (contentId == null) {
+            return;
+        }
 
         for (Long artistId : removedArtistIds) {
             contentArtistLocationVisitRankingRepository.decreaseVerificationCount(

@@ -20,12 +20,18 @@ public class ContentVisitVerificationEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCreatedEvent event) {
+        if (event.contentId() == null) {
+            return;
+        }
         contentRepository.increseVerificationCount(event.contentId());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCanceledEvent event) {
+        if (event.contentId() == null) {
+            return;
+        }
         contentRepository.decreseVerificationCount(event.contentId());
     }
 
@@ -35,7 +41,11 @@ public class ContentVisitVerificationEventListener {
         if (Objects.equals(event.previousContentId(), event.updatedContentId())) {
             return;
         }
-        contentRepository.decreseVerificationCount(event.previousContentId());
-        contentRepository.increseVerificationCount(event.updatedContentId());
+        if (event.previousContentId() != null) {
+            contentRepository.decreseVerificationCount(event.previousContentId());
+        }
+        if (event.updatedContentId() != null) {
+            contentRepository.increseVerificationCount(event.updatedContentId());
+        }
     }
 }

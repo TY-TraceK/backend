@@ -47,7 +47,8 @@ class VisitVerificationEventListenerTest {
     void handleCanceledEvent() {
         // given
         VisitVerificationCanceledEvent event =
-                new VisitVerificationCanceledEvent(100L, 200L, LocalDateTime.now(), 1L, 3L, 2L);
+                new VisitVerificationCanceledEvent(
+                        100L, 200L, LocalDateTime.now(), 1L, Set.of(3L), 2L);
 
         // when
         listener.handle(event);
