@@ -49,7 +49,7 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
     }
 
     private boolean isVisitZoneWithIn(Double latitude, Double longitude, Long locationId) {
-        return !locationQueryService.isWithinDistance(latitude, longitude, 100, locationId);
+        return locationQueryService.isWithinDistance(latitude, longitude, 100, locationId);
     }
 
     @Transactional

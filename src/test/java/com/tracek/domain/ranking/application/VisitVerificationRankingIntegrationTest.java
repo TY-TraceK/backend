@@ -87,7 +87,9 @@ class VisitVerificationRankingIntegrationTest {
         given(episodeQueryService.isRelatedContentAndArtist(anyLong(), anyLong(), anyLong()))
                 .willReturn(true);
         given(episodeQueryService.isRelatedContent(anyLong(), anyLong())).willReturn(true);
-        given(locationQueryService.isWithinDistance(anyDouble(), anyDouble(), anyLong(), anyLong()))
+        given(
+                        locationQueryService.isWithinDistance(
+                                anyDouble(), anyDouble(), anyDouble(), anyLong()))
                 .willReturn(true);
 
         initializeRankingRows();
