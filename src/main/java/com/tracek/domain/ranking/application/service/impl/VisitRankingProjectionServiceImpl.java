@@ -44,13 +44,17 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
          * location + content 역시
          * 방문 인증 1건 기준으로 한 번만 증가
          */
+        if (contentId == null) {
+            return;
+        }
+
         contentLocationVisitRankingRepository.increaseVerificationCount(locationId, contentId);
 
         /*
          * 아티스트와 관련된 랭킹만
          * 선택한 아티스트 각각 반영
          */
-        for (Long artistId : artistIds) {
+        for (Long artistId : artistIds == null ? Set.<Long>of() : artistIds) {
 
             artistLocationVisitRankingRepository.increaseVerificationCount(locationId, artistId);
 
@@ -71,13 +75,17 @@ public class VisitRankingProjectionServiceImpl implements VisitRankingProjection
          */
         locationVisitRankingRepository.decreaseVerificationCount(locationId);
 
+        if (contentId == null) {
+            return;
+        }
+
         contentLocationVisitRankingRepository.decreaseVerificationCount(locationId, contentId);
 
         /*
          * 방문 인증에 연결돼 있던
          * 모든 아티스트 랭킹 감소
          */
-        for (Long artistId : artistIds) {
+        for (Long artistId : artistIds == null ? Set.<Long>of() : artistIds) {
 
             artistLocationVisitRankingRepository.decreaseVerificationCount(locationId, artistId);
 
