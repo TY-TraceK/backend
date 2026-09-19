@@ -23,7 +23,10 @@ public interface LocationJpaRepository extends JpaRepository<Location, Long> {
                     "SELECT * FROM location l "
                             + "WHERE (6371000 * acos(cos(radians(:#{#userLocation.latitude})) * cos(radians(l.latitude)) "
                             + "* cos(radians(l.longitude) - radians(:#{#userLocation.longitude})) + sin(radians(:#{#userLocation.latitude})) "
-                            + "* sin(radians(l.latitude)))) <= :radiusMeter",
+                            + "* sin(radians(l.latitude)))) <= :radiusMeter "
+                            + "ORDER BY (6371000 * acos(cos(radians(:#{#userLocation.latitude})) * cos(radians(l.latitude)) "
+                            + "* cos(radians(l.longitude) - radians(:#{#userLocation.longitude})) + sin(radians(:#{#userLocation.latitude})) "
+                            + "* sin(radians(l.latitude)))) ASC",
             nativeQuery = true)
     List<Location> findNearbyLocations(GeoLocation userLocation, double radiusMeter);
 
