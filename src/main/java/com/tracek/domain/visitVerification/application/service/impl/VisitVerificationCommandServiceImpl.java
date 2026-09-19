@@ -68,7 +68,8 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
                                 if (!isRelatedVerifiedTarget(
                                         command.locationId(), command.contentId(), artistId)) {
                                     throw new CustomException(
-                                            VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
+                                            VisitVerificationErrorCode
+                                                    .VISIT_VERIFICATION_NOT_FOUND);
                                 }
                             });
         }
