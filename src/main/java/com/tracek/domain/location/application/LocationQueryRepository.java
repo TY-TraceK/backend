@@ -147,6 +147,7 @@ public class LocationQueryRepository {
                         location.geoLocation.longitude.between(query.getSwLng(), query.getNeLng()),
                         eqCategory(query.getCategory()),
                         archivedByUser(query.isArchivedOnly(), userId))
+                .orderBy(location.totalVerificationCount.desc(), location.id.asc())
                 .limit(BOUNDS_RESULT_LIMIT)
                 .fetch();
     }
