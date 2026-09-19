@@ -10,6 +10,7 @@ import com.tracek.domain.location.domain.model.GeoLocation;
 import com.tracek.domain.visitVerification.application.service.VisitVerificationQueryService;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
 import com.tracek.domain.visitVerification.domain.repository.VisitVerificationRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,11 +63,11 @@ public class VisitVerificationQueryServiceImpl implements VisitVerificationQuery
     public VerificationLocationResult getVerificationLocationCandidates(
             double latitude, double longitude) {
         GeoLocation.validateRange(latitude, longitude);
-        if (!isInBusan(latitude, longitude)) {
-            return VerificationLocationResult.outsideBusan();
+        if (isInBusan(latitude, longitude)) {
+            return VerificationLocationResult.inBusan(List.of());
         }
-        return VerificationLocationResult.inBusan(
-                verificationLocationRepository.findVerificationLocationCandidates());
+        return new VerificationLocationResult(
+                false, verificationLocationRepository.findVerificationLocationCandidates());
     }
 
     private boolean isInBusan(double latitude, double longitude) {

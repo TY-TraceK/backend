@@ -282,8 +282,22 @@ class VisitVerificationQueryServiceImplTest {
     class GetVerificationLocationCandidatesTest {
 
         @Test
-        @DisplayName("부산 내부 좌표이면 지정 위치 후보를 반환한다.")
+        @DisplayName("부산 내부 좌표이면 true와 빈 위치 후보를 반환한다.")
         void getCandidates_inBusan() {
+            VerificationLocationCandidateResult candidate =
+                    new VerificationLocationCandidateResult(
+                            "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
+            VerificationLocationResult result =
+                    visitVerificationQueryService.getVerificationLocationCandidates(35.1796, 129.0756);
+
+            assertThat(result.isInBusan()).isTrue();
+            assertThat(result.locations()).isEmpty();
+            verify(verificationLocationRepository, never()).findVerificationLocationCandidates();
+        }
+
+        @Test
+        @DisplayName("부산 외부 좌표이면 false와 지정 위치 후보를 반환한다.")
+        void getCandidates_outsideBusan() {
             VerificationLocationCandidateResult candidate =
                     new VerificationLocationCandidateResult(
                             "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
@@ -291,22 +305,11 @@ class VisitVerificationQueryServiceImplTest {
                     .willReturn(List.of(candidate));
 
             VerificationLocationResult result =
-                    visitVerificationQueryService.getVerificationLocationCandidates(35.1796, 129.0756);
-
-            assertThat(result.isInBusan()).isTrue();
-            assertThat(result.locations()).containsExactly(candidate);
-            verify(verificationLocationRepository).findVerificationLocationCandidates();
-        }
-
-        @Test
-        @DisplayName("부산 외부 좌표이면 위치 후보를 조회하지 않고 빈 목록을 반환한다.")
-        void getCandidates_outsideBusan() {
-            VerificationLocationResult result =
                     visitVerificationQueryService.getVerificationLocationCandidates(37.5665, 126.9780);
 
             assertThat(result.isInBusan()).isFalse();
-            assertThat(result.locations()).isEmpty();
-            verify(verificationLocationRepository, never()).findVerificationLocationCandidates();
+            assertThat(result.locations()).containsExactly(candidate);
+            verify(verificationLocationRepository).findVerificationLocationCandidates();
         }
     }
 }
