@@ -67,7 +67,7 @@ class VisitVerificationCommandServiceImplTest {
         given(episodeQueryService.isRelatedContentAndArtist(anyLong(), anyLong(), anyLong()))
                 .willReturn(true);
 
-        given(locationQueryService.isWithinDistance(anyDouble(), anyDouble(), anyLong(), anyLong()))
+        given(locationQueryService.isWithinDistance(anyDouble(), anyDouble(), anyDouble(), anyLong()))
                 .willReturn(true);
     }
 
@@ -143,7 +143,7 @@ class VisitVerificationCommandServiceImplTest {
             // given
             given(
                             locationQueryService.isWithinDistance(
-                                    anyDouble(), anyDouble(), anyLong(), anyLong()))
+                                    anyDouble(), anyDouble(), anyDouble(), anyLong()))
                     .willReturn(false);
 
             VisitVerificationCreateCommand command =
