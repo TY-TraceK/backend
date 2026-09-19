@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tracek.domain.fan.application.dto.result.FanTargetResult;
+import com.tracek.domain.fan.application.dto.result.MyFanResult;
 import com.tracek.domain.fan.application.service.FanCommandService;
 import com.tracek.domain.fan.application.service.FanQueryService;
 import com.tracek.domain.fan.presentaion.dto.response.MyFanResponse;
@@ -107,7 +108,8 @@ class FanControllerTest {
                         .totalVerificationCount(80L)
                         .build();
 
-        List<List<FanTargetResult>> results = List.of(List.of(content), List.of(artist));
+        MyFanResult results =
+                MyFanResult.builder().artists(List.of(artist)).contents(List.of(content)).build();
 
         when(fanQueryService.getMyFanTargets(userId)).thenReturn(results);
 

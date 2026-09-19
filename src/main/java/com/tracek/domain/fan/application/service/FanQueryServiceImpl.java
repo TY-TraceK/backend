@@ -7,6 +7,7 @@ import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
 import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
 import com.tracek.domain.fan.application.dto.result.FanTargetResult;
+import com.tracek.domain.fan.application.dto.result.MyFanResult;
 import com.tracek.domain.fan.domain.model.ArtistFan;
 import com.tracek.domain.fan.domain.model.ArtistFanId;
 import com.tracek.domain.fan.domain.model.ContentFan;
@@ -27,7 +28,7 @@ public class FanQueryServiceImpl implements FanQueryService {
     private final ArtistQueryService artistQueryService;
 
     @Override
-    public List<List<FanTargetResult>> getMyFanTargets(Long userId) {
+    public MyFanResult getMyFanTargets(Long userId) {
         List<ContentResult> contentResults =
                 contentQueryService.getContentsByIds(
                         contentFanRepository.findAllByUserId(userId).stream()
@@ -38,9 +39,10 @@ public class FanQueryServiceImpl implements FanQueryService {
                         artistFanRepository.findAllByUserId(userId).stream()
                                 .map(ArtistFan::getArtistId)
                                 .toList());
-        return List.of(
-                contentResults.stream().map(FanTargetResult::from).toList(),
-                artistResults.stream().map(FanTargetResult::from).toList());
+        return MyFanResult.builder()
+                .artists(artistResults.stream().map(FanTargetResult::from).toList())
+                .contents(contentResults.stream().map(FanTargetResult::from).toList())
+                .build();
     }
 
     @Override

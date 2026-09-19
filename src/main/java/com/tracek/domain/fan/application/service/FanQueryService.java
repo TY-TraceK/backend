@@ -2,12 +2,11 @@ package com.tracek.domain.fan.application.service;
 
 import com.tracek.domain.fan.application.dto.result.ArtistFanViewResult;
 import com.tracek.domain.fan.application.dto.result.ContentFanViewResult;
-import com.tracek.domain.fan.application.dto.result.FanTargetResult;
-import java.util.List;
+import com.tracek.domain.fan.application.dto.result.MyFanResult;
 
 public interface FanQueryService {
 
-    List<List<FanTargetResult>> getMyFanTargets(Long userId);
+    MyFanResult getMyFanTargets(Long userId);
 
     Integer countArtistFansByUserId(Long userId);
 
