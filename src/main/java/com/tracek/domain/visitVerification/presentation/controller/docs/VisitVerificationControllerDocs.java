@@ -1,10 +1,12 @@
 package com.tracek.domain.visitVerification.presentation.controller.docs;
 
 import com.tracek.domain.visitVerification.presentation.dto.VisitVerificationCancelResponse;
+import com.tracek.domain.visitVerification.presentation.dto.request.VerificationLocationRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationCreateRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationHistoriesSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationStatusSearchRequest;
 import com.tracek.domain.visitVerification.presentation.dto.request.VisitVerificationUpdateRequest;
+import com.tracek.domain.visitVerification.presentation.dto.response.VerificationLocationResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationCreateResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationHistoriesResponse;
 import com.tracek.domain.visitVerification.presentation.dto.response.VisitVerificationStatusSearchResponse;
@@ -174,4 +176,10 @@ public interface VisitVerificationControllerDocs {
             @Valid @Parameter(required = false) @ParameterObject
                     VisitVerificationHistoriesSearchRequest
                             visitVerificationHistoriesSearchRequest);
+
+    @Operation(
+            summary = "부산 방문 인증 위치 후보 조회",
+            description = "사용자 좌표가 부산 범위에 포함되는지 확인하고, 부산 내부이면 방문 인증용 위치 후보를 반환합니다.")
+    ApiResponse<VerificationLocationResponse> getVerificationLocationCandidates(
+            @Valid @ParameterObject VerificationLocationRequest request);
 }

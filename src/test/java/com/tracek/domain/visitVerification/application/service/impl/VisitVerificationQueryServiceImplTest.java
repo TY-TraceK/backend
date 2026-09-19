@@ -4,13 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationHistoriesSearchCondition;
 import com.tracek.domain.visitVerification.application.dto.condition.VisitVerificationStatusSearchCondition;
+import com.tracek.domain.visitVerification.application.dto.result.VerificationLocationCandidateResult;
+import com.tracek.domain.visitVerification.application.dto.result.VerificationLocationResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesIndividualResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationHistoriesResult;
 import com.tracek.domain.visitVerification.application.dto.result.VisitVerificationStatusSearchResult;
+import com.tracek.domain.visitVerification.application.repository.VerificationLocationRepository;
 import com.tracek.domain.visitVerification.domain.enums.VisitVerificationStatus;
 import com.tracek.domain.visitVerification.domain.model.VisitVerification;
 import com.tracek.domain.visitVerification.domain.model.VisitVerificationHistoryCriteria;
@@ -35,6 +39,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 class VisitVerificationQueryServiceImplTest {
 
     @Mock private VisitVerificationRepository visitVerificationRepository;
+
+    @Mock private VerificationLocationRepository verificationLocationRepository;
 
     @InjectMocks private VisitVerificationQueryServiceImpl visitVerificationQueryService;
 
@@ -269,6 +275,44 @@ class VisitVerificationQueryServiceImplTest {
                                                             .equals(searchCondition.endDate())
                                                     && criteria.size()
                                                             .equals(searchCondition.size())));
+        }
+    }
+
+    @Nested
+    @DisplayName("방문 인증 위치 후보 조회 테스트")
+    class GetVerificationLocationCandidatesTest {
+
+        @Test
+        @DisplayName("부산 내부 좌표이면 true와 빈 위치 후보를 반환한다.")
+        void getCandidates_inBusan() {
+            VerificationLocationCandidateResult candidate =
+                    new VerificationLocationCandidateResult(
+                            "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
+            VerificationLocationResult result =
+                    visitVerificationQueryService.getVerificationLocationCandidates(
+                            35.1796, 129.0756);
+
+            assertThat(result.isInBusan()).isTrue();
+            assertThat(result.locations()).isEmpty();
+            verify(verificationLocationRepository, never()).findVerificationLocationCandidates();
+        }
+
+        @Test
+        @DisplayName("부산 외부 좌표이면 false와 지정 위치 후보를 반환한다.")
+        void getCandidates_outsideBusan() {
+            VerificationLocationCandidateResult candidate =
+                    new VerificationLocationCandidateResult(
+                            "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
+            given(verificationLocationRepository.findVerificationLocationCandidates())
+                    .willReturn(List.of(candidate));
+
+            VerificationLocationResult result =
+                    visitVerificationQueryService.getVerificationLocationCandidates(
+                            37.5665, 126.9780);
+
+            assertThat(result.isInBusan()).isFalse();
+            assertThat(result.locations()).containsExactly(candidate);
+            verify(verificationLocationRepository).findVerificationLocationCandidates();
         }
     }
 }
