@@ -30,10 +30,11 @@ public class VisitVerificationTarget {
     @Column(name = "artist_id")
     private Set<Long> artistIds = new HashSet<>();
 
-    @Column(nullable = false)
+    @Column
     private Long contentId;
 
     public static VisitVerificationTarget of(Collection<Long> artistIds, Long contentId) {
-        return new VisitVerificationTarget(new HashSet<>(artistIds), contentId);
+        return new VisitVerificationTarget(
+                artistIds == null ? new HashSet<>() : new HashSet<>(artistIds), contentId);
     }
 }

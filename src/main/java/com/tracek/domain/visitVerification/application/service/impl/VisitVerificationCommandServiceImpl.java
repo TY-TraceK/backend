@@ -61,15 +61,17 @@ public class VisitVerificationCommandServiceImpl implements VisitVerificationCom
             throw new CustomException(VisitVerificationErrorCode.ALREADY_VERIFIED);
         }
         // 연관되어 있는 지 확인
-        command.artistIds()
-                .forEach(
-                        (artistId) -> {
-                            if (!isRelatedVerifiedTarget(
-                                    command.locationId(), command.contentId(), artistId)) {
-                                throw new CustomException(
-                                        VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
-                            }
-                        });
+        if (command.contentId() != null && command.artistIds() != null) {
+            command.artistIds()
+                    .forEach(
+                            artistId -> {
+                                if (!isRelatedVerifiedTarget(
+                                        command.locationId(), command.contentId(), artistId)) {
+                                    throw new CustomException(
+                                            VisitVerificationErrorCode.VISIT_VERIFICATION_NOT_FOUND);
+                                }
+                            });
+        }
 
         // 방문 가능한 위치인지 확인
         if (!isVisitZoneWithIn(command.latitude(), command.longitude(), command.locationId())) {
