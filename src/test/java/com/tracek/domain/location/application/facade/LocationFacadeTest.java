@@ -2,6 +2,7 @@ package com.tracek.domain.location.application.facade;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.tracek.domain.artist.application.dto.ArtistResult;
 import com.tracek.domain.artist.application.service.ArtistQueryService;
@@ -15,10 +16,14 @@ import com.tracek.domain.content.domain.model.Content;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.image.application.service.ImageQueryService;
 import com.tracek.domain.image.domain.model.Image;
+import com.tracek.domain.location.application.client.TourImageClient;
+import com.tracek.domain.location.application.client.TourLocationDetailClient;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.application.dto.LocationTopSavedResult;
+import com.tracek.domain.location.application.dto.TourImageResult;
+import com.tracek.domain.location.application.dto.TourLocationDetailResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.ImageLocation;
 import com.tracek.domain.location.domain.model.Location;
@@ -49,6 +54,8 @@ class LocationFacadeTest {
     @Mock private EpisodeQueryService episodeQueryService;
     @Mock private VisitRankingQueryService visitRankingQueryService;
     @Mock private ContentArtistQueryService contentArtistQueryService;
+    @Mock private TourImageClient tourImageClient;
+    @Mock private TourLocationDetailClient tourLocationDetailClient;
 
     private LocationFacade locationFacade;
 
@@ -62,7 +69,18 @@ class LocationFacadeTest {
                         imageQueryService,
                         episodeQueryService,
                         visitRankingQueryService,
-                        contentArtistQueryService);
+                        contentArtistQueryService,
+                        tourImageClient,
+                        tourLocationDetailClient);
+    }
+
+    private void stubEmptyRelatedRankings(RankingCondition condition) {
+        given(visitRankingQueryService.getContentsByLocation(1L, condition))
+                .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
+        given(visitRankingQueryService.getArtistsByLocation(1L, condition))
+                .willReturn(new RankingSliceResult<>(List.of(), null, null, false));
+        given(contentQueryService.getContentsByIds(List.of())).willReturn(List.of());
+        given(artistQueryService.getArtistsByIds(List.of())).willReturn(List.of());
     }
 
     @Test
@@ -120,6 +138,7 @@ class LocationFacadeTest {
         assertThat(result.getContents().get(0).getContentTitle()).isEqualTo("궁궐 브이로그");
         assertThat(result.getArtists()).hasSize(1);
         assertThat(result.getArtists().get(0).getArtistName()).isEqualTo("아이유");
+        verifyNoInteractions(tourImageClient, tourLocationDetailClient);
     }
 
     @Test
@@ -141,6 +160,90 @@ class LocationFacadeTest {
 
         assertThat(result.getImages()).isEmpty();
         assertThat(result.getContents()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("TOUR_API 장소는 실시간 API로 사진/개요/전화번호를 받아온다")
+    void getLocationDetails_tourApiSuccess_usesLiveData() {
+        Location location =
+                LocationTestFixture.newTourApiLocation(
+                        1L, "부산타워", "ATTRACTION", 100L, 1277679L, "DB 개요", "051-000-0000");
+        RankingCondition condition = new RankingCondition(null, null, 20);
+
+        given(locationQueryService.getLocationEntity(1L)).willReturn(location);
+        given(tourImageClient.getImages(1277679L))
+                .willReturn(
+                        List.of(
+                                TourImageResult.of(
+                                        "http://tour.api/img1.jpg", "http://tour.api/img1_s.jpg"),
+                                TourImageResult.of(
+                                        "http://tour.api/img2.jpg", "http://tour.api/img2_s.jpg")));
+        given(tourLocationDetailClient.getDetail(1277679L))
+                .willReturn(TourLocationDetailResult.of("실시간 API 개요", "051-111-2222"));
+        stubEmptyRelatedRankings(condition);
+
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition, null);
+
+        assertThat(result.getImages()).hasSize(2);
+        assertThat(result.getImages().get(0).getImageId()).isNull();
+        assertThat(result.getImages().get(0).getImageUrl()).isEqualTo("http://tour.api/img1.jpg");
+        assertThat(result.getImages().get(0).getIsMain()).isTrue();
+        assertThat(result.getImages().get(1).getIsMain()).isFalse();
+        assertThat(result.getLocationInfo().getOverview()).isEqualTo("실시간 API 개요");
+        assertThat(result.getLocationInfo().getTel()).isEqualTo("051-111-2222");
+        verifyNoInteractions(imageQueryService);
+    }
+
+    @Test
+    @DisplayName("TOUR_API 장소라도 API 호출이 실패하면 DB 값으로 폴백한다")
+    void getLocationDetails_tourApiFailure_fallsBackToDb() {
+        Location location =
+                LocationTestFixture.newTourApiLocation(
+                        1L, "부산타워", "ATTRACTION", 100L, 1277679L, "DB 개요", "051-000-0000");
+        Image image = Image.create("http://image.com/busantower.jpg");
+        ReflectionTestUtils.setField(image, "id", 5L);
+        ImageLocation.create(location, image, 1, true);
+        RankingCondition condition = new RankingCondition(null, null, 20);
+
+        given(locationQueryService.getLocationEntity(1L)).willReturn(location);
+        given(tourImageClient.getImages(1277679L))
+                .willThrow(new IllegalStateException("TourAPI 호출 실패"));
+        given(tourLocationDetailClient.getDetail(1277679L))
+                .willThrow(new IllegalStateException("TourAPI 호출 실패"));
+        given(imageQueryService.getImagesByIds(List.of(5L)))
+                .willReturn(List.of(ImageResult.from(image)));
+        stubEmptyRelatedRankings(condition);
+
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition, null);
+
+        assertThat(result.getImages()).hasSize(1);
+        assertThat(result.getImages().get(0).getImageId()).isEqualTo(5L);
+        assertThat(result.getImages().get(0).getImageUrl())
+                .isEqualTo("http://image.com/busantower.jpg");
+        assertThat(result.getLocationInfo().getOverview()).isEqualTo("DB 개요");
+        assertThat(result.getLocationInfo().getTel()).isEqualTo("051-000-0000");
+    }
+
+    @Test
+    @DisplayName("API 응답 중 일부 필드가 비어있으면 그 필드만 DB 값으로 채운다")
+    void getLocationDetails_tourApiPartialBlank_fallsBackPerField() {
+        Location location =
+                LocationTestFixture.newTourApiLocation(
+                        1L, "부산타워", "ATTRACTION", 100L, 1277679L, "DB 개요", "051-000-0000");
+        RankingCondition condition = new RankingCondition(null, null, 20);
+
+        given(locationQueryService.getLocationEntity(1L)).willReturn(location);
+        given(tourImageClient.getImages(1277679L)).willReturn(List.of());
+        given(tourLocationDetailClient.getDetail(1277679L))
+                .willReturn(TourLocationDetailResult.of("", "051-111-2222"));
+        given(imageQueryService.getImagesByIds(List.of())).willReturn(List.of());
+        stubEmptyRelatedRankings(condition);
+
+        LocationDetailResult result = locationFacade.getLocationDetails(1L, condition, null);
+
+        assertThat(result.getImages()).isEmpty();
+        assertThat(result.getLocationInfo().getOverview()).isEqualTo("DB 개요");
+        assertThat(result.getLocationInfo().getTel()).isEqualTo("051-111-2222");
     }
 
     @Test

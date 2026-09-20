@@ -17,4 +17,20 @@ public class LocationTestFixture {
                 location, "mainImageUrl", ImageUrl.from("http://example.com/location.jpg"));
         return location;
     }
+
+    public static Location newTourApiLocation(
+            Long id,
+            String name,
+            String category,
+            Long likeCount,
+            Long externalContentId,
+            String overview,
+            String tel) {
+        Location location = newLocation(id, name, category, likeCount);
+        ReflectionTestUtils.setField(location, "sourceType", "TOUR_API");
+        ReflectionTestUtils.setField(location, "externalContentId", externalContentId);
+        ReflectionTestUtils.setField(location, "overview", overview);
+        ReflectionTestUtils.setField(location, "tel", tel);
+        return location;
+    }
 }
