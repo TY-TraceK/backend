@@ -9,10 +9,14 @@ import com.tracek.domain.content.application.service.ContentQueryService;
 import com.tracek.domain.content.application.service.EpisodeQueryService;
 import com.tracek.domain.image.application.dto.ImageResult;
 import com.tracek.domain.image.application.service.ImageQueryService;
+import com.tracek.domain.location.application.client.TourImageClient;
+import com.tracek.domain.location.application.client.TourLocationDetailClient;
 import com.tracek.domain.location.application.dto.LocationDetailResult;
 import com.tracek.domain.location.application.dto.LocationRelatedInfoResult;
 import com.tracek.domain.location.application.dto.LocationSummaryResult;
 import com.tracek.domain.location.application.dto.LocationTopSavedResult;
+import com.tracek.domain.location.application.dto.TourImageResult;
+import com.tracek.domain.location.application.dto.TourLocationDetailResult;
 import com.tracek.domain.location.application.service.LocationQueryService;
 import com.tracek.domain.location.domain.model.Location;
 import com.tracek.domain.ranking.application.dto.condition.RankingCondition;
@@ -24,14 +28,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class LocationFacade {
+    private static final String TOUR_API_SOURCE_TYPE = "TOUR_API";
+
     private final LocationQueryService locationQueryService;
     private final ContentQueryService contentQueryService;
     private final ArtistQueryService artistQueryService;
@@ -39,6 +48,8 @@ public class LocationFacade {
     private final EpisodeQueryService episodeQueryService;
     private final VisitRankingQueryService visitRankingQueryService;
     private final ContentArtistQueryService contentArtistQueryService;
+    private final TourImageClient tourImageClient;
+    private final TourLocationDetailClient tourLocationDetailClient;
 
     // 메인 관광지 상세 정보 조회 (플랫 구조 - 연관 콘텐츠, 아티스트)
     public LocationDetailResult getLocationDetails(
@@ -46,25 +57,7 @@ public class LocationFacade {
         // 관광지 엔티티 & 사진 URL 목록 조회
         Location location = locationQueryService.getLocationEntity(locationId);
 
-        // IN 절 Batch Query로 N+1 문제 최적화 조회
-        List<Long> imageIds =
-                location.getImageLocations().stream()
-                        .map(m -> m.getImage().getId())
-                        .distinct()
-                        .toList();
-        Map<Long, ImageResult> imageResultMap =
-                imageQueryService.getImagesByIds(imageIds).stream()
-                        .collect(Collectors.toMap(ImageResult::getId, imageResult -> imageResult));
-
-        List<LocationDetailResult.LocationImageResult> imageResults =
-                location.getImageLocations().stream()
-                        .map(
-                                m ->
-                                        LocationDetailResult.LocationImageResult.of(
-                                                imageResultMap.get(m.getImage().getId()),
-                                                m.getIsMain(),
-                                                m.getDisplayOrder()))
-                        .toList();
+        List<LocationDetailResult.LocationImageResult> imageResults = getImageResults(location);
 
         // 장소 -> 연관된 콘텐츠 조회
         RankingSliceResult<RelatedContentRankingResult> relatedContentRankingResult =
@@ -134,9 +127,19 @@ public class LocationFacade {
 
         boolean isLiked = locationQueryService.isLikedByUser(userId, locationId);
         boolean isArchived = locationQueryService.isArchivedByUser(userId, locationId);
+        TourLocationDetailResult tourDetail = getTourLocationDetail(location);
+        String overview =
+                hasText(tourDetail == null ? null : tourDetail.getOverview())
+                        ? tourDetail.getOverview()
+                        : location.getOverview();
+        String tel =
+                hasText(tourDetail == null ? null : tourDetail.getTel())
+                        ? tourDetail.getTel()
+                        : location.getTel();
 
         return LocationDetailResult.of(
-                LocationDetailResult.LocationInfo.from(location, isLiked, isArchived),
+                LocationDetailResult.LocationInfo.from(
+                        location, isLiked, isArchived, overview, tel),
                 imageResults,
                 contentResults,
                 artistResults);
@@ -271,5 +274,75 @@ public class LocationFacade {
                                     location, relatedContentTitles, isArchived);
                         })
                 .toList();
+    }
+
+    // 사진 정보: TourAPI 실시간 호출 우선, 실패(또는 대상 아님) 시 DB(ImageLocation)로 폴백
+    private List<LocationDetailResult.LocationImageResult> getImageResults(Location location) {
+        if (TOUR_API_SOURCE_TYPE.equals(location.getSourceType())
+                && location.getExternalContentId() != null) {
+            try {
+                List<TourImageResult> tourImages =
+                        tourImageClient.getImages(location.getExternalContentId());
+                if (!tourImages.isEmpty()) {
+                    return IntStream.range(0, tourImages.size())
+                            .mapToObj(
+                                    i ->
+                                            LocationDetailResult.LocationImageResult.ofTourApi(
+                                                    tourImages.get(i), i == 0, i + 1))
+                            .toList();
+                }
+            } catch (Exception e) {
+                log.warn(
+                        "TourAPI 이미지 조회 실패, DB로 폴백합니다. locationId={}, externalContentId={}",
+                        location.getId(),
+                        location.getExternalContentId(),
+                        e);
+            }
+        }
+        return getImageResultsFromDb(location);
+    }
+
+    private List<LocationDetailResult.LocationImageResult> getImageResultsFromDb(
+            Location location) {
+        // IN 절 Batch Query로 N+1 문제 최적화 조회
+        List<Long> imageIds =
+                location.getImageLocations().stream()
+                        .map(m -> m.getImage().getId())
+                        .distinct()
+                        .toList();
+        Map<Long, ImageResult> imageResultMap =
+                imageQueryService.getImagesByIds(imageIds).stream()
+                        .collect(Collectors.toMap(ImageResult::getId, imageResult -> imageResult));
+
+        return location.getImageLocations().stream()
+                .map(
+                        m ->
+                                LocationDetailResult.LocationImageResult.of(
+                                        imageResultMap.get(m.getImage().getId()),
+                                        m.getIsMain(),
+                                        m.getDisplayOrder()))
+                .toList();
+    }
+
+    // 개요/전화번호: TourAPI(detailCommon2) 실시간 호출 우선, 실패(또는 대상 아님) 시 null 반환 -> 호출부에서 DB 값으로 폴백
+    private TourLocationDetailResult getTourLocationDetail(Location location) {
+        if (!TOUR_API_SOURCE_TYPE.equals(location.getSourceType())
+                || location.getExternalContentId() == null) {
+            return null;
+        }
+        try {
+            return tourLocationDetailClient.getDetail(location.getExternalContentId());
+        } catch (Exception e) {
+            log.warn(
+                    "TourAPI 상세 정보 조회 실패, DB로 폴백합니다. locationId={}, externalContentId={}",
+                    location.getId(),
+                    location.getExternalContentId(),
+                    e);
+            return null;
+        }
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }
