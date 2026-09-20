@@ -21,19 +21,13 @@ public class ArtistVisitVerificationEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCreatedEvent event) {
-        if (event.artistId() == null) {
-            return;
-        }
-        artistRepository.increseVerificationCount(event.artistId());
+        event.artistIds().forEach(artistRepository::increseVerificationCount);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(VisitVerificationCanceledEvent event) {
-        if (event.artistId() == null) {
-            return;
-        }
-        artistRepository.decreseVerificationCount(event.artistId());
+        event.artistIds().forEach(artistRepository::decreseVerificationCount);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

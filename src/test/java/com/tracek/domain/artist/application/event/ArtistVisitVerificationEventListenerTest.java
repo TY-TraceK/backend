@@ -32,7 +32,7 @@ class ArtistVisitVerificationEventListenerTest {
     @DisplayName("방문 인증 생성 이벤트를 받으면 해당 아티스트의 totalVerificationCount를 증가시킨다")
     void handle_createdEvent() {
         VisitVerificationCreatedEvent event =
-                VisitVerificationCreatedEvent.builder().artistId(1L).build();
+                VisitVerificationCreatedEvent.builder().artistIds(Set.of(1L)).build();
 
         listener.handle(event);
 
@@ -43,7 +43,7 @@ class ArtistVisitVerificationEventListenerTest {
     @DisplayName("방문 인증 취소 이벤트를 받으면 해당 아티스트의 totalVerificationCount를 감소시킨다")
     void handle_canceledEvent() {
         VisitVerificationCanceledEvent event =
-                VisitVerificationCanceledEvent.builder().artistId(1L).build();
+                VisitVerificationCanceledEvent.builder().artistIds(Set.of(1L)).build();
 
         listener.handle(event);
 
@@ -51,10 +51,10 @@ class ArtistVisitVerificationEventListenerTest {
     }
 
     @Test
-    @DisplayName("아티스트 없이 방문 인증한 경우(artistId=null)에는 증가시키지 않는다")
+    @DisplayName("아티스트 없이 방문 인증한 경우(artistIds=빈 셋)에는 증가시키지 않는다")
     void handle_createdEvent_noArtist() {
         VisitVerificationCreatedEvent event =
-                VisitVerificationCreatedEvent.builder().artistId(null).build();
+                VisitVerificationCreatedEvent.builder().artistIds(Set.of()).build();
 
         listener.handle(event);
 
@@ -62,10 +62,10 @@ class ArtistVisitVerificationEventListenerTest {
     }
 
     @Test
-    @DisplayName("아티스트 없이 방문 인증을 취소한 경우(artistId=null)에는 감소시키지 않는다")
+    @DisplayName("아티스트 없이 방문 인증을 취소한 경우(artistIds=빈 셋)에는 감소시키지 않는다")
     void handle_canceledEvent_noArtist() {
         VisitVerificationCanceledEvent event =
-                VisitVerificationCanceledEvent.builder().artistId(null).build();
+                VisitVerificationCanceledEvent.builder().artistIds(Set.of()).build();
 
         listener.handle(event);
 
