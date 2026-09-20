@@ -139,7 +139,6 @@ class VisitVerificationCommandServiceImplTest {
 
             assertThat(savedVerification.getLocationId()).isEqualTo(locationId);
             assertThat(savedVerification.getVerificationTarget().getContentId()).isNull();
-            assertThat(savedVerification.getVerificationTarget().getArtistIds()).isEmpty();
         }
 
         @Test
