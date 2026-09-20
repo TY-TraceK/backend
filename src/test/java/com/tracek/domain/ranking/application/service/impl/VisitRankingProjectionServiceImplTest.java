@@ -72,6 +72,32 @@ class VisitRankingProjectionServiceImplTest {
     }
 
     @Test
+    @DisplayName("장소 단독 방문 인증은 로케이션 랭킹만 증가한다")
+    void increaseLocationOnly() {
+        service.increase(1L, null, Set.of());
+
+        verify(locationVisitRankingRepository).increaseVerificationCount(1L);
+        verifyNoInteractions(
+                artistLocationVisitRankingRepository,
+                contentLocationVisitRankingRepository,
+                contentArtistVisitRankingRepository,
+                contentArtistLocationVisitRankingRepository);
+    }
+
+    @Test
+    @DisplayName("장소 단독 방문 인증 취소는 로케이션 랭킹만 감소한다")
+    void decreaseLocationOnly() {
+        service.decrease(1L, null, Set.of());
+
+        verify(locationVisitRankingRepository).decreaseVerificationCount(1L);
+        verifyNoInteractions(
+                artistLocationVisitRankingRepository,
+                contentLocationVisitRankingRepository,
+                contentArtistVisitRankingRepository,
+                contentArtistLocationVisitRankingRepository);
+    }
+
+    @Test
     @DisplayName("방문 인증 취소 시 모든 관련 랭킹을 감소한다")
     void decrease() {
         // given

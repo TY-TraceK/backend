@@ -114,6 +114,37 @@ class VisitVerificationControllerTest {
         }
 
         @Test
+        @DisplayName("성공: 장소만 선택한 요청도 방문 인증을 생성한다.")
+        void createVisitVerification_locationOnly_success() throws Exception {
+            VisitVerificationCreateRequest request =
+                    VisitVerificationCreateRequest.builder()
+                            .locationId(100L)
+                            .latitude(35.123456)
+                            .longitude(128.123456)
+                            .build();
+
+            VisitVerificationCreateResult mockResult =
+                    VisitVerificationCreateResult.builder()
+                            .visitVerificationId(10L)
+                            .visitVerificationStatus("VALID")
+                            .visitVerifiedAt(LocalDateTime.of(2026, 8, 12, 12, 0, 0))
+                            .build();
+
+            given(
+                            visitVerificationService.createVisitVerification(
+                                    any(VisitVerificationCreateCommand.class)))
+                    .willReturn(mockResult);
+
+            mockMvc.perform(
+                            post("/api/visit-verifications")
+                                    .with(authentication(mockAuthentication))
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
         @DisplayName("실패 (@Valid): 필수 필드가 누락되면 400 Bad Request를 반환한다.")
         void createVisitVerification_fail_validation() throws Exception {
 
