@@ -286,8 +286,13 @@ class VisitVerificationQueryServiceImplTest {
         @DisplayName("부산 내부 좌표이면 true와 빈 위치 후보를 반환한다.")
         void getCandidates_inBusan() {
             VerificationLocationCandidateResult candidate =
-                    new VerificationLocationCandidateResult(
-                            "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
+                    VerificationLocationCandidateResult.builder()
+                            .name("부산 구 백제병원")
+                            .latitude(35.115)
+                            .longitude(129.04)
+                            .imageUrl("https://example.com/location.jpg")
+                            .description("다양한 미디어를 만나보세요.")
+                            .build();
             VerificationLocationResult result =
                     visitVerificationQueryService.getVerificationLocationCandidates(
                             35.1796, 129.0756);
@@ -301,8 +306,13 @@ class VisitVerificationQueryServiceImplTest {
         @DisplayName("부산 외부 좌표이면 false와 지정 위치 후보를 반환한다.")
         void getCandidates_outsideBusan() {
             VerificationLocationCandidateResult candidate =
-                    new VerificationLocationCandidateResult(
-                            "부산 구 백제병원", 35.115, 129.04, "https://example.com/location.jpg");
+                    VerificationLocationCandidateResult.builder()
+                            .name("부산 구 백제병원")
+                            .latitude(35.115)
+                            .longitude(129.04)
+                            .imageUrl("https://example.com/location.jpg")
+                            .description("다양한 미디어를 만나보세요.")
+                            .build();
             given(verificationLocationRepository.findVerificationLocationCandidates())
                     .willReturn(List.of(candidate));
 

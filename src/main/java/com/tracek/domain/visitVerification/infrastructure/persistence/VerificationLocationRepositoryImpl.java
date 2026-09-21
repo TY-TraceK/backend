@@ -25,7 +25,15 @@ public class VerificationLocationRepositoryImpl implements VerificationLocationR
                             l.name,
                             l.geoLocation.latitude,
                             l.geoLocation.longitude,
-                            l.mainImageUrl.imageUrl
+                            l.mainImageUrl.imageUrl,
+                            case l.name
+                                when '부산사직종합운동장 사직야구장' then '다양한 미디어를 만나보세요.'
+                                when '부평깡통시장' then '다양한 미디어를 만나보세요.'
+                                when 'BIFF 광장' then '<서울촌놈> 촬영 아티스트를 만나보세요.'
+                                when '이바구길사진관' then '주변 장소를 둘러보세요.'
+                                when '청사포 철길 건너목' then '다양한 여행지를 둘러보세요.'
+                                else null
+                            end
                         )
                         from Location l
                         where l.name in :names
