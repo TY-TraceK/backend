@@ -49,6 +49,17 @@ public class LocationDetailResult {
         private Boolean isArchived;
 
         public static LocationInfo from(Location location, Boolean isLiked, Boolean isArchived) {
+            return from(location, isLiked, isArchived, location.getOverview(), location.getTel());
+        }
+
+        // TourAPI(detailCommon2) 실시간 조회 결과로 overview/tel을 대체할 때 사용.
+        // address/geoLocation은 방문 인증 거리 검증 등에 쓰이는 값이라 API로 덮어쓰지 않는다.
+        public static LocationInfo from(
+                Location location,
+                Boolean isLiked,
+                Boolean isArchived,
+                String overview,
+                String tel) {
             return new LocationInfo(
                     location.getId(),
                     location.getName(),
@@ -58,9 +69,9 @@ public class LocationDetailResult {
                     location.getMainImageUrl() == null
                             ? null
                             : location.getMainImageUrl().getImageUrl(),
-                    location.getTel(),
+                    tel,
                     location.getBusinessHours(),
-                    location.getOverview(),
+                    overview,
                     location.getExternalContentId(),
                     location.getSourceType(),
                     location.getArchiveCount(),
@@ -84,6 +95,13 @@ public class LocationDetailResult {
                 ImageResult imageResult, Boolean isMain, Integer displayOrder) {
             return new LocationImageResult(
                     imageResult.getId(), imageResult.getImageUrl(), isMain, displayOrder);
+        }
+
+        // TourAPI 실시간 조회 결과는 내부 Image 엔티티가 없으므로 imageId가 없다.
+        public static LocationImageResult ofTourApi(
+                TourImageResult tourImageResult, Boolean isMain, Integer displayOrder) {
+            return new LocationImageResult(
+                    null, tourImageResult.getImageUrl(), isMain, displayOrder);
         }
     }
 
