@@ -16,11 +16,7 @@ public record VerificationLocationResponse(
     }
 
     public record VerificationLocationCandidateResponse(
-            String name,
-            double latitude,
-            double longitude,
-            String imageUrl,
-            String description) {
+            String name, double latitude, double longitude, String imageUrl, String description) {
 
         private static VerificationLocationCandidateResponse from(
                 VerificationLocationCandidateResult result) {
