@@ -30,9 +30,6 @@ public class TourApiConfiguration {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
-        return builder.clone()
-                .baseUrl(properties.baseUrl())
-                .requestFactory(requestFactory)
-                .build();
+        return builder.clone().baseUrl(properties.baseUrl()).requestFactory(requestFactory).build();
     }
 }
