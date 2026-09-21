@@ -16,12 +16,16 @@ public record VerificationLocationResponse(
     }
 
     public record VerificationLocationCandidateResponse(
-            String name, double latitude, double longitude, String imageUrl) {
+            String name, double latitude, double longitude, String imageUrl, String description) {
 
         private static VerificationLocationCandidateResponse from(
                 VerificationLocationCandidateResult result) {
             return new VerificationLocationCandidateResponse(
-                    result.name(), result.latitude(), result.longitude(), result.imageUrl());
+                    result.name(),
+                    result.latitude(),
+                    result.longitude(),
+                    result.imageUrl(),
+                    result.description());
         }
     }
 }
