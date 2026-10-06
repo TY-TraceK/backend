@@ -7,6 +7,13 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+server:
+  # HTTP 응답 압축 (클라이언트가 Accept-Encoding: gzip을 보낼 때만 적용, 브라우저는 자동 해제)
+  # 지도 bounds처럼 큰 JSON 응답의 전송 시간을 줄이기 위함. 1KB 미만 응답은 압축 이득보다 비용이 커서 제외
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 1KB
 management:
   endpoints:
     web:
