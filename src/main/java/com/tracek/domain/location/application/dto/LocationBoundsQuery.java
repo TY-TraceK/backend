@@ -18,6 +18,10 @@ public class LocationBoundsQuery {
     // 줌아웃 상한 - 위경도 차이가 이보다 크면 조회를 막고 화면 확대를 유도
     private static final double MAX_SPAN = 0.3;
 
+    // 이 폭 이하(카카오맵 레벨 7, 약 0.097° 까지)는 공간 인덱스(R-Tree), 그보다 넓으면 기존 B-Tree 조회
+    // 넓은 범위는 R-Tree가 후보를 너무 많이 읽어 오히려 느려짐 (레벨 8 실측: B-Tree 4.5ms vs R-Tree 7.8ms)
+    private static final double SPATIAL_INDEX_MAX_SPAN = 0.15;
+
     private double swLat;
     private double swLng;
     private double neLat;
@@ -49,6 +53,10 @@ public class LocationBoundsQuery {
         validate(swLat, swLng, neLat, neLng);
         return new LocationBoundsQuery(
                 swLat, swLng, neLat, neLng, LocationCategory.from(category), archivedOnly);
+    }
+
+    public boolean usesSpatialIndex() {
+        return neLat - swLat <= SPATIAL_INDEX_MAX_SPAN && neLng - swLng <= SPATIAL_INDEX_MAX_SPAN;
     }
 
     private static void validate(Double swLat, Double swLng, Double neLat, Double neLng) {

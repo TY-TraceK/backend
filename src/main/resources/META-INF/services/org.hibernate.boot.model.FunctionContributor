@@ -1,1 +1,2 @@
 com.tracek.global.common.MatchAgainstFunctionContributor
+com.tracek.domain.location.infrastructure.persistence.LocationSpatialFunctionContributor
