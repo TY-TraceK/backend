@@ -36,6 +36,11 @@ app:
       client-secret: ${KAKAO_CLIENT_SECRET:}
       api-base-url: https://kapi.kakao.com
       authorization-base-url: https://kauth.kakao.com
+  tour-api:
+    service-key: ${TOUR_API_SERVICE_KEY:}
+    base-url: https://apis.data.go.kr/B551011/KorService2
+    mobile-os: ETC
+    mobile-app: TraceK
   cors:
     allowed-origin-urls:
       - "http://localhost:5173"
