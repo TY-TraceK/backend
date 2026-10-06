@@ -2,7 +2,9 @@ package com.tracek.domain.location.infrastructure.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -123,6 +125,43 @@ class TourApiLocationDetailClientTest {
                                 MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> client.getDetail(1L)).isInstanceOf(IllegalStateException.class);
+        verify(cache, never()).set(anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("KorService2가 지원하지 않는 *YN 옵션 파라미터를 보내지 않는다")
+    void getDetail_doesNotSendUnsupportedYnParams() {
+        server.expect(
+                        requestTo(
+                                allOf(
+                                        containsString("/detailCommon2"),
+                                        containsString("contentId=1277679"),
+                                        not(containsString("defaultYN")),
+                                        not(containsString("overviewYN")),
+                                        not(containsString("YN=")))))
+                .andRespond(withSuccess(DETAIL_RESPONSE, MediaType.APPLICATION_JSON));
+
+        client.getDetail(1277679L);
+
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("파라미터 오류처럼 최상위에 resultCode가 내려오는 응답도 코드/메시지를 담아 예외를 던진다")
+    void getDetail_topLevelErrorFormat_throwsWithMessage() {
+        server.expect(requestTo(containsString("/detailCommon2")))
+                .andRespond(
+                        withSuccess(
+                                """
+                                {"responseTime":"2026-10-06T17:53:00.228","resultCode":"10",
+                                "resultMsg":"INVALID_REQUEST_PARAMETER_ERROR(defaultYN)"}
+                                """,
+                                MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.getDetail(1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("resultCode=10")
+                .hasMessageContaining("INVALID_REQUEST_PARAMETER_ERROR");
         verify(cache, never()).set(anyString(), anyString(), any());
     }
 

@@ -71,14 +71,10 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
                                         .path("/detailCommon2")
                                         .queryParam("serviceKey", properties.serviceKey())
                                         .queryParam("contentId", externalContentId)
-                                        .queryParam("defaultYN", "Y")
-                                        .queryParam("overviewYN", "Y")
-                                        .queryParam("firstImageYN", "N")
-                                        .queryParam("areacodeYN", "N")
-                                        .queryParam("catcodeYN", "N")
-                                        .queryParam("addrinfoYN", "N")
-                                        .queryParam("mapinfoYN", "N")
-                                        .queryParam("transGuideYN", "N")
+                                        // KorService2 detailCommon2는 defaultYN/overviewYN 등 *YN 옵션을
+                                        // 받지 않는다 (보내면 resultCode=10
+                                        // INVALID_REQUEST_PARAMETER_ERROR).
+                                        // 옵션 없이도 overview/tel을 포함한 공통정보 전체가 내려온다.
                                         .queryParam("MobileOS", properties.mobileOs())
                                         .queryParam("MobileApp", properties.mobileApp())
                                         .queryParam("_type", "json")
@@ -88,7 +84,17 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
     }
 
     private TourLocationDetailResult parseDetail(String rawBody) throws Exception {
-        JsonNode root = objectMapper.readTree(rawBody).path("response");
+        JsonNode body = objectMapper.readTree(rawBody);
+        // 요청 파라미터 오류 등은 response.header가 아니라 최상위에 resultCode/resultMsg로 내려온다
+        if (body.path("response").isMissingNode() && body.has("resultCode")) {
+            throw new IllegalStateException(
+                    "TourAPI resultCode="
+                            + body.path("resultCode").asText()
+                            + ", msg="
+                            + body.path("resultMsg").asText());
+        }
+
+        JsonNode root = body.path("response");
         String resultCode = root.path("header").path("resultCode").asText();
         if (!"0000".equals(resultCode)) {
             throw new IllegalStateException(
