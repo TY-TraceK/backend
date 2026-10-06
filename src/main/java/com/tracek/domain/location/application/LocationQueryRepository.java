@@ -143,13 +143,26 @@ public class LocationQueryRepository {
                                 location.geoLocation.longitude))
                 .from(location)
                 .where(
-                        location.geoLocation.latitude.between(query.getSwLat(), query.getNeLat()),
-                        location.geoLocation.longitude.between(query.getSwLng(), query.getNeLng()),
+                        withinBounds(query),
                         eqCategory(query.getCategory()),
                         archivedByUser(query.isArchivedOnly(), userId))
                 .orderBy(location.totalVerificationCount.desc(), location.id.asc())
                 .limit(BOUNDS_RESULT_LIMIT)
                 .fetch();
+    }
+
+    // 좁은 범위: Hibernate에 등록한 mbr_contains_location 함수 -> geo_point SPATIAL INDEX(R-Tree)를 탐
+    // 넓은 범위: 위경도 BETWEEN -> idx_location_geo(B-Tree) 또는 풀스캔 (넓을수록 이쪽이 빠름)
+    private BooleanExpression withinBounds(LocationBoundsQuery query) {
+        if (query.usesSpatialIndex()) {
+            return Expressions.booleanTemplate(
+                    "mbr_contains_location({0}, {1}, {2}, {3})",
+                    query.getSwLng(), query.getSwLat(), query.getNeLng(), query.getNeLat());
+        }
+        return location.geoLocation
+                .latitude
+                .between(query.getSwLat(), query.getNeLat())
+                .and(location.geoLocation.longitude.between(query.getSwLng(), query.getNeLng()));
     }
 
     private BooleanExpression eqCategory(LocationCategory category) {

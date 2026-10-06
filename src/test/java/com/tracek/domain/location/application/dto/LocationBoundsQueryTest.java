@@ -97,4 +97,39 @@ class LocationBoundsQueryTest {
 
         assertThat(query.getCategory()).isEqualTo(LocationCategory.CAFE);
     }
+
+    @Test
+    @DisplayName("좁은 범위(카카오맵 레벨 7 이하)면 공간 인덱스를 사용한다")
+    void usesSpatialIndex_narrow_true() {
+        // 레벨 7 실측 폭: 위도 0.0955, 경도 0.0973
+        LocationBoundsQuery query =
+                LocationBoundsQuery.of(35.1318, 129.0270, 35.2273, 129.1243, null, false);
+
+        assertThat(query.usesSpatialIndex()).isTrue();
+    }
+
+    @Test
+    @DisplayName("넓은 범위(카카오맵 레벨 8)면 공간 인덱스를 사용하지 않는다")
+    void usesSpatialIndex_wide_false() {
+        // 레벨 8 실측 폭: 위도 0.1910, 경도 0.1945
+        LocationBoundsQuery query =
+                LocationBoundsQuery.of(35.0841, 128.9784, 35.2751, 129.1729, null, false);
+
+        assertThat(query.usesSpatialIndex()).isFalse();
+    }
+
+    @Test
+    @DisplayName("한 축이라도 기준보다 넓으면 공간 인덱스를 사용하지 않는다")
+    void usesSpatialIndex_oneAxisWide_false() {
+        LocationBoundsQuery query =
+                LocationBoundsQuery.of(35.15, 128.90, 35.20, 129.10, null, false);
+
+        assertThat(query.usesSpatialIndex()).isFalse();
+    }
+
+    @Test
+    @DisplayName("busanDefault 범위(0.3)는 공간 인덱스를 사용하지 않는다")
+    void usesSpatialIndex_busanDefault_false() {
+        assertThat(LocationBoundsQuery.busanDefault().usesSpatialIndex()).isFalse();
+    }
 }
