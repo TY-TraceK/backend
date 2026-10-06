@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.location.application.client.TourLocationDetailClient;
 import com.tracek.domain.location.application.dto.TourLocationDetailResult;
+import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Duration;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -18,54 +22,86 @@ import org.springframework.web.client.RestClient;
 @Component
 public class TourApiLocationDetailClient implements TourLocationDetailClient {
 
+    private static final String CACHE_TYPE = "detail";
+    private static final String CACHE_KEY_PREFIX = "tourapi:detail:";
+    // 개요/전화번호는 자주 바뀌지 않아 이미지와 같은 주기로 캐싱 (결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
+    private static final Duration CACHE_TTL = Duration.ofHours(24);
+
     private final RestClient tourApiRestClient;
     private final TourApiProperties properties;
     private final ObjectMapper objectMapper;
+    private final TourApiResponseCache cache;
+    private final MeterRegistry meterRegistry;
 
     public TourApiLocationDetailClient(
             @Qualifier("tourApiRestClient") RestClient tourApiRestClient,
             TourApiProperties properties,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TourApiResponseCache cache,
+            MeterRegistry meterRegistry) {
         this.tourApiRestClient = tourApiRestClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.cache = cache;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
     public TourLocationDetailResult getDetail(Long externalContentId) {
-        String rawBody =
-                tourApiRestClient
-                        .get()
-                        .uri(
-                                uriBuilder ->
-                                        uriBuilder
-                                                .path("/detailCommon2")
-                                                .queryParam("serviceKey", properties.serviceKey())
-                                                .queryParam("contentId", externalContentId)
-                                                .queryParam("defaultYN", "Y")
-                                                .queryParam("overviewYN", "Y")
-                                                .queryParam("firstImageYN", "N")
-                                                .queryParam("areacodeYN", "N")
-                                                .queryParam("catcodeYN", "N")
-                                                .queryParam("addrinfoYN", "N")
-                                                .queryParam("mapinfoYN", "N")
-                                                .queryParam("transGuideYN", "N")
-                                                .queryParam("MobileOS", properties.mobileOs())
-                                                .queryParam("MobileApp", properties.mobileApp())
-                                                .queryParam("_type", "json")
-                                                .build())
-                        .retrieve()
-                        .body(String.class);
+        String key = CACHE_KEY_PREFIX + externalContentId;
 
+        // Redis 캐시 조회 (Redis 장애 시에도 empty로 내려와 API 호출로 진행)
+        Optional<String> cached = cache.get(CACHE_TYPE, key);
+
+        // cache miss -> TourAPI 호출
+        String rawBody = cached.orElseGet(() -> fetchFromTourApi(externalContentId));
         try {
-            return parseDetail(rawBody);
+            TourLocationDetailResult result = parseDetail(rawBody);
+            // API로 새로 받아온 성공 응답만 원본 그대로 저장 (실패/결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
+            if (cached.isEmpty()) {
+                cache.set(CACHE_TYPE, key, rawBody, CACHE_TTL);
+            }
+            return result;
         } catch (Exception e) {
             throw new IllegalStateException("TourAPI 상세 정보 응답 파싱 실패: " + e.getMessage(), e);
         }
     }
 
+    private String fetchFromTourApi(Long externalContentId) {
+        // 실제 TourAPI 호출 수 (1일 호출 한도 대비 캐시 효과 측정용)
+        meterRegistry.counter("tourapi.calls", "type", CACHE_TYPE).increment();
+        return tourApiRestClient
+                .get()
+                .uri(
+                        uriBuilder ->
+                                uriBuilder
+                                        .path("/detailCommon2")
+                                        .queryParam("serviceKey", properties.serviceKey())
+                                        .queryParam("contentId", externalContentId)
+                                        // KorService2 detailCommon2는 defaultYN/overviewYN 등 *YN 옵션을
+                                        // 받지 않는다 (보내면 resultCode=10
+                                        // INVALID_REQUEST_PARAMETER_ERROR).
+                                        // 옵션 없이도 overview/tel을 포함한 공통정보 전체가 내려온다.
+                                        .queryParam("MobileOS", properties.mobileOs())
+                                        .queryParam("MobileApp", properties.mobileApp())
+                                        .queryParam("_type", "json")
+                                        .build())
+                .retrieve()
+                .body(String.class);
+    }
+
     private TourLocationDetailResult parseDetail(String rawBody) throws Exception {
-        JsonNode root = objectMapper.readTree(rawBody).path("response");
+        JsonNode body = objectMapper.readTree(rawBody);
+        // 요청 파라미터 오류 등은 response.header가 아니라 최상위에 resultCode/resultMsg로 내려온다
+        if (body.path("response").isMissingNode() && body.has("resultCode")) {
+            throw new IllegalStateException(
+                    "TourAPI resultCode="
+                            + body.path("resultCode").asText()
+                            + ", msg="
+                            + body.path("resultMsg").asText());
+        }
+
+        JsonNode root = body.path("response");
         String resultCode = root.path("header").path("resultCode").asText();
         if (!"0000".equals(resultCode)) {
             throw new IllegalStateException(

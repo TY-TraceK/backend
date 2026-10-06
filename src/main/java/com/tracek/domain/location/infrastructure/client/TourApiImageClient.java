@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.location.application.client.TourImageClient;
 import com.tracek.domain.location.application.dto.TourImageResult;
+import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -20,45 +24,73 @@ import org.springframework.web.client.RestClient;
 @Component
 public class TourApiImageClient implements TourImageClient {
 
+    private static final String CACHE_TYPE = "image";
+    private static final String CACHE_KEY_PREFIX = "tourapi:image:";
+    private static final Duration CACHE_TTL = Duration.ofHours(24);
+    // 이미지가 없는 관광지는 나중에 등록될 수 있어 짧게 캐싱 (한도 절약 + 재확인 주기 단축)
+    private static final Duration EMPTY_RESULT_TTL = Duration.ofHours(1);
+
     private final RestClient tourApiRestClient;
     private final TourApiProperties properties;
     private final ObjectMapper objectMapper;
+    private final TourApiResponseCache cache;
+    private final MeterRegistry meterRegistry;
 
     public TourApiImageClient(
             @Qualifier("tourApiRestClient") RestClient tourApiRestClient,
             TourApiProperties properties,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TourApiResponseCache cache,
+            MeterRegistry meterRegistry) {
         this.tourApiRestClient = tourApiRestClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.cache = cache;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
     public List<TourImageResult> getImages(Long externalContentId) {
-        String rawBody =
-                tourApiRestClient
-                        .get()
-                        .uri(
-                                uriBuilder ->
-                                        uriBuilder
-                                                .path("/detailImage2")
-                                                .queryParam("serviceKey", properties.serviceKey())
-                                                .queryParam("contentId", externalContentId)
-                                                .queryParam("imageYN", "Y")
-                                                .queryParam("numOfRows", 30)
-                                                .queryParam("pageNo", 1)
-                                                .queryParam("MobileOS", properties.mobileOs())
-                                                .queryParam("MobileApp", properties.mobileApp())
-                                                .queryParam("_type", "json")
-                                                .build())
-                        .retrieve()
-                        .body(String.class);
+        String key = CACHE_KEY_PREFIX + externalContentId;
 
+        // Redis 캐시 조회 (Redis 장애 시에도 empty로 내려와 API 호출로 진행)
+        Optional<String> cached = cache.get(CACHE_TYPE, key);
+
+        // cache miss -> TourAPI 호출
+        String rawBody = cached.orElseGet(() -> fetchFromTourApi(externalContentId));
         try {
-            return parseImages(rawBody);
+            List<TourImageResult> results = parseImages(rawBody);
+            // API로 새로 받아온 성공 응답만 원본 그대로 저장 (실패 응답은 parseImages에서 예외 -> 저장 안 됨)
+            if (cached.isEmpty()) {
+                Duration ttl = results.isEmpty() ? EMPTY_RESULT_TTL : CACHE_TTL;
+                cache.set(CACHE_TYPE, key, rawBody, ttl);
+            }
+            return results;
         } catch (Exception e) {
             throw new IllegalStateException("TourAPI 이미지 응답 파싱 실패: " + e.getMessage(), e);
         }
+    }
+
+    private String fetchFromTourApi(Long externalContentId) {
+        // 실제 TourAPI 호출 수 (1일 호출 한도 대비 캐시 효과 측정용)
+        meterRegistry.counter("tourapi.calls", "type", CACHE_TYPE).increment();
+        return tourApiRestClient
+                .get()
+                .uri(
+                        uriBuilder ->
+                                uriBuilder
+                                        .path("/detailImage2")
+                                        .queryParam("serviceKey", properties.serviceKey())
+                                        .queryParam("contentId", externalContentId)
+                                        .queryParam("imageYN", "Y")
+                                        .queryParam("numOfRows", 30)
+                                        .queryParam("pageNo", 1)
+                                        .queryParam("MobileOS", properties.mobileOs())
+                                        .queryParam("MobileApp", properties.mobileApp())
+                                        .queryParam("_type", "json")
+                                        .build())
+                .retrieve()
+                .body(String.class);
     }
 
     private List<TourImageResult> parseImages(String rawBody) throws Exception {
