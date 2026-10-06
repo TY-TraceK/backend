@@ -6,6 +6,7 @@ import com.tracek.domain.location.application.client.TourLocationDetailClient;
 import com.tracek.domain.location.application.dto.TourLocationDetailResult;
 import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestClient;
 @Component
 public class TourApiLocationDetailClient implements TourLocationDetailClient {
 
+    private static final String CACHE_TYPE = "detail";
     private static final String CACHE_KEY_PREFIX = "tourapi:detail:";
     // 개요/전화번호는 자주 바뀌지 않아 이미지와 같은 주기로 캐싱 (결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
     private static final Duration CACHE_TTL = Duration.ofHours(24);
@@ -29,16 +31,19 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
     private final TourApiProperties properties;
     private final ObjectMapper objectMapper;
     private final TourApiResponseCache cache;
+    private final MeterRegistry meterRegistry;
 
     public TourApiLocationDetailClient(
             @Qualifier("tourApiRestClient") RestClient tourApiRestClient,
             TourApiProperties properties,
             ObjectMapper objectMapper,
-            TourApiResponseCache cache) {
+            TourApiResponseCache cache,
+            MeterRegistry meterRegistry) {
         this.tourApiRestClient = tourApiRestClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.cache = cache;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -46,7 +51,7 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
         String key = CACHE_KEY_PREFIX + externalContentId;
 
         // Redis 캐시 조회 (Redis 장애 시에도 empty로 내려와 API 호출로 진행)
-        Optional<String> cached = cache.get(key);
+        Optional<String> cached = cache.get(CACHE_TYPE, key);
 
         // cache miss -> TourAPI 호출
         String rawBody = cached.orElseGet(() -> fetchFromTourApi(externalContentId));
@@ -54,7 +59,7 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
             TourLocationDetailResult result = parseDetail(rawBody);
             // API로 새로 받아온 성공 응답만 원본 그대로 저장 (실패/결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
             if (cached.isEmpty()) {
-                cache.set(key, rawBody, CACHE_TTL);
+                cache.set(CACHE_TYPE, key, rawBody, CACHE_TTL);
             }
             return result;
         } catch (Exception e) {
@@ -63,6 +68,8 @@ public class TourApiLocationDetailClient implements TourLocationDetailClient {
     }
 
     private String fetchFromTourApi(Long externalContentId) {
+        // 실제 TourAPI 호출 수 (1일 호출 한도 대비 캐시 효과 측정용)
+        meterRegistry.counter("tourapi.calls", "type", CACHE_TYPE).increment();
         return tourApiRestClient
                 .get()
                 .uri(

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.location.application.dto.TourLocationDetailResult;
 import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,7 @@ class TourApiLocationDetailClientTest {
             """;
 
     @Mock private TourApiResponseCache cache;
+    private SimpleMeterRegistry meterRegistry;
 
     private static final TourApiProperties PROPERTIES =
             new TourApiProperties(
@@ -53,11 +55,12 @@ class TourApiLocationDetailClientTest {
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         RestClient.Builder builder = RestClient.builder().baseUrl(PROPERTIES.baseUrl());
         server = MockRestServiceServer.bindTo(builder).build();
         client =
                 new TourApiLocationDetailClient(
-                        builder.build(), PROPERTIES, new ObjectMapper(), cache);
+                        builder.build(), PROPERTIES, new ObjectMapper(), cache, meterRegistry);
     }
 
     @Test
@@ -125,7 +128,7 @@ class TourApiLocationDetailClientTest {
                                 MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> client.getDetail(1L)).isInstanceOf(IllegalStateException.class);
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -162,19 +165,21 @@ class TourApiLocationDetailClientTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("resultCode=10")
                 .hasMessageContaining("INVALID_REQUEST_PARAMETER_ERROR");
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
     }
 
     @Test
     @DisplayName("캐시 hit이면 TourAPI를 호출하지 않고 캐시된 원본 응답을 파싱해서 반환한다")
     void getDetail_cacheHit_doesNotCallTourApi() {
-        given(cache.get("tourapi:detail:1277679")).willReturn(Optional.of(DETAIL_RESPONSE));
+        given(cache.get("detail", "tourapi:detail:1277679"))
+                .willReturn(Optional.of(DETAIL_RESPONSE));
 
         TourLocationDetailResult result = client.getDetail(1277679L);
 
         assertThat(result.getOverview()).isEqualTo("부산타워 설명");
         server.verify(); // expect를 걸지 않았으므로 요청이 1건이라도 나가면 실패
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
+        assertThat(meterRegistry.counter("tourapi.calls", "type", "detail").count()).isZero();
     }
 
     @Test
@@ -186,7 +191,9 @@ class TourApiLocationDetailClientTest {
         client.getDetail(1277679L);
 
         server.verify();
-        verify(cache).set("tourapi:detail:1277679", DETAIL_RESPONSE, Duration.ofHours(24));
+        verify(cache)
+                .set("detail", "tourapi:detail:1277679", DETAIL_RESPONSE, Duration.ofHours(24));
+        assertThat(meterRegistry.counter("tourapi.calls", "type", "detail").count()).isEqualTo(1.0);
     }
 
     @Test
@@ -202,6 +209,6 @@ class TourApiLocationDetailClientTest {
                                 MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> client.getDetail(1L)).isInstanceOf(IllegalStateException.class);
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
     }
 }

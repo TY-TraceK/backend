@@ -6,6 +6,7 @@ import com.tracek.domain.location.application.client.TourImageClient;
 import com.tracek.domain.location.application.dto.TourImageResult;
 import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.springframework.web.client.RestClient;
 @Component
 public class TourApiImageClient implements TourImageClient {
 
+    private static final String CACHE_TYPE = "image";
     private static final String CACHE_KEY_PREFIX = "tourapi:image:";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
     // 이미지가 없는 관광지는 나중에 등록될 수 있어 짧게 캐싱 (한도 절약 + 재확인 주기 단축)
@@ -32,16 +34,19 @@ public class TourApiImageClient implements TourImageClient {
     private final TourApiProperties properties;
     private final ObjectMapper objectMapper;
     private final TourApiResponseCache cache;
+    private final MeterRegistry meterRegistry;
 
     public TourApiImageClient(
             @Qualifier("tourApiRestClient") RestClient tourApiRestClient,
             TourApiProperties properties,
             ObjectMapper objectMapper,
-            TourApiResponseCache cache) {
+            TourApiResponseCache cache,
+            MeterRegistry meterRegistry) {
         this.tourApiRestClient = tourApiRestClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.cache = cache;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -49,7 +54,7 @@ public class TourApiImageClient implements TourImageClient {
         String key = CACHE_KEY_PREFIX + externalContentId;
 
         // Redis 캐시 조회 (Redis 장애 시에도 empty로 내려와 API 호출로 진행)
-        Optional<String> cached = cache.get(key);
+        Optional<String> cached = cache.get(CACHE_TYPE, key);
 
         // cache miss -> TourAPI 호출
         String rawBody = cached.orElseGet(() -> fetchFromTourApi(externalContentId));
@@ -58,7 +63,7 @@ public class TourApiImageClient implements TourImageClient {
             // API로 새로 받아온 성공 응답만 원본 그대로 저장 (실패 응답은 parseImages에서 예외 -> 저장 안 됨)
             if (cached.isEmpty()) {
                 Duration ttl = results.isEmpty() ? EMPTY_RESULT_TTL : CACHE_TTL;
-                cache.set(key, rawBody, ttl);
+                cache.set(CACHE_TYPE, key, rawBody, ttl);
             }
             return results;
         } catch (Exception e) {
@@ -67,6 +72,8 @@ public class TourApiImageClient implements TourImageClient {
     }
 
     private String fetchFromTourApi(Long externalContentId) {
+        // 실제 TourAPI 호출 수 (1일 호출 한도 대비 캐시 효과 측정용)
+        meterRegistry.counter("tourapi.calls", "type", CACHE_TYPE).increment();
         return tourApiRestClient
                 .get()
                 .uri(
@@ -87,7 +94,6 @@ public class TourApiImageClient implements TourImageClient {
     }
 
     private List<TourImageResult> parseImages(String rawBody) throws Exception {
-
         JsonNode root = objectMapper.readTree(rawBody).path("response");
         String resultCode = root.path("header").path("resultCode").asText();
         if (!"0000".equals(resultCode)) {

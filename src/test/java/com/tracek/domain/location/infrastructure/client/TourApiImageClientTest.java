@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.location.application.dto.TourImageResult;
 import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,7 @@ class TourApiImageClientTest {
             """;
 
     @Mock private TourApiResponseCache cache;
+    private SimpleMeterRegistry meterRegistry;
 
     private static final TourApiProperties PROPERTIES =
             new TourApiProperties(
@@ -78,9 +80,12 @@ class TourApiImageClientTest {
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         RestClient.Builder builder = RestClient.builder().baseUrl(PROPERTIES.baseUrl());
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new TourApiImageClient(builder.build(), PROPERTIES, new ObjectMapper(), cache);
+        client =
+                new TourApiImageClient(
+                        builder.build(), PROPERTIES, new ObjectMapper(), cache, meterRegistry);
     }
 
     @Test
@@ -141,14 +146,15 @@ class TourApiImageClientTest {
     @Test
     @DisplayName("캐시 hit이면 TourAPI를 호출하지 않고 캐시된 원본 응답을 파싱해서 반환한다")
     void getImages_cacheHit_doesNotCallTourApi() {
-        given(cache.get("tourapi:image:1277679")).willReturn(Optional.of(IMAGES_RESPONSE));
+        given(cache.get("image", "tourapi:image:1277679")).willReturn(Optional.of(IMAGES_RESPONSE));
 
         List<TourImageResult> result = client.getImages(1277679L);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getImageUrl()).isEqualTo("http://img1.jpg");
         server.verify(); // expect를 걸지 않았으므로 요청이 1건이라도 나가면 실패
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
+        assertThat(meterRegistry.counter("tourapi.calls", "type", "image").count()).isZero();
     }
 
     @Test
@@ -160,7 +166,8 @@ class TourApiImageClientTest {
         client.getImages(1277679L);
 
         server.verify();
-        verify(cache).set("tourapi:image:1277679", IMAGES_RESPONSE, Duration.ofHours(24));
+        verify(cache).set("image", "tourapi:image:1277679", IMAGES_RESPONSE, Duration.ofHours(24));
+        assertThat(meterRegistry.counter("tourapi.calls", "type", "image").count()).isEqualTo(1.0);
     }
 
     @Test
@@ -172,7 +179,8 @@ class TourApiImageClientTest {
         List<TourImageResult> result = client.getImages(123L);
 
         assertThat(result).hasSize(1);
-        verify(cache).set(eq("tourapi:image:123"), anyString(), eq(Duration.ofHours(24)));
+        verify(cache)
+                .set(eq("image"), eq("tourapi:image:123"), anyString(), eq(Duration.ofHours(24)));
     }
 
     @Test
@@ -184,7 +192,8 @@ class TourApiImageClientTest {
         List<TourImageResult> result = client.getImages(999L);
 
         assertThat(result).isEmpty();
-        verify(cache).set(eq("tourapi:image:999"), anyString(), eq(Duration.ofHours(1)));
+        verify(cache)
+                .set(eq("image"), eq("tourapi:image:999"), anyString(), eq(Duration.ofHours(1)));
     }
 
     @Test
@@ -194,6 +203,6 @@ class TourApiImageClientTest {
                 .andRespond(withSuccess(ERROR_RESPONSE, MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> client.getImages(1L)).isInstanceOf(IllegalStateException.class);
-        verify(cache, never()).set(anyString(), anyString(), any());
+        verify(cache, never()).set(anyString(), anyString(), anyString(), any());
     }
 }
