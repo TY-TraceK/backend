@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tracek.domain.location.application.client.TourLocationDetailClient;
 import com.tracek.domain.location.application.dto.TourLocationDetailResult;
+import com.tracek.domain.location.infrastructure.TourApiResponseCache;
 import com.tracek.domain.location.infrastructure.config.TourApiProperties;
+import java.time.Duration;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -18,50 +21,70 @@ import org.springframework.web.client.RestClient;
 @Component
 public class TourApiLocationDetailClient implements TourLocationDetailClient {
 
+    private static final String CACHE_KEY_PREFIX = "tourapi:detail:";
+    // 개요/전화번호는 자주 바뀌지 않아 이미지와 같은 주기로 캐싱 (결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
+    private static final Duration CACHE_TTL = Duration.ofHours(24);
+
     private final RestClient tourApiRestClient;
     private final TourApiProperties properties;
     private final ObjectMapper objectMapper;
+    private final TourApiResponseCache cache;
 
     public TourApiLocationDetailClient(
             @Qualifier("tourApiRestClient") RestClient tourApiRestClient,
             TourApiProperties properties,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TourApiResponseCache cache) {
         this.tourApiRestClient = tourApiRestClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.cache = cache;
     }
 
     @Override
     public TourLocationDetailResult getDetail(Long externalContentId) {
-        String rawBody =
-                tourApiRestClient
-                        .get()
-                        .uri(
-                                uriBuilder ->
-                                        uriBuilder
-                                                .path("/detailCommon2")
-                                                .queryParam("serviceKey", properties.serviceKey())
-                                                .queryParam("contentId", externalContentId)
-                                                .queryParam("defaultYN", "Y")
-                                                .queryParam("overviewYN", "Y")
-                                                .queryParam("firstImageYN", "N")
-                                                .queryParam("areacodeYN", "N")
-                                                .queryParam("catcodeYN", "N")
-                                                .queryParam("addrinfoYN", "N")
-                                                .queryParam("mapinfoYN", "N")
-                                                .queryParam("transGuideYN", "N")
-                                                .queryParam("MobileOS", properties.mobileOs())
-                                                .queryParam("MobileApp", properties.mobileApp())
-                                                .queryParam("_type", "json")
-                                                .build())
-                        .retrieve()
-                        .body(String.class);
+        String key = CACHE_KEY_PREFIX + externalContentId;
 
+        // Redis 캐시 조회 (Redis 장애 시에도 empty로 내려와 API 호출로 진행)
+        Optional<String> cached = cache.get(key);
+
+        // cache miss -> TourAPI 호출
+        String rawBody = cached.orElseGet(() -> fetchFromTourApi(externalContentId));
         try {
-            return parseDetail(rawBody);
+            TourLocationDetailResult result = parseDetail(rawBody);
+            // API로 새로 받아온 성공 응답만 원본 그대로 저장 (실패/결과 없음은 parseDetail에서 예외 -> 저장 안 됨)
+            if (cached.isEmpty()) {
+                cache.set(key, rawBody, CACHE_TTL);
+            }
+            return result;
         } catch (Exception e) {
             throw new IllegalStateException("TourAPI 상세 정보 응답 파싱 실패: " + e.getMessage(), e);
         }
+    }
+
+    private String fetchFromTourApi(Long externalContentId) {
+        return tourApiRestClient
+                .get()
+                .uri(
+                        uriBuilder ->
+                                uriBuilder
+                                        .path("/detailCommon2")
+                                        .queryParam("serviceKey", properties.serviceKey())
+                                        .queryParam("contentId", externalContentId)
+                                        .queryParam("defaultYN", "Y")
+                                        .queryParam("overviewYN", "Y")
+                                        .queryParam("firstImageYN", "N")
+                                        .queryParam("areacodeYN", "N")
+                                        .queryParam("catcodeYN", "N")
+                                        .queryParam("addrinfoYN", "N")
+                                        .queryParam("mapinfoYN", "N")
+                                        .queryParam("transGuideYN", "N")
+                                        .queryParam("MobileOS", properties.mobileOs())
+                                        .queryParam("MobileApp", properties.mobileApp())
+                                        .queryParam("_type", "json")
+                                        .build())
+                .retrieve()
+                .body(String.class);
     }
 
     private TourLocationDetailResult parseDetail(String rawBody) throws Exception {
