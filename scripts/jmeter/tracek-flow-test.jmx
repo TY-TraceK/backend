@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="TraceK 사용자 흐름 부하테스트" enabled="true">
+      <stringProp name="TestPlan.comments">사용자 흐름 기반 부하테스트 (병목 발견용). 프론트(origin/develop) 화면별 실제 API 호출 순서를 재현.
+사용자 유형 비율: A 둘러보기 30 / B 지도탐색 25 / C 검색 20 / D 방문인증(조회만) 10 / E 랭킹·마이페이지 15.
+쓰기는 좋아요/아카이브만, 누른 직후 취소해서 운영 데이터를 원상복구한다. 방문 인증 POST는 보내지 않는다.
+
+성능 목표(기획 Notion '성능 목표'): 평균 140VU / 9.7 RPS / 20분, 피크 560VU / 46.7 RPS / 30분,
+p95 &lt;= 300ms, p99 &lt;= 500ms, 에러율 &lt; 1%. 전체 요청량은 Constant Throughput Timer로 TARGET_RPS에 고정한다.
+
+데이터 준비: ./export-flow-data.sh (대상 서버와 같은 DB에서)
+실행: ./run-flow-test.sh avg|peak|stress &lt;HOST&gt;
+판정: python summarize-flow-result.py &lt;result.jtl&gt;</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+    </TestPlan>
+    <hashTree>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP 요청 기본값" enabled="true">
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+        <stringProp name="HTTPSampler.protocol">${__P(PROTOCOL,http)}</stringProp>
+        <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+        <stringProp name="HTTPSampler.port">${__P(PORT,8080)}</stringProp>
+        <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+        <stringProp name="HTTPSampler.connect_timeout">5000</stringProp>
+        <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="공통 헤더" enabled="true">
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="" elementType="Header"><stringProp name="Header.name">Accept</stringProp><stringProp name="Header.value">application/json</stringProp></elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp: 데이터 로드" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">stoptest</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="setUp_데이터로드" enabled="true">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">
+// flow-data/*.csv 를 한 번만 읽어서 모든 스레드가 공유한다 (props).
+def dir = props.getProperty('DATA_DIR', 'flow-data')
+def base = new File(dir).isAbsolute() ? new File(dir)
+        : new File(org.apache.jmeter.services.FileServer.getFileServer().getBaseDir(), dir)
+def lines = { String name -&gt; new File(base, name).readLines('UTF-8').collect { it.trim() }.findAll { it } }
+props.put('flow.locations', lines('locations.csv').collect { it.split(',') })
+props.put('flow.hot', lines('hot_locations.csv').collect { it.split(',') })
+props.put('flow.contents', lines('contents.csv'))
+props.put('flow.artists', lines('artists.csv'))
+props.put('flow.keywords', lines('keywords.csv'))
+// 관광지 상세는 TourAPI(개발계정 1일 1000건)를 동기 호출하므로, 호출 대상이 아닌 CURATED 관광지만 조회한다.
+props.put('flow.curated', lines('curated_locations.csv'))
+SampleResult.setResponseData(&quot;locations=${props.get('flow.locations').size()}, hot=${props.get('flow.hot').size()}, &quot; +
+        &quot;contents=${props.get('flow.contents').size()}, artists=${props.get('flow.artists').size()}, &quot; +
+        &quot;keywords=${props.get('flow.keywords').size()}, curated=${props.get('flow.curated').size()}&quot;, 'UTF-8')
+</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="사용자 흐름" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(USERS,140)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(RAMP,120)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">${__P(DURATION,1200)}</stringProp>
+        <stringProp name="ThreadGroup.delay">0</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="목표 처리량 고정 (TARGET_RPS, 스레드그룹 전체 공유)" enabled="true">
+          <intProp name="calcMode">4</intProp>
+          <stringProp name="throughput">${__jexl3(${__P(TARGET_RPS,9.7)} * 60)}</stringProp>
+        </ConstantThroughputTimer>
+        <hashTree/>
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="세션 시작 (스레드당 1회)" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="00_토큰발급" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/test/auth/token/${userId}</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="유저 ID = USER_ID_BASE + 스레드 번호" enabled="true">
+            <collectionProp name="UserParameters.names"><stringProp name="0">userId</stringProp></collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="1"><stringProp name="1">${__intSum(${__threadNum},${__P(USER_ID_BASE,0)})}</stringProp></collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JWT 추출" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">token</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="토큰 없으면 스레드 중단" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 토큰 없이 계속 돌면 이후 요청이 전부 403으로 쌓여 에러율이 부풀고 원인이 가려진다.
+// 대상 DB에 USER_ID_BASE + 스레드 번호 유저가 없을 때 발생 (로컬은 900001~900600 시드 필요).
+if (prev.getResponseCode() != &apos;200&apos; || vars.get(&apos;token&apos;) == &apos;TOKEN_NOT_FOUND&apos;) {
+    log.error(&quot;토큰 발급 실패: userId=${vars.get(&apos;userId&apos;)} HTTP ${prev.getResponseCode()} -&gt; 스레드 중단&quot;)
+    prev.setSuccessful(false)
+    prev.setStopThread(true)
+}
+</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree></hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="인증 필요 구간" enabled="true"/>
+        <hashTree>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="인증 헤더" enabled="true">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header"><stringProp name="Header.name">Authorization</stringProp><stringProp name="Header.value">Bearer ${token}</stringProp></elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="앱 진입 (스레드당 1회)" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="00_내정보" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="사용자 유형/데이터 선택" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="이번 세션 설정" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 반복(= 사용자 한 명의 방문 세션)마다 유형과 대상 데이터를 새로 고른다.
+def rnd = java.util.concurrent.ThreadLocalRandom.current()
+def pick = { list -&gt; list[rnd.nextInt(list.size())] }
+
+// 20%는 인기 관광지로 쏠리게 (실제 트래픽의 핫스팟 재현)
+def loc = rnd.nextDouble() &lt; 0.2 ? pick(props.get('flow.hot')) : pick(props.get('flow.locations'))
+vars.put('locationId', loc[0]); vars.put('locLat', loc[1]); vars.put('locLng', loc[2])
+vars.put('contentId', pick(props.get('flow.contents')))
+vars.put('artistId', pick(props.get('flow.artists')))
+vars.put('keyword', java.net.URLEncoder.encode(pick(props.get('flow.keywords')), 'UTF-8'))
+vars.put('homeCategory', pick(['KPOP', 'DRAMA', 'MOVIE', 'ENTERTAINMENT', 'WEBTOON', 'ETC']))
+// 관광지 상세 조회 대상: TourAPI를 호출하지 않는 CURATED 관광지 (좋아요/아카이브는 원래 고른 관광지 그대로)
+vars.put('detailLocId', pick(props.get('flow.curated')))
+
+// 사용자 유형 비율: A 30 / B 25 / C 20 / D 10 / E 15
+def r = rnd.nextDouble() * 100
+vars.put('persona', r &lt; 30 ? 'A_둘러보기' : r &lt; 55 ? 'B_지도탐색' : r &lt; 75 ? 'C_검색' : r &lt; 85 ? 'D_방문인증' : 'E_랭킹마이')
+
+// A: 관광지 상세에서 30% 확률로 좋아요 또는 아카이브 (누른 직후 취소해서 운영 데이터 원상복구)
+def w = rnd.nextDouble()
+vars.put('writeAction', w &lt; 0.15 ? 'like' : w &lt; 0.30 ? 'archive' : 'none')
+
+// B: 지도 조작 횟수(2~4)와 검색 여부, 지도 초기 상태 (프론트 Map.jsx 기본값: 부산시청, level 6)
+vars.put('mapActions', String.valueOf(rnd.nextInt(2, 5)))
+vars.put('mapSearch', rnd.nextBoolean() ? 'Y' : 'N')
+vars.put('mapLat', '35.1795543'); vars.put('mapLng', '129.0756416')
+vars.put('mapLevel', '6'); vars.put('mapCategory', '')
+</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/></hashTree>
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="사용자 유형별 흐름" enabled="true">
+          <stringProp name="SwitchController.value">${persona}</stringProp>
+        </SwitchController>
+        <hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="A_둘러보기" enabled="true"/>
+        <hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="A_홈" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_홈_top-saved" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/top-saved?limit=5</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_홈_랭킹top3" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings?topN=3</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_홈_content-curation" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings/content-curation</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_홈_카테고리콘텐츠" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/contents/category/${homeCategory}?page=0&amp;size=3&amp;sort=id,DESC</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_콘텐츠상세" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/contents/${contentId}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="촬영지 중 하나 선택" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">contentLocId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.locations[*].locationId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${locationId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_관광지상세" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${detailLocId}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="30%: 좋아요 후 바로 취소" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(vars.get('writeAction') == 'like')}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_관광지상세_좋아요" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${contentLocId}/likes</stringProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_관광지상세_좋아요취소" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${contentLocId}/likes</stringProp>
+          <stringProp name="HTTPSampler.method">DELETE</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="30%: 아카이브 후 바로 취소" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(vars.get('writeAction') == 'archive')}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_관광지상세_아카이브" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${contentLocId}/archives</stringProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="A_관광지상세_아카이브취소" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${contentLocId}/archives</stringProp>
+          <stringProp name="HTTPSampler.method">DELETE</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree></hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="B_지도탐색" enabled="true"/>
+        <hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="지도 초기 범위 계산" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="bounds 쿼리 만들기" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+double lat = vars.get('mapLat') as double
+double lng = vars.get('mapLng') as double
+int level = vars.get('mapLevel') as int
+double latSpan = 0.016 * Math.pow(2, level - 4)
+double lngSpan = 0.011 * Math.pow(2, level - 4)
+def q = String.format(java.util.Locale.ROOT,
+        'southwestLatitude=%.7f&amp;southwestLongitude=%.7f&amp;northeastLatitude=%.7f&amp;northeastLongitude=%.7f&amp;archivedOnly=false',
+        lat - latSpan / 2, lng - lngSpan / 2, lat + latSpan / 2, lng + lngSpan / 2)
+def cat = vars.get('mapCategory')
+vars.put('boundsQuery', cat ? q + '&amp;category=' + cat : q)
+</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도_bounds_진입" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/bounds?${boundsQuery}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="범위초과 분리" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 너무 넓게 축소하면 서버가 400(LOC008)을 준다. 프론트는 이걸 콘솔 에러로만 처리하므로
+// 실패가 아니라 별도 라벨로 집계한다.
+def code = prev.getResponseCode()
+if (code == '400' &amp;&amp; prev.getResponseDataAsString().contains('LOC008')) {
+    prev.setSampleLabel(prev.getSampleLabel() + '_범위초과')
+    prev.setSuccessful(true)
+} else if (code != '200') {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage('HTTP ' + code)
+}
+</stringProp>
+          </JSR223Assertion>
+          <hashTree/></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도_bounds_진입" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/bounds?${boundsQuery}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="범위초과 분리" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 너무 넓게 축소하면 서버가 400(LOC008)을 준다. 프론트는 이걸 콘솔 에러로만 처리하므로
+// 실패가 아니라 별도 라벨로 집계한다.
+def code = prev.getResponseCode()
+if (code == '400' &amp;&amp; prev.getResponseDataAsString().contains('LOC008')) {
+    prev.setSampleLabel(prev.getSampleLabel() + '_범위초과')
+    prev.setSuccessful(true)
+} else if (code != '200') {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage('HTTP ' + code)
+}
+</stringProp>
+          </JSR223Assertion>
+          <hashTree/></hashTree>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="지도 조작 (2~4회)" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">${mapActions}</stringProp>
+        </LoopController>
+        <hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="조작 사이 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도_bounds_이동" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/bounds?${boundsQuery}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="드래그/줌/카테고리 중 하나" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 지도 조작 한 번: 드래그 60% / 확대·축소 25% / 카테고리 칩 토글 15%.
+// 프론트는 조작이 끝날 때마다(idle 이벤트) debounce 없이 /bounds를 1번 호출한다.
+def rnd = java.util.concurrent.ThreadLocalRandom.current()
+double lat = vars.get('mapLat') as double
+double lng = vars.get('mapLng') as double
+int level = vars.get('mapLevel') as int
+double latSpan = 0.016 * Math.pow(2, level - 4)
+double lngSpan = 0.011 * Math.pow(2, level - 4)
+def a = rnd.nextDouble()
+if (a &lt; 0.60) {
+    lat += (rnd.nextDouble() * 1.4 - 0.7) * latSpan
+    lng += (rnd.nextDouble() * 1.4 - 0.7) * lngSpan
+    lat = Math.max(34.95, Math.min(35.40, lat))
+    lng = Math.max(128.80, Math.min(129.30, lng))
+    vars.put('mapOp', 'drag')
+} else if (a &lt; 0.85) {
+    level = Math.max(3, Math.min(9, level + (rnd.nextBoolean() ? 1 : -1)))
+    vars.put('mapOp', 'zoom')
+} else {
+    def cats = ['ATTRACTION', 'CULTURE', 'FESTIVAL', 'FILMING_LOCATION', 'RESTAURANT', 'CAFE', 'ACCOMMODATION', 'SHOPPING', 'ETC']
+    vars.put('mapCategory', vars.get('mapCategory') ? '' : cats[rnd.nextInt(cats.size())])
+    vars.put('mapOp', 'category')
+}
+vars.put('mapLat', String.valueOf(lat)); vars.put('mapLng', String.valueOf(lng)); vars.put('mapLevel', String.valueOf(level))
+
+double lat = vars.get('mapLat') as double
+double lng = vars.get('mapLng') as double
+int level = vars.get('mapLevel') as int
+double latSpan = 0.016 * Math.pow(2, level - 4)
+double lngSpan = 0.011 * Math.pow(2, level - 4)
+def q = String.format(java.util.Locale.ROOT,
+        'southwestLatitude=%.7f&amp;southwestLongitude=%.7f&amp;northeastLatitude=%.7f&amp;northeastLongitude=%.7f&amp;archivedOnly=false',
+        lat - latSpan / 2, lng - lngSpan / 2, lat + latSpan / 2, lng + lngSpan / 2)
+def cat = vars.get('mapCategory')
+vars.put('boundsQuery', cat ? q + '&amp;category=' + cat : q)
+</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="범위초과 분리" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 너무 넓게 축소하면 서버가 400(LOC008)을 준다. 프론트는 이걸 콘솔 에러로만 처리하므로
+// 실패가 아니라 별도 라벨로 집계한다.
+def code = prev.getResponseCode()
+if (code == '400' &amp;&amp; prev.getResponseDataAsString().contains('LOC008')) {
+    prev.setSampleLabel(prev.getSampleLabel() + '_범위초과')
+    prev.setSuccessful(true)
+} else if (code != '200') {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage('HTTP ' + code)
+}
+</stringProp>
+          </JSR223Assertion>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="화면 안 핀 하나 선택" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">pinLocId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.locations[*].id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${locationId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/></hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="50%: 키워드 검색 → 첫 결과 상세" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(vars.get('mapSearch') == 'Y')}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도_검색" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/search?keyword=${keyword}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="첫 결과" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">searchLocId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.locations[0].id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${locationId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도검색_관광지상세" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${detailLocId}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="50%: 핀 클릭 → 상세" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(vars.get('mapSearch') == 'N')}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="B_지도핀_관광지상세" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${detailLocId}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree></hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="C_검색" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="C_통합검색" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/search?keyword=${keyword}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="아티스트 하나 선택" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">searchArtistId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.artists[*].id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${artistId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="C_아티스트_촬영지" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/artists/${searchArtistId}/locations?size=10</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="촬영지 하나 선택" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">artistLocId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.locations[*].locationId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${locationId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="C_아티스트_콘텐츠" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/artists/${searchArtistId}/contents?size=10</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="C_관광지상세" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${detailLocId}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="D_방문인증" enabled="true"/>
+        <hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="D_홈" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_홈_top-saved" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/top-saved?limit=5</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_홈_랭킹top3" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings?topN=3</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_홈_content-curation" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings/content-curation</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_홈_카테고리콘텐츠" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/contents/category/${homeCategory}?page=0&amp;size=3&amp;sort=id,DESC</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="모달 범위 계산" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="현재 위치 주변 범위" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">
+// 방문 인증 모달: 현재 위치 주변 아주 좁은 범위만 조회 (VerifyModal.jsx: ±0.0009 / ±0.0011)
+double lat = vars.get('locLat') as double
+double lng = vars.get('locLng') as double
+vars.put('verifyBoundsQuery', String.format(java.util.Locale.ROOT,
+        'southwestLatitude=%.7f&amp;southwestLongitude=%.7f&amp;northeastLatitude=%.7f&amp;northeastLongitude=%.7f&amp;archivedOnly=false',
+        lat - 0.0009, lng - 0.0011, lat + 0.0009, lng + 0.0011))
+</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_인증모달_후보" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/visit-verifications/location-candidates?latitude=${locLat}&amp;longitude=${locLng}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_인증모달_bounds" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/bounds?${verifyBoundsQuery}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_인증모달_연관정보" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/locations/${locationId}/related-info</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_인증모달_아티스트검색" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/artists/search?keyword=${keyword}&amp;size=20</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_프로필_활동요약" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/projection</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="D_프로필_인증내역" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/visit-verifications</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="E_랭킹마이" enabled="true"/>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_랭킹_관광지" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings?topN=10</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_랭킹_지역" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings/region?topN=10</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_콘텐츠홈_랭킹" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/rankings?topN=3</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_콘텐츠홈_내팬" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/fans</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_콘텐츠홈_좋아요목록" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/liked-locations</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="화면 전환 대기 (1~3초)" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_프로필_활동요약" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/projection</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E_프로필_인증내역" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments"><collectionProp name="Arguments.arguments"/></elementProp>
+          <stringProp name="HTTPSampler.path">/api/users/me/visit-verifications</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree></hashTree></hashTree>
+        </hashTree>
+        <TestAction guiclass="TestActionGui" testclass="TestAction" testname="세션 종료 후 다음 방문까지 대기" enabled="true">
+          <intProp name="ActionProcessor.action">1</intProp>
+          <intProp name="ActionProcessor.target">0</intProp>
+          <stringProp name="ActionProcessor.duration">0</stringProp>
+        </TestAction>
+        <hashTree>
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="대기" enabled="true">
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+            <stringProp name="RandomTimer.range">2000</stringProp>
+          </UniformRandomTimer>
+          <hashTree/>
+        </hashTree></hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
