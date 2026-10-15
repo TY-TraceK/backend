@@ -1,6 +1,6 @@
-# TraceK — K-콘텐츠 촬영지 관광 서비스 (Backend)
+# KRoute — 최애의 발자취를 따라서 (Backend)
 
-K-콘텐츠 촬영지를 지도와 검색으로 탐색하고, 위치 기반 방문 인증을 랭킹에 반영하는 팬 참여형 관광 서비스입니다.
+**KRoute**는 팀 TraceK가 만든 K-콘텐츠 촬영지 관광 서비스입니다. K-콘텐츠 촬영지를 지도와 검색으로 탐색하고, 위치 기반 방문 인증을 랭킹에 반영하는 팬 참여형 관광 서비스입니다.
 2026 관광데이터 활용 공모전 출품작 · 2026.07 – 2026.10
 
 🔗 **서비스:** https://frontend-iota-six-60.vercel.app · **Frontend:** [TY-TraceK/frontend](https://github.com/TY-TraceK/frontend)
@@ -16,7 +16,7 @@ K-콘텐츠 촬영지를 지도와 검색으로 탐색하고, 위치 기반 방�
 
 ```mermaid
 flowchart LR
-    user([사용자]) --> fe["Frontend<br/>React · Vercel"]
+    user([사용자]) --> fe["Frontend<br/>React · Vite · Vercel"]
     fe -->|REST API| be
 
     subgraph ec2["AWS EC2 · Docker Compose"]
@@ -32,14 +32,14 @@ flowchart LR
     be -->|로그인| kakao["Kakao OAuth"]
     be -->|이미지| s3[("AWS S3")]
 
-    gha["GitHub Actions<br/>포맷 검사 · 테스트 · 빌드"] -->|이미지 푸시| ghcr["GHCR"]
+    gha["GitHub Actions<br/>Spotless · 테스트 · JaCoCo · 빌드"] -->|이미지 푸시| ghcr["GHCR"]
     ghcr -->|SSH 배포| ec2
 
     prom["Prometheus · Grafana"] -.->|/actuator/prometheus| be
     prom -.-> ne
 ```
 
-- `develop` 브랜치에 푸시하면 포맷 검사 → 테스트 → 빌드 → GHCR 이미지 푸시 → EC2 배포가 자동으로 진행됩니다.
+- `develop` 브랜치에 푸시하면 코드 포맷 검사(Spotless) → 테스트와 커버리지 검사(JaCoCo, 라인 70% 미만이면 실패) → 빌드 → GHCR 이미지 푸시 → EC2 배포가 자동으로 진행됩니다.
 - 애플리케이션 메트릭(Actuator·Micrometer)과 서버 메트릭(node-exporter)을 Prometheus로 수집해 Grafana로 확인합니다.
 
 ## 기술 스택
@@ -48,6 +48,8 @@ flowchart LR
 | Backend | Java 21 · Spring Boot 3.5 · Spring Security · JPA · QueryDSL |
 | Data | MySQL 8.4 · Redis 7.2 · AWS S3 |
 | Infra | Docker · GitHub Actions · GHCR · AWS EC2 |
+| Quality | JUnit 5 · JaCoCo · Spotless |
+| Frontend | React · Vite · Axios · Kakao Map · Vercel |
 | Monitoring | Actuator · Micrometer · Prometheus · Grafana |
 
 ## 패키지 구조
