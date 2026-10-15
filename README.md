@@ -14,30 +14,7 @@
 
 ## 시스템 아키텍처
 
-```mermaid
-flowchart LR
-    user([사용자]) --> fe["Frontend<br/>React · Vite · Vercel"]
-    fe -->|REST API| be
-
-    subgraph ec2["AWS EC2 · Docker Compose"]
-        be["Spring Boot<br/>Java 21"]
-        mysql[("MySQL 8.4")]
-        redis[("Redis 7.2<br/>TourAPI 캐시")]
-        ne["node-exporter"]
-        be --> mysql
-        be --> redis
-    end
-
-    be -->|관광지 사진·소개| tour["한국관광공사<br/>TourAPI"]
-    be -->|로그인| kakao["Kakao OAuth"]
-    be -->|이미지| s3[("AWS S3")]
-
-    gha["GitHub Actions<br/>Spotless · 테스트 · JaCoCo · 빌드"] -->|이미지 푸시| ghcr["GHCR"]
-    ghcr -->|SSH 배포| ec2
-
-    prom["Prometheus · Grafana"] -.->|/actuator/prometheus| be
-    prom -.-> ne
-```
+![KRoute System Architecture](docs/architecture.svg)
 
 - `develop` 브랜치에 푸시하면 코드 포맷 검사(Spotless) → 테스트와 커버리지 검사(JaCoCo, 라인 70% 미만이면 실패) → 빌드 → GHCR 이미지 푸시 → EC2 배포가 자동으로 진행됩니다.
 - 애플리케이션 메트릭(Actuator·Micrometer)과 서버 메트릭(node-exporter)을 Prometheus로 수집해 Grafana로 확인합니다.
