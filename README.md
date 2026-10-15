@@ -52,7 +52,7 @@ src/main/java/com/tracek
 ## 팀 구성
 | 이름 | 역할 | 담당 |
 |---|---|---|
-| 백유진 ([@YujinB](https://github.com/YujinB)) | Backend | 관광지 · 지도 · 콘텐츠 · 아티스트 · 검색 · 이미지, CI/CD |
+| 백유진 ([@YujinB](https://github.com/YujinB)) | Backend · Frontend | 관광지 · 지도 · 콘텐츠 · 아티스트 · 검색 · 이미지 (API · 화면 연동), CI/CD |
 | 송유진 ([@0000yuyu](https://github.com/0000yuyu)) | Backend · Frontend | 인증 · 회원 · 팬 · 방문 인증 · 랭킹 |
 | 안다솜 ([@d97s111m](https://github.com/d97s111m)) | Design · Frontend | UI/UX 디자인, 화면 구현 |
 
